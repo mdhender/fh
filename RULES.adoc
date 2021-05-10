@@ -1,14 +1,15 @@
 = Far Horizons Rules
 Rick Morneau <doc@example.com>
-v7, 1999-01-02
+v7.0.1, 2021-05-10
 :doctype: book
 :sectnums:
 :sectnumlevels: 5
 :partnums:
 :toc: right
+:stem:
 
 :sectnums!:
-== Foreword
+== Forward
 
  Seventh Edition Rules for FAR HORIZONS
  by Rick Morneau
@@ -82,13 +83,12 @@ distances involve greater risks.  The technology involved is called
 farther a ship can jump without risk of missing its destination or of being
 destroyed.
 
-The time needed for a ship to travel through the wormhole is independent of the
-distance being traveled.  However, it IS dependent on the mass of the ship, as
-shown by the following equation:
+The time needed for a ship to travel through the wormhole is independent of the distance being traveled.
+However, it IS dependent on the mass of the ship, as shown by the following equation:
 
-\[
-\textrm{time in years} = 5\: tanh (\textrm{mass in grams})
-\]
+stem:[t = 5 tanh (m)]
+
+where stem:[t] is time in years and stem:[m] is mass in grams.
 
 If you're not mathematically inclined, don't worry!  What the equation says is
 that it takes almost exactly five years for anything larger than a pea, since
@@ -417,17 +417,16 @@ reader has sufficient technical background to understand how to work with these
 coordinates (called Cartesian Coordinates).  Just as a reminder, though, the
 distance between any two stars can be calculated using the formula:
 
-\begin{equation*}
-\textrm{distance}  =  \sqrt{ (X2 - X1)^2   +  (Y2 - Y1)^2   +  (Z2 - Z1)^2 }
-\end{equation*}
+stem:[d = sqrt((x_2 - x_1)^2   +  (y_2 - y_1)^2   +  (z_2 - z_1)^2)]
 
-Most distances can be estimated by simply looking at the map and counting
-squares.  Finicky players, however, may want to calculate exact distances using
-the above formula.
+where stem:[d] is the distance.
 
-Any region of space defined by a set of specific X Y Z coordinates is called a
-"sector".  Thus, the number of sectors in the galaxy is simply the number of
-possible combinations of X, Y, and Z.  Most sectors are effectively empty.
+Most distances can be estimated by simply looking at the map and counting squares.
+Finicky players, however, may want to calculate exact distances using the above formula.
+
+Any region of space defined by a set of specific X Y Z coordinates is called a "sector".
+Thus, the number of sectors in the galaxy is simply the number of possible combinations of X, Y, and Z.
+Most sectors are effectively empty.
 Only a relatively small number of sectors contain usable stars and planets.
 
 
