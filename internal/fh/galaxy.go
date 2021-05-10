@@ -61,7 +61,7 @@ type Player struct {
 	Species      string `json:"species"`
 }
 
-func GenerateGalaxy(setupData *SetupData) (*GalaxyData, error) {
+func GenerateGalaxy(logFile io.Writer, setupData *SetupData) (*GalaxyData, error) {
 	galaxy := &GalaxyData{
 		ID:           setupData.Galaxy.Name,
 		Name:         setupData.Galaxy.Name,
@@ -96,7 +96,7 @@ func GenerateGalaxy(setupData *SetupData) (*GalaxyData, error) {
 		// add 50% more species to the mix as a way to trick the program into adding more stars
 		adjusted_number_of_species = (d_num_species * 3) / 2
 		if adjusted_number_of_species < MIN_SPECIES || MAX_SPECIES < adjusted_number_of_species {
-			fmt.Printf("Low density option giving, boosting species count to %d\n", adjusted_number_of_species)
+			_, _ = fmt.Fprintf(logFile, "Low density option giving, boosting species count to %d\n", adjusted_number_of_species)
 			return nil, fmt.Errorf("adjusted number of species must be between %d and %d, inclusive", MIN_SPECIES, MAX_SPECIES)
 		}
 	}
@@ -104,12 +104,12 @@ func GenerateGalaxy(setupData *SetupData) (*GalaxyData, error) {
 
 	// get approximate number of star systems to generate
 	desired_num_stars := (adjusted_number_of_species * STANDARD_NUMBER_OF_STAR_SYSTEMS) / STANDARD_NUMBER_OF_SPECIES
-	fmt.Printf("For %d species, there should be about %d stars.\n", d_num_species, desired_num_stars)
+	_, _ = fmt.Fprintf(logFile, "For %d species, there should be about %d stars.\n", d_num_species, desired_num_stars)
 	if setupData.Galaxy.Overrides.UseOverrides {
 		if setupData.Galaxy.LowDensity {
-			fmt.Printf("For %d species, a low density game needs about %d stars.\n", d_num_species, desired_num_stars)
+			_, _ = fmt.Fprintf(logFile, "For %d species, a low density game needs about %d stars.\n", d_num_species, desired_num_stars)
 		} else {
-			fmt.Printf("For %d species, a game needs about %d stars.\n", d_num_species, desired_num_stars)
+			_, _ = fmt.Fprintf(logFile, "For %d species, a game needs about %d stars.\n", d_num_species, desired_num_stars)
 		}
 		desired_num_stars = setupData.Galaxy.Overrides.NumberOfStars
 	}
@@ -124,7 +124,7 @@ func GenerateGalaxy(setupData *SetupData) (*GalaxyData, error) {
 		galactic_radius++
 	}
 	if setupData.Galaxy.Overrides.UseOverrides {
-		fmt.Printf("For %d stars, the galaxy should have a radius of about %d parsecs.", desired_num_stars, galactic_radius)
+		_, _ = fmt.Fprintf(logFile, "For %d stars, the galaxy should have a radius of about %d parsecs.", desired_num_stars, galactic_radius)
 		galactic_radius = setupData.Galaxy.Overrides.Radius
 	}
 	if galactic_radius < MIN_RADIUS || galactic_radius > MAX_RADIUS {
@@ -222,11 +222,11 @@ func GenerateGalaxy(setupData *SetupData) (*GalaxyData, error) {
 		galaxy.NumberOfPlanets += len(star.Planets)
 	}
 
-	fmt.Printf("This galaxy contains a total of %d stars and %d planets.\n", len(galaxy.Stars), galaxy.NumberOfPlanets)
+	_, _ = fmt.Fprintf(logFile, "This galaxy contains a total of %d stars and %d planets.\n", len(galaxy.Stars), galaxy.NumberOfPlanets)
 	if galaxy.NumberOfWormHoles == 1 {
-		fmt.Printf("The galaxy contains %d natural wormhole.\n\n", galaxy.NumberOfWormHoles)
+		_, _ = fmt.Fprintf(logFile, "The galaxy contains %d natural wormhole.\n\n", galaxy.NumberOfWormHoles)
 	} else {
-		fmt.Printf("The galaxy contains %d natural wormholes.\n\n", galaxy.NumberOfWormHoles)
+		_, _ = fmt.Fprintf(logFile, "The galaxy contains %d natural wormholes.\n\n", galaxy.NumberOfWormHoles)
 	}
 
 	return galaxy, nil
