@@ -45,13 +45,18 @@ configuration file, then creates a new galaxy file.`,
 			return fmt.Errorf("you must specify a valid path to read and create galaxy data in")
 		}
 
+		logFile, err := os.Create(path.Join(galaxyPath, "create-galaxy.log"))
+		if err != nil {
+			return err
+		}
+
 		setupData, err := fh.GetSetup(path.Join(galaxyPath, "setup.json"))
 		if err != nil {
 			return err
 		}
 
 		// NewGalaxy step in setup_game.py
-		g, err := fh.GenerateGalaxy(setupData)
+		g, err := fh.GenerateGalaxy(logFile, setupData)
 		if err != nil {
 			return err
 		}
@@ -101,7 +106,7 @@ configuration file, then creates a new galaxy file.`,
 			// fetch the home system template and update the star with values from the template
 			star.ConvertToHomeSystem(g.Templates.Homes[star.NumPlanets])
 			pn := star.HomePlanetNumber()
-			fmt.Printf("Converted system %d %d %d, home planet %d\n", x, y, z, pn)
+			_, _ = fmt.Fprintf(logFile, "Converted system %d %d %d, home planet %d\n", x, y, z, pn)
 
 			// get pointer to home planet
 			spec.HomePlanet = star.Planets[star.HomePlanetIndex()]
@@ -112,9 +117,9 @@ configuration file, then creates a new galaxy file.`,
 			home_nampla.X, home_nampla.Y, home_nampla.Z = x, y, z
 			home_nampla.PN = pn
 
-			fmt.Printf("Scan of star system:\n\n")
+			_, _ = fmt.Fprintf(logFile, "Scan of star system:\n\n")
 			star.Scan(os.Stdout, nil)
-			fmt.Printf("\n")
+			_, _ = fmt.Fprintf(logFile, "\n")
 
 			/* Check tech levels. */
 			totalTechLevels := 0
@@ -123,7 +128,7 @@ configuration file, then creates a new galaxy file.`,
 			totalTechLevels += player.LS
 			totalTechLevels += player.ML
 			if totalTechLevels != 15 {
-				fmt.Printf("\n\tERROR! ML + GV + LS + BI is not equal to 15!\n\n")
+				_, _ = fmt.Fprintf(logFile, "\n\tERROR! ML + GV + LS + BI is not equal to 15!\n\n")
 				return fmt.Errorf("total tech levels must sum up to 15")
 			}
 			// set player-specified tech levels (mining and manufacturing are each 10)
@@ -160,7 +165,7 @@ configuration file, then creates a new galaxy file.`,
 				}
 			}
 			if spec.RequiredGasMax == 0 {
-				fmt.Printf("\n\tERROR! Planet does not have %s(%s)!\n", spec.RequiredGas.String(), spec.RequiredGas.Char())
+				_, _ = fmt.Fprintf(logFile, "\n\tERROR! Planet does not have %s(%s)!\n", spec.RequiredGas.String(), spec.RequiredGas.Char())
 				return fmt.Errorf("planet does not have required gas %s", spec.RequiredGas.Char())
 			}
 
@@ -218,42 +223,42 @@ configuration file, then creates a new galaxy file.`,
 			home_nampla.Shipyards = 1
 
 			/* Print summary. */
-			fmt.Printf("\n  Summary for species #%d:\n", spec.Number)
-			fmt.Printf("\tName of species: %s\n", spec.Name)
-			fmt.Printf("\tName of home planet: %s\n", home_nampla.Name)
-			fmt.Printf("\t\tCoordinates: %d %d %d #%d\n", spec.X, spec.Y, spec.Z, spec.PN)
-			fmt.Printf("\tName of government: %s\n", spec.GovtName)
-			fmt.Printf("\tType of government: %s\n\n", spec.GovtType)
+			_, _ = fmt.Fprintf(logFile, "\n  Summary for species #%d:\n", spec.Number)
+			_, _ = fmt.Fprintf(logFile, "\tName of species: %s\n", spec.Name)
+			_, _ = fmt.Fprintf(logFile, "\tName of home planet: %s\n", home_nampla.Name)
+			_, _ = fmt.Fprintf(logFile, "\t\tCoordinates: %d %d %d #%d\n", spec.X, spec.Y, spec.Z, spec.PN)
+			_, _ = fmt.Fprintf(logFile, "\tName of government: %s\n", spec.GovtName)
+			_, _ = fmt.Fprintf(logFile, "\tType of government: %s\n\n", spec.GovtType)
 
-			fmt.Printf("\tTech levels: %s = %d,  %s = %d,  %s = %d\n",
+			_, _ = fmt.Fprintf(logFile, "\tTech levels: %s = %d,  %s = %d,  %s = %d\n",
 				fh.TechName[fh.MI], spec.TechLevel[fh.MI],
 				fh.TechName[fh.MA], spec.TechLevel[fh.MA],
 				fh.TechName[fh.ML], spec.TechLevel[fh.ML])
-			fmt.Printf("\t             %s = %d,  %s = %d,  %s = %d\n",
+			_, _ = fmt.Fprintf(logFile, "\t             %s = %d,  %s = %d,  %s = %d\n",
 				fh.TechName[fh.MI], spec.TechLevel[fh.GV],
 				fh.TechName[fh.MA], spec.TechLevel[fh.LS],
 				fh.TechName[fh.ML], spec.TechLevel[fh.BI])
 
-			fmt.Printf("\n\n\tFor this species, the required gas is %s (%d%%-%d%%).\n",
+			_, _ = fmt.Fprintf(logFile, "\n\n\tFor this species, the required gas is %s (%d%%-%d%%).\n",
 				spec.RequiredGas.Char(),
 				spec.RequiredGasMin, spec.RequiredGasMax)
 
-			fmt.Printf("\tGases neutral to species:")
+			_, _ = fmt.Fprintf(logFile, "\tGases neutral to species:")
 			for _, gasType := range spec.NeutralGas {
-				fmt.Printf(" %s ", gasType.Char())
+				_, _ = fmt.Fprintf(logFile, " %s ", gasType.Char())
 			}
 
-			fmt.Printf("\n\tGases poisonous to species:")
+			_, _ = fmt.Fprintf(logFile, "\n\tGases poisonous to species:")
 			for _, gasType := range spec.PoisonGas {
-				fmt.Printf(" %s ", gasType.Char())
+				_, _ = fmt.Fprintf(logFile, " %s ", gasType.Char())
 			}
 
-			fmt.Printf("\n\n\tInitial mining base = %d.%d. Initial manufacturing base = %d.%d.\n",
+			_, _ = fmt.Fprintf(logFile, "\n\n\tInitial mining base = %d.%d. Initial manufacturing base = %d.%d.\n",
 				home_nampla.MIBase/10, home_nampla.MIBase%10,
 				home_nampla.MABase/10, home_nampla.MABase%10)
-			fmt.Printf("\tIn the first turn, %d raw material units will be produced,\n",
+			_, _ = fmt.Fprintf(logFile, "\tIn the first turn, %d raw material units will be produced,\n",
 				(10*spec.TechLevel[fh.MI]*home_nampla.MIBase)/spec.HomePlanet.MiningDifficulty)
-			fmt.Printf("\tand the total production capacity will be %d.\n\n",
+			_, _ = fmt.Fprintf(logFile, "\tand the total production capacity will be %d.\n\n",
 				(spec.TechLevel[fh.MA]*home_nampla.MABase)/10)
 
 			// set visited_by bit in star data
@@ -266,9 +271,9 @@ configuration file, then creates a new galaxy file.`,
 				return err
 			}
 
-			fmt.Fprintf(w, "\nScan of home star system for SP %s:\n\n", spec.Name)
+			_, _ = fmt.Fprintf(w, "\nScan of home star system for SP %s:\n\n", spec.Name)
 			star.Scan(w, spec)
-			fmt.Fprintf(w, "\n")
+			_, _ = fmt.Fprintf(w, "\n")
 
 			fmt.Printf("Created file %q\n", logFile)
 		}
@@ -278,7 +283,7 @@ configuration file, then creates a new galaxy file.`,
 			return err
 		}
 
-		fmt.Printf("Created file %q in %v\n", path.Join(galaxyPath, "galaxy.json"), time.Now().Sub(started))
+		_, _ = fmt.Fprintf(logFile, "Created file %q in %v\n", path.Join(galaxyPath, "galaxy.json"), time.Now().Sub(started))
 		return nil
 	},
 }
