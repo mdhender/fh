@@ -86,9 +86,7 @@ destroyed.
 The time needed for a ship to travel through the wormhole is independent of the distance being traveled.
 However, it IS dependent on the mass of the ship, as shown by the following equation:
 
-stem:[t = 5 tanh (m)]
-
-where stem:[t] is time in years and stem:[m] is mass in grams.
+stem:[text(time in years) = 5tanh(text(mass in grams))]
 
 If you're not mathematically inclined, don't worry!  What the equation says is
 that it takes almost exactly five years for anything larger than a pea, since
@@ -833,13 +831,12 @@ ships, etc.  You start the game with a blank slate.  You DO, however, have
 mining and manufacturing capability which you can start using immediately
 to build ships and other items.
 
-Names of items that are available for use on a planet will be printed out in
-full, along with their class abbreviation, required carrying capacity, and
-quantity.  For example:
+Names of items that are available for use on a planet will be printed out in full, along with their class abbreviation, required carrying capacity, and quantity.
+For example:
 
-\begin{equation*}
-\textrm{Raw Material Units}(\textrm{RM},\textrm{C1}) = 17
-\end{equation*}
+```
+Raw Material Units (RM,C1) = 17
+```
 
 The above example indicates that the planet has 17 unused raw material units,
 which require a carrying capacity of 1 each, and have the abbreviation "RM".
@@ -917,25 +914,17 @@ This technology is used to produce all of the raw materials that, in turn, are
 used for final production.  Thus, mining technology produces raw materials and
 manufacturing technology consumes them.
 
-In FAR HORIZONS, quantities of raw materials are measured in RAW MATERIAL
-UNITS.  The number of raw material units that can be produced on a planet in a
-single turn is:
+In FAR HORIZONS, quantities of raw materials are measured in RAW MATERIAL UNITS.
+The number of raw material units that can be produced on a planet in a single turn is:
 
-\begin{equation*}
-\textrm{Raw Material Units}  = \dfrac{\textrm{Mining Tech Level}  \times  \textrm{Mining Base}}{\textrm{Mining Difficulty}}
-\end{equation*}
+stem:[text(Raw Material Units) = (text(Mining Tech Level) xx text(Mining Base)) / text(Mining Difficulty)]
 
-MINING BASE is a relative measure of the total physical plant, acreage,
-infrastructure, etc. that is available on the planet for the production of
-raw materials.  Thus, it is a measure of how many mines, farms, drilling
-facilities, steel mills, etc that can be used by the planet's population.
+MINING BASE is a relative measure of the total physical plant, acreage, infrastructure, etc. that is available on the planet for the production of raw materials.
+Thus, it is a measure of how many mines, farms, drilling facilities, steel mills, etc that can be used by the planet's population.
 
-For example, if your mining tech level is 4, your mining base is 136 and the
-planet's mining difficulty is 1.24, then you can produce
+For example, if your mining tech level is 4, your mining base is 136 and the planet's mining difficulty is 1.24, then you can produce
 
-\begin{equation*}
-\dfrac{4  \times  136}{1.24} = 438.71 = 438 \textrm{ raw material units}
-\end{equation*}
+stem:[(4 xx 136) / 1.24 = 438.71 = 438 \ text(raw material units)]
 
 in the current turn.  Note that fractions are always dropped.  Since current
 values are always shown on status reports that are sent to players, it will
@@ -961,11 +950,7 @@ material units into final products.  Specifically, it is a measure of the
 number of raw material units that may be converted into usable products in
 a single turn.  This value is determined as follows:
 
-
-\begin{equation*}
-\textrm{Production Capacity}  =  \textrm{Manufacturing Tech Level}  \times  \textrm{Manufacturing Base}
-\end{equation*}
-
+stem:[text(Production Capacity) = text(Manufacting Tech Level) xx text(Manufacturing Base)]
 
 MANUFACTURING BASE is a relative measure of the total physical plant available
 on a planet for the conversion of raw material units into final products.
@@ -975,11 +960,7 @@ etc. that can be used by the planet's population.
 For example, if manufacturing tech level is 6 and manufacturing base is 142,
 then
 
-
-\begin{equation*}
-\textrm{Production Capacity}  =  6  \times  142  =  852
-\end{equation*}
-
+stem:[text(Production Capacity) = 6 xx 142 = 852]
 
 in the current turn.  Thus, the planet has the production capacity to "consume"
 852 raw material units and "purchase" 852 units of final products.  Since
@@ -1326,17 +1307,13 @@ should use the class abbreviation "TRn", where "n" is the tonnage divided by
 
 The carrying capacity of a transport is calculated as follows:
 
+stem:[text(Transport Carrying Capacity) = (10 + n/2) xx n]
 
-\begin{equation*}
-\textrm{Transport Carrying Capacity}  =  (10 + n/2) \times n
-\end{equation*}
-
+where stem:[n] is the numeric part of the transport class abbreviation.
 
 For example, a TR7 (i.e. a 70,000 ton transport) has a carrying capacity of
 
-\[
-(10 + 7/2) \times 7 = (10 + 3) \times 7 = 91
-\]
+stem:[(10 + 7 / 2) xx 7 = (10 + 3) xx 7 = 21 xx 7 = 91]
 
 Note that fractions are dropped in the division.
 
@@ -1346,15 +1323,15 @@ Here are some more examples:
 |===
 |Minimum MA|Abbr|Tonnage|Carrying Capacity|FTL Cost|Sub-light Cost
 
-|2|	TR1	|10,000		|10	|100|	75
-|4|	TR2	|20,000		|22	|200|	150
-|10|	TR5	|50,000		|60	|500|	375
-|12|	TR6	|60,000		|78	|600|	450
-|20|	TR10	|100,000		|150	|1000|	750
-|30|	TR15	|150,000		|255	|1500|	1125
-|40|	TR20	|200,000		|400	|2000|	1500
-|100|	TR50	|500,000		|1750	|5000|	3750
-|120|	TR60	|600,000		|2400	|6000|	4500
+|2|TR1|10,000|10|100|75
+|4|TR2|20,000|22|200|150
+|10|TR5|50,000|60|500|375
+|12|TR6|60,000|78|600|450
+|20|TR10|100,000|150|1,000|750
+|30|TR15|150,000|255|1,500|1,125
+|40|TR20|200,000|400|2,000|1,500
+|100|TR50|500,000|1,750|5,000|3,750
+|120|TR60|600,000|2,400|6,000|4,500
 |===
 
 
@@ -1433,28 +1410,23 @@ a species' Manufacturing tech level.  This limit is exactly the same as
 for ships; i.e., the maximum tonnage of a starbase is 5000 times the
 Manufacturing tech level.
 
-Starbases are constructed in the same way as ships.  The player simply places
-an order for a starbase of a specific tonnage, or for additional tonnage to
-be added to an existing starbase.  The cost is the same as the equivalent FTL
-ship tonnage; i.e., tonnage divided by 100.  Starbases must always be built
-or incremented in multiples of 10,000 tons.  For example, it would cost
-20,000/100 = 200 to built a starbase of 20,000 tons.  To increase its tonnage
-to 50,000 tons would require an additional cost of (50,000-20,000)/100=300.
+Starbases are constructed in the same way as ships.
+The player simply places an order for a starbase of a specific tonnage, or for additional tonnage to be added to an existing starbase.
+The cost is the same as the equivalent FTL ship tonnage; i.e., tonnage divided by 100.
+Starbases must always be built or incremented in multiples of 10,000 tons.
+For example, it would cost stem:[20000/100 = 200] to built a starbase of 20,000 tons.
+To increase its tonnage to 50,000 tons would require an additional cost of stem:[(50000-20000)/100=300].
 Thus, the amount spent must always be an exact multiple of 100.
 
-A starbase built using the normal production capacity of a planet must be
-built in orbit around that planet.  (We will discuss another way of building
-starbases later.)
+A starbase built using the normal production capacity of a planet must be built in orbit around that planet.
+(We will discuss another way of building starbases later.)
 
 The carrying capacity of a starbase is determined as follows:
 
-\[
-\textrm{Starbase Carrying Capacity}  =   \dfrac{\textrm{Tonnage}}{1000}
-\]
+stem:[text(Starbase Carrying Capacity) = text(Tonnage)/1000]
 
-Overall, the combat effectiveness of a starbase is exactly the same as a
-warship of the same tonnage.  Thus, a 150,000 ton starbase and a 150,000 ton
-destroyer would fight as equals.
+Overall, the combat effectiveness of a starbase is exactly the same as a warship of the same tonnage.
+Thus, a 150,000 ton starbase and a 150,000 ton destroyer would fight as equals.
 
 [Note]
 ====
@@ -1680,30 +1652,21 @@ An item's age may be reduced by having it upgraded (i.e., it will undergo a
 retrofit).  The amount of age reduction can be calculated with the following
 formula:
 
-\[
-\textrm{Age Reduction}  =  \dfrac{40  \times  \textrm{Amount Spent}}{\textrm{Original Cost}}
-\]
+stem:[text(Age Reduction) = 40 xx text(Amount Spent) / text(Original Cost)]
 
 Fractions will be dropped.
 
-Or, if you'd rather start with the age reduction, then the corresponding cost
-can be determined using the following formula:
+Or, if you'd rather start with the age reduction, then the corresponding cost can be determined using the following formula:
 
-\[
-\textrm{Cost of Upgrade}  =  \dfrac{\textrm{Desired Age Reduction}  \times  \textrm{Original Cost}}{40}
-\]
+stem:[text(Cost of Upgrade) = text(Desired Age Reduction) xx text(Original Cost) / 40]
 
 If the result has a fraction, it should be rounded UP to the next whole number.
-For a starbase, the original cost is considered to be the current tonnage
-divided by 100.
+For a starbase, the original cost is considered to be the current tonnage divided by 100.
 
-For example, to completely upgrade an 80,000 ton transport that has an
-effective age of 17 turns would cost (17 x 800) / 40 = 340, and would reduce
-its effective "age" to zero.  To reduce the age of a 70,000 ton starbase
-from 34 to 10 would cost (34 - 10) x 700 / 40 = 420.
+For example, to completely upgrade an 80,000 ton transport that has an effective age of 17 turns would cost stem:[(17 xx 800) / 40 = 340], and would reduce its effective "age" to zero.
+To reduce the age of a 70,000 ton starbase from 34 to 10 would cost stem:[(34 - 10) xx 700 / 40 = 420].
 
-To upgrade a ship or starbase, use the UPGRADE command, as in the following
-examples:
+To upgrade a ship or starbase, use the UPGRADE command, as in the following examples:
 
 ```
 START PRODUCTION
@@ -1756,19 +1719,12 @@ example, recycling 29 RMs will generate 5 economic units).
 
 For ships and starbases, the amount of economic units generated will be:
 
+stem:[((3 xx text(Original Cost)) / 4) xx ((60 - text(Age)) / 50)]
 
-\[
-\dfrac{3  \times  \textrm{original cost}}{4}      \times \dfrac{(60 - \textrm{age})}{50}
-\]
+If a ship is still under construction, it may be recycled for half of what has already been spent on it.
+If a ship is carrying cargo, the cargo will first be transferred to the planet before the ship is recycled (cargo, if any, is NOT automatically recycled).
 
-
-If a ship is still under construction, it may be recycled for half of what has
-already been spent on it.  If a ship is carrying cargo, the cargo will first be
-transferred to the planet before the ship is recycled (cargo, if any, is NOT
-automatically recycled).
-
-To recycle ships, starbases and other items, use the RECYCLE command, as in the
-following examples:
+To recycle ships, starbases and other items, use the RECYCLE command, as in the following examples:
 
 ```
 START PRODUCTION
@@ -2237,27 +2193,23 @@ The above LAND command will land the ship on PL Earth.
 
 === MISHAP PROBABILITIES
 
-Whenever a ship jumps from one star system to another, there is always a chance
-of a mishap.  This section is provided for those players who would like to know
-the actual probabilities involved.
+Whenever a ship jumps from one star system to another, there is always a chance of a mishap.
+This section is provided for those players who would like to know the actual probabilities involved.
 
 The percentage probability that something will go wrong is:
 
-\[
-\textrm{Mishap Probability}  =  \dfrac{\textrm{Distance}^2}{\textrm{Gravitics Tech Level}}
-\]
+stem:[text(Mishap Probability) = text(Distance)^2 / text(Gravitics Tech Level)]
 
-The result is in percent.  For example, if the distance is 7 parsecs and the
-Gravitics tech level is 4, then the mishap probability is (7 x 7)/4 = 12.25%.
+The result is in percent.
+For example, if the distance is 7 parsecs and the Gravitics tech level is 4, then the mishap probability is stem:[(7 xx 7)/4 = 12.25%].
 Note that the result is significant to two places after the decimal point.
 
-If a mishap does occur, then the result will be either a mis-jump or self-
-destruction.  When a mishap does occur, a second check is made using the same
-probability.  If the second mishap also occurs, then the ship self-destructs.
+If a mishap does occur, then the result will be either a mis-jump or self-destruction.
+When a mishap does occur, a second check is made using the same probability.
+If the second mishap also occurs, then the ship self-destructs.
 
-Finally, don't forget that all success/failure probabilities are further
-affected by the age of a ship.  The probability calculated above is for a ship
-whose effective age is zero.
+Finally, don't forget that all success/failure probabilities are further affected by the age of a ship.
+The probability calculated above is for a ship whose effective age is zero.
 
 
 === THE MOVE COMMAND
@@ -2423,12 +2375,10 @@ Colonist units, colonial mining units, and colonial manufacturing units are
 used to establish the initial mining and manufacturing bases on a colony
 planet.  Units are installed as follows:
 
-\[
-1 \text{ colonist unit} + 1 \textrm{ colonial mining unit} = 0.1 \textrm{ mining base}
-\]
-\[
-1 \textrm{ colonist unit} + 1 \textrm{ colonial manufacturing unit} = 0.1 \textrm{ manufacturing base}
-\]
+```
+1 Colonist Unit + 1 Colonial Mining Unit        = 0.1 Mining Base
+1 Colonist Unit + 1 Colonial Manufacturing Unit = 0.1 Manufacturing Base
+```
 
 In other words, a colonist unit consists of trained people, ready and willing
 to work.  A colonial mining unit or a colonial manufacturing unit contains the
@@ -2684,17 +2634,13 @@ HIDE order in the production section of your orders, as follows:
 
 The command takes no arguments.
 
-The HIDE command will last only for the current turn.  If you wish to
-permanently hide a colony, then you must issue the HIDE command each turn.
+The HIDE command will last only for the current turn.
+If you wish to permanently hide a colony, then you must issue the HIDE command each turn.
 
-The cost of hiding is the sum of the mining and manufacturing bases of the
-colony at the beginning of the turn.  For example, if the most recent status
-report shows that a colony has a mining base of 25.7 and a manufacturing base
-of 29.2, then the cost of hiding the colony will be:
+The cost of hiding is the sum of the mining and manufacturing bases of the colony at the beginning of the turn.
+For example, if the most recent status report shows that a colony has a mining base of 25.7 and a manufacturing base of 29.2, then the cost of hiding the colony will be:
 
-\[
-25.7 + 29.2  =  54.9  =  54
-\]
+stem:[25.7 + 29.2  =  54.9  =  54]
 
 Note that fractions are dropped.
 
@@ -2782,35 +2728,26 @@ penalty" that will apply to all planets.  The penalty will depend on the actual
 Life Support tech level of the species (LS) and the tech level needed to
 survive on the planet (LSN).  The production penalty is calculated as follows:
 
+stem:[text(Production Penalty) = (100 xx text(Life Support Tech Level Needed)) / text(Life Support Tech Level) %]
 
-\[
-\textrm{Production Penalty}  =  \dfrac{100  \times  \textrm{Life support tech level needed}}{\textrm{Life support tech level}}\textrm{percent}
-\]
+For example, if the LSN value for the planet is 9 and the LS value for the species is 36, then production capacity and raw material production will each be reduced by 25%.
 
+stem:[100 xx 9 / 36 = 900 / 36 = 25%]
 
-For example, if the LSN value for the planet is 9 and the LS value for the
-species is 36, then production capacity and raw material production will each
-be reduced by 25%.  If LS equals LSN, then the production penalty is 100%,
-and nothing at all will be available for spending - the entire output of the
-planet's mining and manufacturing bases will be needed just to survive.
+If LS equals LSN, then the production penalty is 100%, and nothing at all will be available for spending - the entire output of the planet's mining and manufacturing bases will be needed just to survive.
 
-The penalty will apply to all planets, including mining colonies, manufacturing
-colonies, and even the home planet.  However, since the life support tech level
-needed on the home planet is zero, the penalty will also be zero.  (The only
-way this could change is if the home planet is terraformed by another species.
-We'll have more to say about terraforming later.)
+The penalty will apply to all planets, including mining colonies, manufacturing colonies, and even the home planet.
+However, since the life support tech level needed on the home planet is zero, the penalty will also be zero.
+(The only way this could change is if the home planet is terraformed by another species. We'll have more to say about terraforming later.)
 
-The penalty will be calculated by the computer and printed on your status
-reports, along with the net production values.  Although you will not have to
-do any additional calculations, you should always keep the penalty in mind when
-deciding on which planets to colonize.
+The penalty will be calculated by the computer and printed on your status reports, along with the net production values.
+Although you will not have to do any additional calculations, you should always keep the penalty in mind when deciding on which planets to colonize.
 
 
 
 == WARFARE
 
-Since FAR HORIZONS is a role-playing game, it is quite possible for a species
-to choose to be peaceful, and to live harmoniously with all of its neighbors.
+Since FAR HORIZONS is a role-playing game, it is quite possible for a species to choose to be peaceful, and to live harmoniously with all of its neighbors.
 Unfortunately, its neighbors may not be similarly inclined...
 
 
@@ -2851,6 +2788,7 @@ engagement you are willing to take part in.  Some also require an additional
 argument which specifies the planet where the option will apply.  You may
 specify more than one ENGAGE command per battle.  Here are your options:
 
+.Combat Engagment Levels
 |===
 |Option|Meaning|Explanation
 
@@ -3055,17 +2993,11 @@ is an inherently military operation, it will also depend on the relative
 Military tech levels of the opponents.  An effectiveness rating will be
 calculated as follows:
 
+stem:[text(Effectiveness) = (text(Total Ship Tonnage) xx text(ML of Attackers)) / (text(Production Base) xx (text(ML of Defenders) + 1))]
 
-\[
-\textrm{Effectiveness}  =  \dfrac{\textrm{Total ship tonnage}  \times  \textrm{ML of attackers}}{\textrm{Production base}  \times  (\textrm{ML of defenders} + 1)}
-\]
-\[
-\textrm{Production base}  =  (\textrm{MI} \times \textrm{Mining Base})  +  (\textrm{MA} \times \textrm{Manufacturing Base})
-\]
+stem:[text(Production Base) = (text(MI) xx text(Mining Base)) + (text(MA) xx text(Manufacturing Base))]
 
-
-If a ship besieges more than one planet in a sector, then its effectiveness
-will be divided by the number of planets that it is besieging.
+If a ship besieges more than one planet in a sector, then its effectiveness will be divided by the number of planets that it is besieging.
 
 Since a starbase does not have the maneuverability of a normal ship, it
 will have an effective tonnage that is one quarter of its actual tonnage.
@@ -3535,18 +3467,15 @@ the ambush; that is, how well you prepared.
 Damage to the enemy will be measured in 'Effective Aging', which is calculated
 as follows:
 
-\[
-\textrm{Effective Aging}   =   \dfrac{10,000 \times \textrm{Amount Spent}}{\textrm{WT}  +  \textrm{TT}/10}
-\]
+stem:[text(Effective Aging) = (10000 xx text(Amount Spent)) / (text(Warship Tonnage) + text(Transport Tonnage)/10)]
 
 where
 
-	WT = The total enemy warship tonnage in the star system immediately before combat begins.
-	TT = The total enemy transport tonnage in the star system immediately before combat begins.
+	Warship Tonnage = The total enemy warship tonnage in the star system immediately before combat begins.
+	Transport Tonnage = The total enemy transport tonnage in the star system immediately before combat begins.
 
-The 'Effective Aging' value will be added to the actual age of each enemy ship
-immediately before any battle begins.  If the resulting age is greater than 49,
-then the ship is destroyed.
+The 'Effective Aging' value will be added to the actual age of each enemy ship immediately before any battle begins.
+If the resulting age is greater than 49, then the ship is destroyed.
 
 	Example:  You expect that the Klingons will jump to the Earth system
 	during the current turn.  In your production orders for PL Earth, you
@@ -3555,10 +3484,7 @@ then the ship is destroyed.
 	Thus, the 'Effective Aging' value will be:
 
 
-\[
-\dfrac{10,000  \times  710}{100,000  +  150,000  +  70,000/10} =  27.63  = 27
-\]
-
+stem:[(10000 xx 710)/(100000 + 150000 + (70000/10)) = 71000000/(250000 + 7000) = 7100000 / 257000 = 27.63 = 27]
 
 Note that fractions are dropped.
 
@@ -3709,14 +3635,11 @@ bias the results against any one enemy species.
 
 The amount needed to destroy an enemy ship can be calculated as follows:
 
+stem:[text(Cost to Destroy Warship) = 100 xx text(Warship Tonnage) / 10000 = text(Warship Tonnage) / 100]
 
-\[
-\textrm{Cost} =  \dfrac{100  \times  \textrm{warship tonnage}}{10,000}
-\]
+The cost needed to intercept and destroy a transport will be one-tenth of the cost for a warship of the same tonnage.
 
-
-The cost needed to intercept and destroy a transport will be one-tenth of the
-cost for a warship of the same tonnage.
+stem:[text(Cost to Destroy Transport) = 100 xx (text(Transport Tonnage) / 100000) / 10 = text(Transport Tonnage) / 1000]
 
 Note that, unlike an ambush, the ships are not aged - they are either
 completely destroyed or completely unharmed.  If there are not enough funds
@@ -3746,35 +3669,26 @@ END
 
 Thus, the total amount spent on interception is 550.
 
-At the end of production for your species, the computer randomly selects the
-50,000 ton Romulan escort as the first ship for interception.  The cost is:
+At the end of production for your species, the computer randomly selects the 50,000 ton Romulan escort as the first ship for interception.
+The cost is:
 
-\[
-\dfrac{100  \times  50,000}{10,000}  =  500
-\]
+stem:[100 xx 50000 / 10000 = 500 or 50000 / 100 = 500]
 
-Since the current balance is 550, the escort is destroyed and the new balance
-is 550 - 500 = 50.  If the computer then randomly selects the destroyer for
-destruction, the interception process immediately ends because the balance of
-50 is not enough to destroy the destroyer (1500 needed), EVEN THOUGH IT IS
-ENOUGH TO DESTROY THE TRANSPORT!  Thus, both the destroyer and the transport
-will be unharmed.  If the computer had randomly selected the transport before
-the destroyer, then the transport would have been destroyed.
+Since the current balance is 550, the escort is destroyed and the new balance is stem:[550 - 500 = 50].
+If the computer then randomly selects the destroyer for destruction, the interception process immediately ends because the balance of 50 is not enough to destroy the destroyer (1500 needed), EVEN THOUGH IT IS ENOUGH TO DESTROY THE TRANSPORT!
+Thus, both the destroyer and the transport will be unharmed.
+If the computer had randomly selected the transport before the destroyer, then the transport would have been destroyed.
 
-This element of chance is intentional, since an interception is inherently less
-reliable and more 'chancy' than an ambush.
+This element of chance is intentional, since an interception is inherently less reliable and more 'chancy' than an ambush.
 
 Note that the three enemy ships do not have to be owned by the same species.
 
-All species involved in an intercept will be notified of the results in their
-status reports.  The species that owns the ships that were destroyed will only
-be informed that the ships disappeared without a trace, cause unknown.  Thus,
-the intercepted species will not know if the ship was destroyed by an enemy,
-or if it self-destructed on its own.
+All species involved in an intercept will be notified of the results in their status reports.
+The species that owns the ships that were destroyed will only be informed that the ships disappeared without a trace, cause unknown.
+Thus, the intercepted species will not know if the ship was destroyed by an enemy, or if it self-destructed on its own.
 
 You may give both INTERCEPT and AMBUSH orders in your production orders.
-Obviously, INTERCEPT orders will apply immediately, while AMBUSH orders will
-take effect at the very beginning of the combat phase of the next turn.
+Obviously, INTERCEPT orders will apply immediately, while AMBUSH orders will take effect at the very beginning of the combat phase of the next turn.
 
 Anything spent on interception is wasted if no enemy ships jump into the
 system; i.e., the amount spent does NOT carry over into the next turn.  A
@@ -4175,22 +4089,15 @@ following production order:
 When this order is processed, the Klingon gravitics tech level will immediately
 rise as follows:
 
-\[
-\textrm{cost for } 18 \textrm{ to } 19 = 18 \times 18 - 25\% \textrm{ discount } = 324 - 81 = 243
-\]
-\[
-\textrm{cost for } 19 \textrm{ to } 20 = 19 \times 19 - 25\% \textrm{ discount } = 361 - 90 = 271
-\]
-\[
-\textrm{total cost using transferred knowledge} = 243 + 271 = 514
-\]
+```
+Cost for 18 to 19 = 18 x 18 - 25% Discount = 324 -  81 = 243
+Cost for 19 to 20 = 19 x 19 - 25% Discount = 361 -  90 = 271
+    Total Cost using transferred knowledge = 243 + 271 = 514
+```
 
-The remaining funds (750 - 514 = 236) will be allocated to additional, normal
-research in gravitics.
+The remaining funds (stem:[750 - 514 = 236]) will be allocated to additional, normal research in gravitics.
 
-If knowledge has been transferred to you but has not yet been applied, the
-usable knowledge level will appear in your status report as in the following
-example:
+If knowledge has been transferred to you but has not yet been applied, the usable knowledge level will appear in your status report as in the following example:
 
 	Tech Levels:
 		Mining = 17/21
@@ -4200,16 +4107,14 @@ example:
 		Life Support = 13/14
 		Biology = 4
 
-The above indicates that your mining tech level is 17, but that you have
-knowledge up to 21.  Similarly for life support.
+The above indicates that your mining tech level is 17, but that you have knowledge up to 21.
+Similarly for life support.
 
-There is no limit to how much technical knowledge may be transferred in a
-single turn.  As long as the donor's tech level is high enough, the transfer
-will take place.
+There is no limit to how much technical knowledge may be transferred in a single turn.
+As long as the donor's tech level is high enough, the transfer will take place.
 
-You may NOT transfer knowledge to a species that you have declared to be
-an ENEMY.  If you wish to transfer knowledge to an ENEMY, make a temporary
-declaration of neutrality, as in the following example:
+You may NOT transfer knowledge to a species that you have declared to be an ENEMY.
+If you wish to transfer knowledge to an ENEMY, make a temporary declaration of neutrality, as in the following example:
 
 ```
 START POST-ARRIVAL
@@ -4826,12 +4731,9 @@ calculation of the fleet maintenance cost.)
 
 Here is how the economic efficiency (EE) will be calculated:
 
-\[
-\textrm{EE}  =  100  \times  \dfrac{200.0 + (\textrm{total economic base} - 200.0) / 20}{\textrm{total economic base}}\textrm{percent}
-\]
+stem:[text(EE) = 100 xx (200 + (text(Total Economic Base) - 200) / 20) / text(Total Economic Base) %]
 
-In effect, any installation of IUs and AUs beyond the 200.0 value will have
-only 5% of its normal effect.
+In effect, any installation of IUs and AUs beyond the 200.0 value will have only 5% of its normal effect.
 
 [Note]
 ====
@@ -4983,15 +4885,10 @@ abbreviation "DR" for damage repair units.
 Damage repair units effectively repair or upgrade a ship by reducing the age
 of the ship.  The age reduction is determined as follows:
 
+stem:[text(Age Reduction) = (n xx 160000) / text(Ship Tonnage)]
 
-\[
-\textrm{Age reduction}    =    \dfrac{160,000  \times  \textrm{N}}{\textrm{ship tonnage}}
-\]
-
-
-where N is the number of damage repair units that are used to do the repair
-or upgrade.  For example, if 7 damage repair units are used on a 60,000 ton
-transport, then the age reduction will be (160,000 x 7)/60,000 = 18.67 = 18.
+where stem:[n] is the number of damage repair units that are used to do the repair or upgrade.
+For example, if 7 damage repair units are used on a 60,000 ton transport, then the age reduction will be stem:[(7 xx 160000)/60000 = 18.67 = 18].
 Note that fractions are dropped.
 
 The age reduction will never reduce the age to less than zero.  The damage
@@ -5021,16 +4918,11 @@ START PRE-DEPARTURE
 END
 ```
 
-If N is zero, then all units that are onboard the ship will be used (but not
-more than are necessary to reduce the age to zero).  If N is not specified,
-then as many units as are needed to reduce the age to zero will be used and
-MUST be onboard.
+If stem:[n] is zero, then all units that are onboard the ship will be used (but not more than are necessary to reduce the age to zero).
+If stem:[n] is not specified, then as many units as are needed to reduce the age to zero will be used and MUST be onboard.
 
-It is also possible to have all ships at a particular location (including
-starbases and transports) pool their damage repair units, using them on the
-ships that need them the most.  To do this, the REPAIR command should be given
-only the X Y Z coordinates of the location where the repairs are to be done,
-as in the following example:
+It is also possible to have all ships at a particular location (including starbases and transports) pool their damage repair units, using them on the ships that need them the most.
+To do this, the REPAIR command should be given only the X Y Z coordinates of the location where the repairs are to be done, as in the following example:
 
 ```
 START POST-ARRIVAL
@@ -5041,10 +4933,7 @@ START POST-ARRIVAL
 END
 ```
 
-In the above example, all of the ships in the sector will pool their damage
-repair units and repair only those ships that need repairing, starting with the
-most heavily damaged, and continuing until all ships are completely repaired or
-until you run out of DRs.
+In the above example, all of the ships in the sector will pool their damage repair units and repair only those ships that need repairing, starting with the most heavily damaged, and continuing until all ships are completely repaired or until you run out of DRs.
 
 You may also specify a "desired age" as in the following example:
 
@@ -5059,13 +4948,9 @@ START POST-ARRIVAL
 END
 ```
 
-In the above example, all of the ships in the sector will pool their damage
-repair units and repair only those ships that need repairing, starting with the
-most heavily damaged, and continuing until all ships are completely repaired to
-age 7 or until you run out of DRs.
+In the above example, all of the ships in the sector will pool their damage repair units and repair only those ships that need repairing, starting with the most heavily damaged, and continuing until all ships are completely repaired to age 7 or until you run out of DRs.
 
-If there are still DRs left after all repairs have been made, there is no way
-to predict which ships will be carrying them.
+If there are still DRs left after all repairs have been made, there is no way to predict which ships will be carrying them.
 
 [Important]
 ====
@@ -5199,12 +5084,13 @@ Units.  These units are carried as cargo and add to a warship's existing
 offensive power.  Basically, these units can be used to convert unused cargo
 space into additional offensive capacity.
 
-Auxilairy gun units are designed to enhance the normal firepower of warships
+Auxiliary gun units are designed to enhance the normal firepower of warships
 only.  They may not be used on transports or starbases, although they may be
 carried as cargo.
 
 Auxiliary gun units come in the following sizes:
 
+.Auxiliary Gun Unit Size
 |===
 |Unit Abbreviation|Equivalent Tonnage|Needed Carrying Capacity|Unit Cost|Minimum Military Tech Level
 
@@ -5268,10 +5154,9 @@ units, give the production order:
 
 	BUILD	3 FS
 
-The total cost will be 3 x 25 = 75.
+The total cost will be stem:[3 xx 25 = 75].
 
-Fail-safe jump units will be used automatically, whenever they are needed, as
-long as they are carried by a ship.
+Fail-safe jump units will be used automatically, whenever they are needed, as long as they are carried by a ship.
 
 
 === JUMP PORTAL UNITS
@@ -5440,17 +5325,12 @@ example, if a starbase is carrying seven gravitic telescope units, then it may
 observe aliens up to three parsecs away.  The maximum distance is also limited
 by the gravitics tech level of the species, as follows:
 
+stem:[text(Maximum Distance) = text(Gravitics Tech Level) / 10]
 
-\[
-\textrm{Maximum distance}  =  \dfrac{\textrm{Gravitics tech level}}{10}
-\]
+Fractions are dropped.
+If a starbase carries more units than are allowed by the tech level, then the excess units will not be used.
 
-
-Fractions are dropped.  If a starbase carries more units than are allowed by
-the tech level, then the excess units will not be used.
-
-To operate a gravitic telescope, use the TELESCOPE command in the post-arrival
-section of your orders, as follows:
+To operate a gravitic telescope, use the TELESCOPE command in the post-arrival section of your orders, as follows:
 
 ```
 START POST-ARRIVAL
@@ -5461,10 +5341,8 @@ START POST-ARRIVAL
 END
 ```
 
-where the first and only argument is the name of the starbase that carries
-the gravitic telescope units.  The above order will provide a list of all
-detectable alien ships, starbases, and populated planets within the range
-of the telescope.
+where the first and only argument is the name of the starbase that carries the gravitic telescope units.
+The above order will provide a list of all detectable alien ships, starbases, and populated planets within the range of the telescope.
 
 The information provided by a gravitic telescope is exactly the same as the
 information that appears on your status reports when one of your ships is at
@@ -5497,15 +5375,11 @@ It is possible that the operation of a gravitic telescope will be detected by
 orbiting ships or starbases of the observed species.  The chance of detection
 is:
 
+stem:[text(Chance of Detection) = 2 xx (text(GV)_2 - text(GV)_1)]
 
-		Chance of Detection  =  2  x  (GV2  -  GV1)
-
-
-where GV2 is the gravitics tech level of the species being watched, and GV1 is
-the gravitics tech level of the observer.  If the chance is zero or negative,
-then the observer will not be detected.  For example, if SP Ferengi (GV = 32)
-is spying on SP Human (GV = 39), then the Humans have a 2 x (39 - 32) = 14
-percent chance that they will know that they are being observed.
+where stem:[text(GV)_2] is the gravitics tech level of the species being watched, and stem:[text(GV)_1] is the gravitics tech level of the observer.
+If the chance is zero or negative, then the observer will not be detected.
+For example, if SP Ferengi (GV = 32) is spying on SP Human (GV = 39), then the Humans have a stem:[2 xx (39 - 32) = 14] percent chance that they will know that they are being observed.
 
 The check for detection will be done once for each orbiting ship or starbase
 that is observed by the gravitic telescope.  Planets and ships landed on the
@@ -5514,26 +5388,17 @@ interference from the planet's gravity.
 
 The observer will not know if he is detected.
 
-If the observer is detected, then the status report of the species being
-watched will indicate the location of the observer's gravitic telescope.
+If the observer is detected, then the status report of the species being watched will indicate the location of the observer's gravitic telescope.
 
-If operation of a gravitic telescope observes an alien starbase that ITSELF
-contains a gravitic telescope, then the above chance will be increased by two
-times the number of gravitic telescope units carried by the starbase:
+If operation of a gravitic telescope observes an alien starbase that ITSELF contains a gravitic telescope, then the above chance will be increased by two times the number of gravitic telescope units carried by the starbase:
 
+stem:[text(Chance of Detection) = 2 xx text(NGT) + 2 xx (text(GV)_2 - text(GV)_1)]
 
-\[
-\textrm{Chance of Detection}  =  2  \times  (\textrm{GV2}  -  \textrm{GV1})
-\]
+where stem:[text(NGT)] is the number of gravitic telescopes on the starbase that is being observed.
+For purposes of detection, ALL gravitic telescope units on the starbase are counted, even if they cannot all be used to scan distant locations because of the gravitic tech level limitation.
 
-
-where NGT is the number of gravitic telescopes on the starbase that is being
-observed.  For purposes of detection, ALL gravitic telescope units on the
-starbase are counted, even if they cannot all be used to scan distant locations
-because of the gravitic tech level limitation.
-
-A TELESCOPE order may appear only in the post-arrival phase of the turn.  A
-starbase may be given only one TELESCOPE order per turn.
+A TELESCOPE order may appear only in the post-arrival phase of the turn.
+A starbase may be given only one TELESCOPE order per turn.
 
 Colonies hidden by means of the HIDE command MAY be detected by a gravitic
 telescope.  The reason for this is that successful hiding requires the ability
