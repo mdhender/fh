@@ -11,6 +11,10 @@ All data files will be created in the galaxy folder.
 $ fh create galaxy -g /path/to/galaxy/folder
 ```
 
+You must run the `finish` command after creating a new galaxy.
+
+You should run the `report` command only after `finish` completes.
+
 ### Galaxy Setup File
 
 The `fh create galaxy` uses data from the `setup.json` file to configure the galaxy.
@@ -40,3 +44,7 @@ The `fh create galaxy` uses data from the `setup.json` file to configure the gal
 ```
 
 The file can be deleted after the galaxy has been created.
+
+## Finish
+
+## Reports
