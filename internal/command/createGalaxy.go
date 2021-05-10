@@ -24,6 +24,7 @@ import (
 	"github.com/mdhender/fh/internal/prng"
 	"github.com/spf13/cobra"
 	"os"
+	"path"
 	"time"
 )
 
@@ -37,20 +38,14 @@ configuration file, then creates a new galaxy file.`,
 		started := time.Now()
 		prng.Seed(0xC0FFEE) // seed random number generator
 
-		galaxyFileName, err := cmd.Flags().GetString("galaxy-file")
+		galaxyPath, err := cmd.Flags().GetString("galaxy-path")
 		if err != nil {
 			return err
-		} else if galaxyFileName == "" {
-			return fmt.Errorf("you must specify a valid file name to create")
-		}
-		setupFileName, err := cmd.Flags().GetString("setup-file")
-		if err != nil {
-			return err
-		} else if setupFileName == "" {
-			return fmt.Errorf("you must specify a valid setup file name")
+		} else if galaxyPath == "" {
+			return fmt.Errorf("you must specify a valid path to read and create galaxy data in")
 		}
 
-		setupData, err := fh.GetSetup(setupFileName)
+		setupData, err := fh.GetSetup(path.Join(galaxyPath, "setup.json"))
 		if err != nil {
 			return err
 		}
@@ -265,7 +260,7 @@ configuration file, then creates a new galaxy file.`,
 			star.VisitedBy[spec.ID] = true
 
 			/* Create log file for first turn. Write home star system data to it. */
-			logFile := fmt.Sprintf("D:/GoLand/farHorizons/testdata/sp%02d.log", spec.Number)
+			logFile := path.Join(galaxyPath, fmt.Sprintf("sp%02d.log", spec.Number))
 			w, err := os.Create(logFile)
 			if err != nil {
 				return err
@@ -278,20 +273,18 @@ configuration file, then creates a new galaxy file.`,
 			fmt.Printf("Created file %q\n", logFile)
 		}
 
-		err = g.Write(galaxyFileName)
+		err = g.Write(path.Join(galaxyPath, "galaxy.json"))
 		if err != nil {
 			return err
 		}
 
-		fmt.Printf("Created file %q in %v\n", galaxyFileName, time.Now().Sub(started))
+		fmt.Printf("Created file %q in %v\n", path.Join(galaxyPath, "galaxy.json"), time.Now().Sub(started))
 		return nil
 	},
 }
 
 func init() {
 	createCmd.AddCommand(createGalaxyCmd)
-	createGalaxyCmd.Flags().StringP("galaxy-file", "g", "", "name of galaxy file to create")
-	_ = createGalaxyCmd.MarkFlagRequired("galaxy-file")
-	createGalaxyCmd.Flags().StringP("setup-file", "i", "", "name of configuration file to load")
-	_ = createGalaxyCmd.MarkFlagRequired("setup-file")
+	createGalaxyCmd.Flags().StringP("galaxy-path", "g", "", "path to galaxy data")
+	_ = createGalaxyCmd.MarkFlagRequired("galaxy-path")
 }

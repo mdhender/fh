@@ -6,3 +6,4 @@
 *.so
 *.test
 /.idea
+/testdata/*
