@@ -1400,19 +1400,16 @@ Instead, they are "produced" automatically on any planet that has unused raw mat
 The "cost" of one economic unit is 1 raw material unit and a production capacity of 1.
 Thus, for example, if you need economic units to give to another species, then simply do NOT spend an appropriate amount on one or more planets.
 
-Note that there is no need to explicitly transfer economic units between
-planets that you control.  Economic units owned by a species are available for
-any planet that needs to spend them.  Later, we'll discuss how to transfer
-economic units to another species.
-
+Note that there is no need to explicitly transfer economic units between planets that you control.
+Economic units owned by a species are available for any planet that needs to spend them.
+Later, we'll discuss how to transfer economic units to another species.
 
 === UPGRADES
 
-The successful operation of ships and other items often depends on the value of
-a particular tech level.  For example, the effectiveness of a ship in combat
-will depend heavily on its Military tech level.  For game purposes, everything
-will function at the current tech levels for the species.  This is unrealistic,
-but it makes bookkeeping much easier.
+The successful operation of ships and other items often depends on the value of a particular tech level.
+For example, the effectiveness of a ship in combat will depend heavily on its Military tech level.
+For game purposes, everything will function at the current tech levels for the species.
+This is unrealistic, but it makes bookkeeping much easier.
 
 As a way of compensating for this lack of realism, ships and starbases will
 also have an "age" associated with them.  This age will be equal to the number
