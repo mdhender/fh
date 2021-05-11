@@ -130,6 +130,12 @@ Dreadnought.
 A 500,000 ton Spaceship.
 DR::
 Damage Repair Unit
+Economic Unit::
+The "money" of the game.
+At the start of each turn, Raw Material units are turned into Economic Units.
+The amount of Economic Units produced is the least of Raw Material units or Production Capacity.
+For example, if your species has a Production Capacity of 900 and the total amount of Raw Materials produced by all of your planets and colonies is 855, you would create 855 Economic Units that turn.
+Unspent Economic Units are banked for use in later turns.
 ES::
 Escort.
 A 50,000 ton Spaceship.
