@@ -47,6 +47,15 @@ Advice on actions to take while you're exploring and before you've made "first c
 == Long Term Strategies
 === Sources
 
+== I want to...
+=== Build a Shipyard
+TODO
+=== Start a new colony
+TODO
+
+== FAQ
+TODO
+
 == Glossary
 
 AF::
