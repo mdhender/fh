@@ -1272,11 +1272,9 @@ PRODUCTION PL Bakupa
 END PRODUCTION
 ```
 
-Note that a payment amount must ALWAYS be specified when constructing
-starbases, and the amount must always be an exact multiple of 100.
+Note that a payment amount must ALWAYS be specified when constructing starbases, and the amount must always be an exact multiple of 100.
 
-To increase the size of an existing starbase, use the CONTINUE command, as in
-the following examples:
+To increase the size of an existing starbase, use the CONTINUE command, as in the following examples:
 
 ```
 START PRODUCTION
@@ -1289,9 +1287,8 @@ PRODUCTION PL Bakupa
 END PRODUCTION
 ```
 
-NEVER use the same name for two different ships/starbases, even if their
-classes are different.  For example, if frigate "FF Danny Boy" already
-exists, then an order to build starbase "BAS Danny Boy" will fail.
+NEVER use the same name for two different ships/starbases, even if their classes are different.
+For example, if frigate "FF Danny Boy" already exists, then an order to build starbase "BAS Danny Boy" will fail.
 
 
 === RESEARCH
@@ -1373,52 +1370,35 @@ We'll have more to say about the TEACH command later.
 
 === ECONOMIC UNITS
 
-It is expected that there will eventually be a thriving galactic economy, with
-lots of trade taking place between species.  This trade is transparent to
-the player, who is primarily concerned with government and military matters.
-Still, there must be a way to transfer wealth between planets owned by one
-species and between different species, as, for example, when one nation on
-Earth sends "aid" to another.  In FAR HORIZONS, this type of transfer is
-done using a special type of item called an "Economic Unit".
+It is expected that there will eventually be a thriving galactic economy, with lots of trade taking place between species.
+This trade is transparent to the player, who is primarily concerned with government and military matters.
+Still, there must be a way to transfer wealth between planets owned by one species and between different species, as, for example, when one nation on Earth sends "aid" to another.
+In FAR HORIZONS, this type of transfer is done using a special type of item called an "Economic Unit."
 
-Unlike other items, however, economic units are more like money or bank
-balances, and may be transferred freely between planets without the need for
-ships or cargo capacity.  Economic units may even be transferred between
-species.
+Unlike other items, however, economic units are more like money or bank balances, and may be transferred freely between planets without the need for ships or cargo capacity.
+Economic units may even be transferred between species.
 
-In Far Horizons, each species has the equivalent of a bank account which
-contains zero or more economic units.
+In Far Horizons, each species has the equivalent of a bank account which contains zero or more economic units.
 
-If a species has economic units, they may be spent just as if each unit were
-the equivalent of 1 raw material unit and a production capacity of 1.  During
-production on a planet, economic units owned by the species will be used
-automatically (if available) if orders are given which require more than the
-available production capacity of the planet.  For example, if a planet can
-spend 500 using normal production, plus the species has 150 economic units,
-then the planet can spend a total of 650 for construction of ships and other
-items.  In other words, normal production capacity will be used up first, and
-economic units will only be spent if there is insufficient normal capacity.
+If a species has economic units, they may be spent just as if each unit were the equivalent of 1 raw material unit and a production capacity of 1.
+During production on a planet, economic units owned by the species will be used automatically (if available) if orders are given which require more than the available production capacity of the planet.
+For example, if a planet can spend 500 using normal production, plus the species has 150 economic units, then the planet can spend a total of 650 for construction of ships and other items.
+In other words, normal production capacity will be used up first, and economic units will only be spent if there is insufficient normal capacity.
 
 However, there has to be a limit on how many economic units a colony can spend.
-For example, it makes no sense to try to spend a large sum of 'money' on a
-small colony.  A small colony simply does not have an economy that is robust
-enough to deal with large sums of 'money'.
+For example, it makes no sense to try to spend a large sum of 'money' on a small colony.
+A small colony simply does not have an economy that is robust enough to deal with large sums of 'money'.
 
-So, in Far Horizons, the amount of economic units that a colony can spend in
-addition to its normal production will be limited to what it can produce on its
-own.  For example, if a colony can spend 850 using normal production, then it
-may ALSO spend up to 850 economic units from the species' treasury, for a total
-of 1700.  Thus, the robustness of the economy, measured by the amount of
-economic units it can spend, will grow as the colony grows.
+So, in Far Horizons, the amount of economic units that a colony can spend in addition to its normal production will be limited to what it can produce on its own.
+For example, if a colony can spend 850 using normal production, then it may ALSO spend up to 850 economic units from the species' treasury, for a total of 1700.
+Thus, the robustness of the economy, measured by the amount of economic units it can spend, will grow as the colony grows.
 
 There is no limit to how much may be spent on a home planet.
 
 Economic units may NOT be produced like other items using the BUILD command.
-Instead, they are "produced" automatically on any planet that has unused raw
-material units and an equal amount of unused production capacity.  The "cost"
-of one economic unit is 1 raw material unit and a production capacity of 1.
-Thus, for example, if you need economic units to give to another species, then
-simply do NOT spend an appropriate amount on one or more planets.
+Instead, they are "produced" automatically on any planet that has unused raw material units and an equal amount of unused production capacity.
+The "cost" of one economic unit is 1 raw material unit and a production capacity of 1.
+Thus, for example, if you need economic units to give to another species, then simply do NOT spend an appropriate amount on one or more planets.
 
 Note that there is no need to explicitly transfer economic units between
 planets that you control.  Economic units owned by a species are available for
@@ -1648,31 +1628,21 @@ Always be careful to use the correct class abbreviations in ANY orders.
 
 === FLEET MAINTENANCE COST
 
-Manning and maintaining ships and starbases is not free, and costs can be
-especially high for military vessels.  To reflect this reality, each species
-will be required to pay a "fleet maintenance cost".
+Manning and maintaining ships and starbases is not free, and costs can be especially high for military vessels.
+To reflect this reality, each species will be required to pay a "fleet maintenance cost".
 
-The fleet maintanance cost will be calculated by the computer and listed on
-your status report.  The base cost for all military ships will be the tonnage
-divided by 500, the base cost for starbases will be the tonnage divided by
-1000, and the base cost for transports will be the tonnage divided by 2,500.
-Sub-light ships will receive a 25% discount.  For example, it will cost 400
-per turn to maintain a 200,000 ton light cruiser, 60 per turn to maintain a
-150,000 ton TR15, and 750 per turn to maintain a 500,000 ton sub-light
-dreadnought.  The full cost must also be paid for ships that are still under
-construction.  After calculation of the total base cost, a discount will be
-applied equal to the current military tech level divided by 2, used as a
-percentage (drop fractions).  For example, if your military tech level is 27,
-then you will receive a 13% discount.  In this way, those species that
-"specialize" more heavily in military technology will be able to operate their
-fleets more efficiently.
+The fleet maintenance cost will be calculated by the computer and listed on your status report.
+The base cost for all military ships will be the tonnage divided by 500, the base cost for starbases will be the tonnage divided by 1000, and the base cost for transports will be the tonnage divided by 2,500.
+Sub-light ships will receive a 25% discount.
+For example, it will cost 400 per turn to maintain a 200,000 ton light cruiser, 60 per turn to maintain a 150,000 ton TR15, and 750 per turn to maintain a 500,000 ton sub-light dreadnought.
+The full cost must also be paid for ships that are still under construction.
+After calculation of the total base cost, a discount will be applied equal to the current military tech level divided by 2, used as a percentage (drop fractions).
+For example, if your military tech level is 27, then you will receive a 13% discount.
+In this way, those species that "specialize" more heavily in military technology will be able to operate their fleets more efficiently.
 
-The computer will calculate the percentage of the total production of all
-planets that is needed to pay the fleet maintenance cost, and will subtract
-that percentage from the total amount available for spending on each planet.
-Thus, the player will NOT have to do any calculations at all - the cost will be
-automatically deducted from the production of each planet.  Here is an example
-of how the cost and deductions will appear on your status reports:
+The computer will calculate the percentage of the total production of all planets that is needed to pay the fleet maintenance cost, and will subtract that percentage from the total amount available for spending on each planet.
+Thus, the player will NOT have to do any calculations at all - the cost will be automatically deducted from the production of each planet.
+Here is an example of how the cost and deductions will appear on your status reports:
 
 For the entire species, you will see a line like this:
 
@@ -1682,18 +1652,12 @@ For each planet, you will see a line like this:
 
 	Total available for spending this turn = 2278 - 167 = 2111
 
-where the portion of the fleet maintenance cost that is being paid by this
-planet is 167 (i.e. 7.34% of 2278).
+where the portion of the fleet maintenance cost that is being paid by this planet is 167 (i.e. 7.34% of 2278).
 
-If the fleet maintenance cost is greater than the total production of all of
-your planets, then the percentage will be greater than 100.  If this occurs,
-then as much of the cost as possible will be paid using any economic units in
-the treasury.  If the remaining cost is still greater than total production,
-the amount over 100% will be the percent chance of civil unrest, riots, and
-destruction of infrastructure.  In other words, the population will get very
-upset if the military budget becomes too excessive.
-
-
+If the fleet maintenance cost is greater than the total production of all of your planets, then the percentage will be greater than 100.
+If this occurs, then as much of the cost as possible will be paid using any economic units in the treasury.
+If the remaining cost is still greater than total production, the amount over 100% will be the percent chance of civil unrest, riots, and destruction of infrastructure.
+In other words, the population will get very upset if the military budget becomes too excessive.
 
 == MOVEMENT
 
@@ -2790,10 +2754,8 @@ available population will be less than normal.
 
 === SIEGE
 
-After an attacker has destroyed all of the defender's ships, starbases,
-and planetary defenses, he may choose to besiege the planet and make the
-inhabitants pay 'protection money' or 'taxes'.  In effect, the attacker is
-blackmailing the planet, saying "give us money or we will destroy you".
+After an attacker has destroyed all of the defender's ships, starbases, and planetary defenses, he may choose to besiege the planet and make the inhabitants pay 'protection money' or 'taxes'.
+In effect, the attacker is blackmailing the planet, saying "give us money or we will destroy you".
 
 The effectiveness of a siege will depend on the size of the planet's economy
 and the number and sizes of ships that take part in the siege.  And since siege
@@ -4286,9 +4248,8 @@ If so, then orders will be generated to DEVELOP those colonies.
 7. Starbases will be given orders to increase their sizes up
 to the MA tech limit.  A comment will indicate the current size.
 
-8. Ships that are still under construction will be given orders
-to complete their construction.  A comment will indicate the amount
-left to pay.
+8. Ships that are still under construction will be given orders to complete their construction.
+A comment will indicate the amount left to pay.
 
 9. If a TR1 is in a sector that you do not inhabit, the computer
 will assume that it is a scouting vessel and will generate a
@@ -4548,47 +4509,29 @@ In effect, any installation of IUs and AUs beyond the 200.0 value will have only
 Keep in mind that the above applies only to colonies, since it is not possible to install IUs and AUs on a home planet, and since it is not possible to colonize the home planet of another species.
 ====
 
-Note that players NEVER have to do any of the above calculations! All of the
-calculations will be done by the computer and the results will be printed on
-your status reports.  It is very important, though, that you keep the 200.0
-limit in mind, since installation of mining and manufacturing units after the
-200.0 limit has been reached will not be very effective.
+Note that players NEVER have to do any of the above calculations!
+All of the calculations will be done by the computer and the results will be printed on your status reports.
+It is very important, though, that you keep the 200.0 limit in mind, since installation of mining and manufacturing units after the 200.0 limit has been reached will not be very effective.
 
-In Far Horizons, it's also possible for more than one species to colonize the
-same planet.  Thus, when doing the above calculation, the computer will use
-the total economic base for ALL species on the planet.  In other words, the
-economic efficiency will apply to an entire planet, NOT just to a single colony
-on the planet, and will be the same for all colonies on the planet.
+In Far Horizons, it's also possible for more than one species to colonize the same planet.
+Thus, when doing the above calculation, the computer will use the total economic base for ALL species on the planet.
+In other words, the economic efficiency will apply to an entire planet, NOT just to a single colony on the planet, and will be the same for all colonies on the planet.
 
-Now, even with the above rules, you will discover that many colonies generate
-more income than the homeworld, even though the homeworld has a much greater
-population.
+Now, even with the above rules, you will discover that many colonies generate more income than the homeworld, even though the homeworld has a much greater population.
 
-There's nothing unrealistic about this if you keep in mind that homeworld
-production is the result of taxation.  A colony (at least in its earlier
-stages) is completely owned by the government.  In other words, the government
-owns all the resources, employs all of the population, keeps all the profits,
-and does not pay taxes.  It can even tax the colonists (what one hand gives,
-the other takes away :-).  Also, the total production on the home planet that
-is available for the player to use is only a small fraction of the total taxes
-actually collected by the government.  Most taxes will be spent on other
-things, such as schools, police, health care, social security, boondoggles,
-and so on, and will not be available to the player.
+There's nothing unrealistic about this if you keep in mind that homeworld production is the result of taxation.
+A colony (at least in its earlier stages) is completely owned by the government.
+In other words, the government owns all the resources, employs all of the population, keeps all the profits, and does not pay taxes.
+It can even tax the colonists (what one hand gives, the other takes away :-).
+Also, the total production on the home planet that is available for the player to use is only a small fraction of the total taxes actually collected by the government.
+Most taxes will be spent on other things, such as schools, police, health care, social security, boondoggles, and so on, and will not be available to the player.
 
-In time, the same thing will happen to colonies, although not to the same
-extent as on the home planet, and definitely not within the course of a game.
-As the colony becomes more and more self-sufficient, a smaller and smaller
-fraction of its TOTAL production is owned directly by the government while a
-larger and larger fraction is due to taxes on the private sector.  The 200.0
-base limit is simply a game device that allows us to simulate the transition
-from a government-owned corporation to a more normal economy.
+In time, the same thing will happen to colonies, although not to the same extent as on the home planet, and definitely not within the course of a game.
+As the colony becomes more and more self-sufficient, a smaller and smaller fraction of its TOTAL production is owned directly by the government while a larger and larger fraction is due to taxes on the private sector.
+The 200.0 base limit is simply a game device that allows us to simulate the transition from a government-owned corporation to a more normal economy.
 
-So, keep the 200.0 limit in mind.  You may continue to install IUs and AUs
-beyond the limit, but it will take much longer to pay off the investment, and,
-in general, you will be much better off if you install the units elsewhere.
-
-
-
+So, keep the 200.0 limit in mind.
+You may continue to install IUs and AUs beyond the limit, but it will take much longer to pay off the investment, and, in general, you will be much better off if you install the units elsewhere.
 
 [appendix]
 == HIGH-TECH ITEMS AND CAPABILITIES

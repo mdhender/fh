@@ -58,7 +58,20 @@ TODO
 TODO
 
 == FAQ
-TODO
+
+What is cost?::
+Cost is the number of Economic Units needed to build something.
++
+What?
+The manual talks about Raw Material units and Production Capacity.
++
+I know, but it's easier to explain using only Economic Units (see <<ECONOMIC UNITS, Section 5.8>>).
+Think of it this way.
+Every species has a Production Capacity and every colony (or planet) has a stockpile of Raw Material units.
+The Production Capacity is the maximum amount of Raw Material units that can be turned into Economic Credits in a single turn.
+If you have a Production Capacity of 500 and 400 Raw Material units on hand, you will create 400 Economic Units that turn.
+Those Economic Units are automatically added to your species bank.
+When you pay for something, you pay for it out of this bank.
 
 == Glossary
 
