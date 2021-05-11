@@ -70,42 +70,34 @@ Use of only positive numbers will help prevent mistakes.)
 === SPACE TRAVEL
 
 In this universe, scientists have discovered only one way to break the barrier imposed by the speed of light.
-The method is inherently risky.  Essentially,
-a spaceship's engines must "rip" a hole through the space-time fabric in order
-to travel from one point to another.  A ship does this by creating a temporary,
-private "wormhole" that the ship can pass through.  A ship does this by
-creating and manipulating a small black hole.  When a ship travels in this
-way, it is said to "jump" to its destination.
+The method is inherently risky.
+Essentially, a spaceship's engines must "rip" a hole through the space-time fabric in order to travel from one point to another.
+A ship does this by creating a temporary, private "wormhole" that the ship can pass through.
+A ship does this by creating and manipulating a small black hole.
+When a ship travels in this way, it is said to "jump" to its destination.
 
-There is no limit to how far a ship can travel in this way, but greater
-distances involve greater risks.  The technology involved is called
-"gravitics", and the more experience a species has in this technology, the
-farther a ship can jump without risk of missing its destination or of being
-destroyed.
+There is no limit to how far a ship can travel in this way, but greater distances involve greater risks.
+The technology involved is called "gravitics", and the more experience a species has in this technology, the farther a ship can jump without risk of missing its destination or of being destroyed.
 
 The time needed for a ship to travel through the wormhole is independent of the distance being traveled.
 However, it IS dependent on the mass of the ship, as shown by the following equation:
 
 stem:[text(time in years) = 5tanh(text(mass in grams))]
 
-If you're not mathematically inclined, don't worry!  What the equation says is
-that it takes almost exactly five years for anything larger than a pea, since
-all masses used in the game will be at the extreme asymptotic limit of the
-equation.  Only extremely small masses (such as the photons that make up radio
-waves) can take significantly less than 5 years to travel through a wormhole.
+If you're not mathematically inclined, don't worry!
+What the equation says is that it takes almost exactly five years for anything larger than a pea, since all masses used in the game will be at the extreme asymptotic limit of the equation.
+Only extremely small masses (such as the photons that make up radio waves) can take significantly less than 5 years to travel through a wormhole.
 
-Note also that no time goes by for the people on the ship.  For them, the move
-is essentially instantaneous.  For the people who remain behind, however, the
-ship will appear to "wink out" immediately.  Five years later, it will reappear
-at its destination.
+Note also that no time goes by for the people on the ship.
+For them, the move is essentially instantaneous.
+For the people who remain behind, however, the ship will appear to "wink out" immediately.
+Five years later, it will reappear at its destination.
 
-Creation of a wormhole is risky business, and there is always a chance that a
-ship can be swallowed up by the wormhole it creates.  If this happens, then the
-ship and everything it carries will be totally destroyed.  It is also possible
-for a ship to "mis-jump".  If this occurs, the ship will not be destroyed, but
-will simply arrive at the wrong destination.  As a species gains knowledge and
-experience in gravitics technology, its ships will become more reliable and
-less susceptible to sudden destruction or mis-jumps.
+Creation of a wormhole is risky business, and there is always a chance that a ship can be swallowed up by the wormhole it creates.
+If this happens, then the ship and everything it carries will be totally destroyed.
+It is also possible for a ship to "((mis-jump))".
+If this occurs, the ship will not be destroyed, but will simply arrive at the wrong destination.
+As a species gains knowledge and experience in gravitics technology, its ships will become more reliable and less susceptible to sudden destruction or mis-jumps.
 
 
 === COMMUNICATIONS
@@ -129,65 +121,48 @@ As the game proceeds, a species can colonize other planets and tap them for reso
 
 === TECH LEVELS
 
-A tech level is a measure of how advanced a species is in a specific field of
-technology.  Six technologies are defined and used in this game.  Each one is
-described below:
+A tech level is a measure of how advanced a species is in a specific field of technology.
+Six technologies are defined and used in this game.
+Each one is described below:
 
-AF:: attack factor
+MINING::
+((Mining tech level)) is a measure of how proficient a species is at tapping a planet's natural resources.
+It includes functions such as mining and farming, and basic refining and food processing.
+As mining tech level increases, greater quantities of raw materials can be produced.
 
-MINING::		Mining tech level is a measure of how proficient
-			a species is at tapping a planet's natural resources.
-			It includes functions such as mining and farming,
-			and basic refining and food processing. As mining tech
-			level increases, greater quantities of raw materials
-			can be produced.
+MANUFACTURING::
+((Manufacturing tech level)) is a measure of proficiency at converting raw materials to usable, final forms.
+It is used to determine how many units, such as ships, can be built each turn.
+It also places a limit on the maximum size of ships that a species can build.
 
-MANUFACTURING::	Manufacturing tech level is a measure of proficiency
-			at converting raw materials to usable, final forms.
-			It is used to determine how many units, such as ships,
-			can be built each turn. It also places a limit on
-			the maximum size of ships that a species can build.
+MILITARY::
+((Military tech level)) is a measure of experience in warfare.
+It indicates the level of sophistication in military strategy, tactics, and weaponry.
+It is one of the major factors used to determine the outcome of armed conflict.
 
-MILITARY::	Military tech level is a measure of experience in
-			warfare. It indicates the level of sophistication
-			in military strategy, tactics, and weaponry.  It
-			is one of the major factors used to determine the
-			outcome of armed conflict.
+GRAVITICS::
+((Gravitics tech level)) is a measure of a species' knowledge of gravity control.
+Gravitics allows the design of the engines which drive interstellar ships, since a black hole cannot be created and controlled without the ability to manipulate gravitational fields.
 
-GRAVITICS::	Gravitics tech level is a measure of a species'
-			knowledge of gravity control.  Gravitics allows
-			the design of the engines which drive interstellar
-			ships, since a black hole cannot be created and
-			controlled without the ability to manipulate
-			gravitational fields.
+LIFE SUPPORT::
+((Life support tech level)) is a measure of a species' experience in surviving in hostile environments.
+It is used to construct and maintain artificial shelters on planets with temperatures or atmospheres that differ from the home planet.
+It also determines the effectiveness of defensive shields used on ships.
 
-LIFE SUPPORT::	Life support tech level is a measure of a species'
-			experience in surviving in hostile environments.
-			It is used to construct and maintain artificial
-			shelters on planets with temperatures or atmospheres
-			that differ from the home planet.  It also determines
-			the effectiveness of defensive shields used on ships.
+BIOLOGY::
+((Biology tech level)) is a measure of a species' knowledge and experience in the life sciences.
+Its most obvious applications are in genetic engineering, germ warfare, and terraforming (i.e., using specially designed micro-organisms to modify the atmosphere and micro-flora of a planet, making it more suitable for habitation).
 
-BIOLOGY::		Biology tech level is a measure of a species'
-			knowledge and experience in the life sciences.  Its
-			most obvious applications are in genetic engineering,
-			germ warfare, and terraforming (i.e., using specially
-			designed micro-organisms to modify the atmosphere
-			and micro-flora of a planet, making it more suitable
-			for habitation).
-
-There are many other applications of the six basic technologies in addition to
-the ones mentioned above.  These will be discussed later.  After the start of
-the game, tech levels will increase primarily through research.  While there is
-no limit to how high a tech level can get, in practice it is unlikely that a
-tech level will ever exceed 100.
-
+There are many other applications of the six basic technologies in addition to the ones mentioned above.
+These will be discussed later.
+After the start of the game, tech levels will increase primarily through research.
+While there is no limit to how high a tech level can get, in practice it is unlikely that a tech level will ever exceed 100.
 
 === TURN PROCESSING
 ==== Sequence of Events
 
-Each turn is processed in six steps, and the order form that you send to the
-gamemaster has six corresponding sections.  These sections are:
+Each turn is processed in six steps, and the order form that you send to the gamemaster has six corresponding sections.
+These sections are:
 
 1. Combat orders
 2. Pre-departure orders
@@ -196,29 +171,26 @@ gamemaster has six corresponding sections.  These sections are:
 5. Post-arrival orders
 6. Strike orders
 
-When your turn is processed, all combat orders are processed first, then all
-pre-departure orders, then all jump orders, and so on.  After yur orders have
-been processed, a special program is run that handles population growth and
-interspecies transactions, and performs several other housekeeping chores.
-Finally, a "report" program is run that generates summaries that will be sent
-to the players.  Thus, several programs are actually used by the gamemaster
-to process a turn.
+When your turn is processed, all combat orders are processed first, then all pre-departure orders, then all jump orders, and so on.
+After your orders have been processed, a special program is run that handles population growth and interspecies transactions, and performs several other housekeeping chores.
+Finally, a "report" program is run that generates summaries that will be sent to the players.
+Thus, several programs are actually used by the gamemaster to process a turn.
 
-[The strike phase is a limited-combat phase.  Any combat that takes place
-in the strike phase generally takes the form of an initial surprise attack.
-Combat that requires more time, such as bombardment and siege, will take place
-in the combat phase of the following turn, and are thus continuations of the
-combat that began in the strike phase.]
+[Note]
+====
+The strike phase is a limited-combat phase.
+Any combat that takes place in the strike phase generally takes the form of an initial surprise attack.
+Combat that requires more time, such as bombardment and siege, will take place in the combat phase of the following turn, and are thus continuations of the combat that began in the strike phase.
+====
 
 At the end of each report is an order form that you will need to fill out.
-This form will contain all six sections, even though not all of them may be
-applicable for the current turn.  For example, the jump section cannot be used
-in the first turn, since you have no ships.  Simply delete the sections that
-do not apply, and fill out and send in those that do.
+This form will contain all six sections, even though not all of them may be applicable for the current turn.
+For example, the jump section cannot be used in the first turn, since you have no ships.
+Simply delete the sections that do not apply, and fill out and send in those that do.
 
-Each section of the orders begins with a START command and ends with an END
-command.  Each section should only appear ONCE.  Thus, each order form will
-contain the following sections:
+Each section of the orders begins with a START command and ends with an END command.
+Each section should only appear ONCE.
+Thus, each order form will contain the following sections:
 
 ```
     START COMBAT
@@ -246,23 +218,19 @@ contain the following sections:
     END
 ```
 
-The production section will be started for you, and will have an appropriate
-PRODUCTION order for each planet you control.  This will save you a little
-time, and will help prevent you from accidentally forgetting to give orders
-for a planet.
+The production section will be started for you, and will have an appropriate PRODUCTION order for each planet you control.
+This will save you a little time, and will help prevent you from accidentally forgetting to give orders for a planet.
 
-The six sections shown above may appear in any sequence.  However, it is
-recommended that you fill out your orders using the sequence provided,
-since that is the sequence in which they will be executed.  In other words,
-combat orders will be executed before pre-departure orders, pre-departure
-orders will be executed before jump orders, and so forth, REGARDLESS of where
-each section appears in your order form.
+The six sections shown above may appear in any sequence.
+However, it is recommended that you fill out your orders using the sequence provided, since that is the sequence in which they will be executed.
+In other words, combat orders will be executed before pre-departure orders, pre-departure orders will be executed before jump orders, and so forth, REGARDLESS of where each section appears in your order form.
 
 The orders that you give in each section must be reasonable for that section.
-For example, you may not give JUMP orders in any section except the jump
-section.  BUILD and RESEARCH orders may only be given in the production
-section.  Combat orders may only be given in the combat and strike sections.
-And so on.  Here is a complete list:
+For example, you may not give JUMP orders in any section except the jump section.
+BUILD and RESEARCH orders may only be given in the production section.
+Combat orders may only be given in the combat and strike sections.
+And so on.
+Here is a complete list:
 
 ===== Combat section
 	Attack
@@ -342,31 +310,26 @@ And so on.  Here is a complete list:
 	Zzz
 
 ===== Strike section
-	same as combat section
+	Same as combat section
 
 
 All of these commands will be explained in later sections of this document.
 
 [Note]
 ====
-A special note must be made about the TRANSFER command.  There is a possible
-situation in which colonists and supplies could be transferred to a new colony
-immediately after a jump.  If the planet is already inhabited by another
-species, neither species will know about the new colony until the next turn.
-To prevent this very unrealistic kind of incident, a TRANSFER to a planet may
-only be made in the post-arrival phase IF the planet is already inhabited by
-the species making the transfer.  Otherwise, the transfer will have to be
-done in the pre-departure phase of the next turn.  Once the colony has been
-established, you may TRANSFER goods to the planet in either the pre-departure
-or post-arrival phases.
+A special note must be made about the TRANSFER command.
+There is a possible situation in which colonists and supplies could be transferred to a new colony immediately after a jump.
+If the planet is already inhabited by another species, neither species will know about the new colony until the next turn.
+To prevent this very unrealistic kind of incident, a TRANSFER to a planet may only be made in the post-arrival phase IF the planet is already inhabited by the species making the transfer.
+Otherwise, the transfer will have to be done in the pre-departure phase of the next turn.
+Once the colony has been established, you may TRANSFER goods to the planet in either the pre-departure or post-arrival phases.
 ====
 
 === VICTORY CONDITIONS
 
-There are no final winners or losers in Far Horizons, just as there aren't any
-in other role-playing games.  The only purpose of the game is to have fun.
-However, for those who want to know how well they did relative to the other
-players, the following will be done:
+There are no final winners or losers in Far Horizons, just as there aren't any in other role-playing games.
+The only purpose of the game is to have fun.
+However, for those who want to know how well they did relative to the other players, the following will be done:
 
 	At the end of a game, a final summary report will be sent to all
 	players, and will contain a list of the total revenue-generating
@@ -374,38 +337,26 @@ players, the following will be done:
 	other statistics.  These values can be used to get a good idea
 	of who "won" the game.
 
-A game will last between 20 and 100 turns.  The actual final turn number will
-be randomly determined by the gamemaster and will be kept secret until the end
-of the game is announced.  This approach will prevent the unrealistic gameplay
-that always results when players know that the game is about to end.  The
-gamemaster may arbitrarily and secretly extend the game if he feels it would be
-inappropriate to interrupt an "interesting" situation, or if he is convinced
-that everyone is having a lot of fun.
-
-
+A game will last between 20 and 100 turns.
+The actual final turn number will be randomly determined by the gamemaster and will be kept secret until the end of the game is announced.
+This approach will prevent the unrealistic gameplay that always results when players know that the game is about to end.
+The gamemaster may arbitrarily and secretly extend the game if he feels it would be inappropriate to interrupt an "interesting" situation, or if he is convinced that everyone is having a lot of fun.
 
 == STARS AND PLANETS
 
-As mentioned earlier, the galaxy of FAR HORIZONS is a small open star cluster,
-similar to the Pleiades Cluster.
+As mentioned earlier, the galaxy of FAR HORIZONS is a small open star cluster, similar to the Pleiades Cluster.
 
-In a real cluster, many of the stars would be components of binary or trinary
-star systems.  In fact, such multiple star systems make up about 85% of all
-star systems in the Milky Way galaxy.  In systems such as these, planets, if
-any, are likely to have very odd orbits, and if they have atmospheres, their
-climates are likely to be extremely erratic.  As a result, multiple star
-systems have been totally eliminated from the game.  You can assume that they
-exist, but they will not be shown on star maps or be made available for use
-by players.
-
+In a real cluster, many of the stars would be components of binary or trinary star systems.
+In fact, such multiple star systems make up about 85% of all star systems in the Milky Way galaxy.
+In systems such as these, planets, if any, are likely to have very odd orbits, and if they have atmospheres, their climates are likely to be extremely erratic.
+As a result, multiple star systems have been totally eliminated from the game.
+You can assume that they exist, but they will not be shown on star maps or be made available for use by players.
 
 === STARS
 
-The location of a star is indicated by its X, Y, and Z coordinates, which are
-always positive integers greater than or equal to zero.  I assume here that the
-reader has sufficient technical background to understand how to work with these
-coordinates (called Cartesian Coordinates).  Just as a reminder, though, the
-distance between any two stars can be calculated using the formula:
+The location of a star is indicated by its X, Y, and Z coordinates, which are always positive integers greater than or equal to zero.
+I assume here that the reader has sufficient technical background to understand how to work with these coordinates (called Cartesian Coordinates).
+Just as a reminder, though, the distance between any two stars can be calculated using the formula:
 
 stem:[d = sqrt((x_2 - x_1)^2   +  (y_2 - y_1)^2   +  (z_2 - z_1)^2)]
 
@@ -419,19 +370,17 @@ Thus, the number of sectors in the galaxy is simply the number of possible combi
 Most sectors are effectively empty.
 Only a relatively small number of sectors contain usable stars and planets.
 
-
 ==== SPECTRAL CLASS
 
-The information in this section is for "color" only, and does not play an
-important role in the game.  Feel free to skim through it.  Do not let the
-technical jargon bother you.
+The information in this section is for "color" only, and does not play an important role in the game.
+Feel free to skim through it.
+Do not let the technical jargon bother you.
 
-In addition to its galactic coordinates, a star is identified by its spectral
-class, which indicates both its color and its size.  In general, stars which
-radiate more towards the red end of the spectrum are smaller than those which
-radiate more towards the blue end of the spectrum.  There are, however, many
-exceptions.  It is not uncommon to find red giants or blue dwarves.  Also, in
-general, large stars will have more usable planets than small stars.
+In addition to its galactic coordinates, a star is identified by its spectral class, which indicates both its color and its size.
+In general, stars which radiate more towards the red end of the spectrum are smaller than those which radiate more towards the blue end of the spectrum.
+There are, however, many exceptions.
+It is not uncommon to find red giants or blue dwarves.
+Also, in general, large stars will have more usable planets than small stars.
 
 Here is a list of the most common spectral colors:
 
@@ -460,9 +409,9 @@ Here is a list of the most common spectral types:
 |D|degenerate dwarf star
 |===
 
-Each class contains ten subdivisions numbered 0 through 9.  Thus an F5 star is
-approximately halfway between F0 and G0.  Zero indicates the hottest within the
-spectral class, while 9 indicates the coolest with the class.
+Each class contains ten subdivisions numbered 0 through 9.
+Thus an F5 star is approximately halfway between F0 and G0.
+Zero indicates the hottest within the spectral class, while 9 indicates the coolest with the class.
 
 Here are some examples:
 
@@ -482,80 +431,68 @@ Here are some examples:
 
 [Note]
 ====
-It is customary to drop the number in the designation of degenerate dwarf
-stars.  Thus, in the astronomical literature, one is more likely to see "DA"
-rather than "DA5".  I have left them in, however, for consistency.
+It is customary to drop the number in the designation of degenerate dwarf stars.
+Thus, in the astronomical literature, one is more likely to see "DA" rather than "DA5."
+I have left them in, however, for consistency.
 ====
 
-The star map which you will receive from the gamemaster will be two-
-dimensional, and will show X and Y coordinates on the axes.  If a star exists
-at a particular X,Y coordinate, then a number and a spectral type will be
-displayed at that location.  The number will be the Z coordinate.  Thus,
-if you see the following:
+The star map which you will receive from the gamemaster will be two-dimensional, and will show X and Y coordinates on the axes.
+If a star exists at a particular X,Y coordinate, then a number and a spectral type will be displayed at that location.
+The number will be the Z coordinate.  Thus, if you see the following:
 
 	 12
 	gF6
 
-at the position on the map where X=5 and Y=9, it indicates that a giant yellow-
-white star is located at coordinates X=5, Y=9, Z=12.
-
+at the position on the map where X=5 and Y=9, it indicates that a giant yellow-white star is located at coordinates X=5, Y=9, Z=12.
 
 === PLANETS
 
-Planets are real estate, and are the ultimate source of all wealth and power in
-the game.  As a result, planets are also the most common cause of interstellar
-conflict.
+Planets are real estate, and are the ultimate source of all wealth and power in the game.
+As a result, planets are also the most common cause of interstellar conflict.
 
-In the following sections, the various terms used to describe a planet's
-physical characteristics will be discussed.  It is by evaluating these
-characteristics that a player can decide if a planet is suitable for
-colonization and/or exploitation by his species.  For reference, here is
-a sample of a star system scan:
+In the following sections, the various terms used to describe a planet's physical characteristics will be discussed.
+It is by evaluating these characteristics that a player can decide if a planet is suitable for colonization and/or exploitation by his species.
+For reference, here is a sample of a star system scan:
 
 ```
-	Coordinates:	x = 7	y = 10	z = 18	stellar type =  A0   8 planets.
+Coordinates:	x = 7	y = 10	z = 18	stellar type =  A0   8 planets.
 
-					Temp  Press Mining
-	   #  Dia  Grav Class Class  Diff  LSN  Atmosphere
-	  ---------------------------------------------------------------------
-	   1    5  0.28  23     3    0.37   42  Cl2(100%)
-	   2   14  0.80  23     6    0.38   39  F2(33%),H2O(67%)
-	   3   12  0.91  18     9    0.65   24  HCl(38%),Cl2(32%),F2(30%)
-	   4   21  2.00  15     6    0.38   24  CO2(29%),HCl(43%),Cl2(17%),F2(11%)
-	   5   14  0.96  10     9    2.25    0  N2(47%),CO2(23%),O2(30%)
-	   6  189  2.67   4    18    4.34   33  CH4(49%),NH3(48%),N2(3%)
-	   7  103  1.94   3    17    0.49   33  H2(58%),CH4(42%)
-	   8   34  2.46   3    11    0.77   21  He(40%),N2(60%)
+				Temp  Press Mining
+   #  Dia  Grav Class Class  Diff  LSN  Atmosphere
+  ---------------------------------------------------------------------
+   1    5  0.28  23     3    0.37   42  Cl2(100%)
+   2   14  0.80  23     6    0.38   39  F2(33%),H2O(67%)
+   3   12  0.91  18     9    0.65   24  HCl(38%),Cl2(32%),F2(30%)
+   4   21  2.00  15     6    0.38   24  CO2(29%),HCl(43%),Cl2(17%),F2(11%)
+   5   14  0.96  10     9    2.25    0  N2(47%),CO2(23%),O2(30%)
+   6  189  2.67   4    18    4.34   33  CH4(49%),NH3(48%),N2(3%)
+   7  103  1.94   3    17    0.49   33  H2(58%),CH4(42%)
+   8   34  2.46   3    11    0.77   21  He(40%),N2(60%)
 ```
 
 ==== PLANET NUMBER
 
 Each planet has a number, indicating its relative position around the sun.
-Planet number 1 is closest to the sun.  The planet with the largest number is
-farthest from the sun.  Actual distances are not important for game purposes.
+Planet number 1 is closest to the sun.
+The planet with the largest number is farthest from the sun.
+Actual distances are not important for game purposes.
 In the above sample, there are eight planets numbered 1 through 8.
-
 
 ==== PLANET DIAMETER
 
-A planet's diameter is listed under "Dia" and is the diameter of the planet in
-thousands of kilometers.  Thus, in the above sample, planet #5 has a diameter
-of 14,000 kilometers.  (For comparison, Earth has a diameter of approximately
-13,000 kilometers, and Jupiter has a diameter of about 143,000 kilometers.)
-
+A planet's diameter is listed under "Dia" and is the diameter of the planet in thousands of kilometers.
+Thus, in the above sample, planet #5 has a diameter of 14,000 kilometers.
+(For comparison, Earth has a diameter of approximately 13,000 kilometers, and Jupiter has a diameter of about 143,000 kilometers.)
 
 ==== PLANET GRAVITY
 
-A planet's gravity is listed in the "Grav" column, and is given in standard
-Earth gravities.  Thus, Earth would have a value of 1.00.  In the above sample,
-a person standing on the surface of planet #4 would weigh twice as much as on
-Earth.
-
+A planet's gravity is listed in the "Grav" column, and is given in standard Earth gravities.
+Thus, Earth would have a value of 1.00.
+In the above sample, a person standing on the surface of planet #4 would weigh twice as much as on Earth.
 
 ==== TEMPERATURE CLASS
 
-A planet's temperature class is listed in the "Temp Class" column and can have
-one of the following values:
+A planet's temperature class is listed in the "Temp Class" column and can have one of the following values:
 
 .Temperature Class
 |===
@@ -593,17 +530,13 @@ one of the following values:
 |30|600|
 |===
 
-The temperatures listed in the table are approximate, average temperatures that
-can be experienced on the surface of the planet.  Colonies are more likely to
-prosper if the temperature class of a planet is as close as possible to that of
-the home planet.  If this is not the case, life support technology will have to
-be applied to produce an artificial environment for the colony.
-
+The temperatures listed in the table are approximate, average temperatures that can be experienced on the surface of the planet.
+Colonies are more likely to prosper if the temperature class of a planet is as close as possible to that of the home planet.
+If this is not the case, life support technology will have to be applied to produce an artificial environment for the colony.
 
 ==== PRESSURE CLASS
 
-A planet's pressure class is listed in the "Press Class" column and can have
-one of the following values:
+A planet's pressure class is listed in the "Press Class" column and can have one of the following values:
 
 .Pressure Class
 |===
@@ -641,44 +574,32 @@ one of the following values:
 |29|524288|
 |===
 
-The pressures listed in the above table are multiples of Earth "atmospheres"
-and are approximate, average values that can be experienced on the surface of
-the planet.  Colonies are more likely to prosper if the pressure class of a
-planet is as close as possible to that of the home planet.  If this is not the
-case, life support technology will have to be applied to produce an artificial
-environment for the colony.
-
+The pressures listed in the above table are multiples of Earth "atmospheres" and are approximate, average values that can be experienced on the surface of the planet.
+Colonies are more likely to prosper if the pressure class of a planet is as close as possible to that of the home planet.
+If this is not the case, life support technology will have to be applied to produce an artificial environment for the colony.
 
 ==== MINING DIFFICULTY
 
-A planet's mining difficulty is listed under "Mining Diff".  Mining difficulty
-is a relative figure-of-merit which indicates how difficult it is to extract
-or utilize a planet's natural resources.  Higher values represent greater
-difficulties.  This value will be used to determine how much raw materials
-can be produced on a planet during each game turn.
-
+A planet's mining difficulty is listed under "Mining Diff".
+Mining difficulty is a relative figure-of-merit which indicates how difficult it is to extract or utilize a planet's natural resources.
+Higher values represent greater difficulties.
+This value will be used to determine how much raw materials can be produced on a planet during each game turn.
 
 ==== LIFE SUPPORT NEEDED (LSN)
 
-The number in the column labeled "LSN" is the amount of Life Support technology
-that your species needs to survive on the planet.  If your Life Support tech
-level is lower than this value, then your species may not safely colonize the
-planet, and any attempt to colonize the planet will result in the destruction
-of the colony.  If your Life Support tech level is equal to or greater than
-this value, then your species may safely colonize the planet.  We will discuss
-later how these values are determined.
+The number in the column labeled "LSN" is the amount of Life Support technology that your species needs to survive on the planet.
+If your Life Support tech level is lower than this value, then your species may not safely colonize the planet, and any attempt to colonize the planet will result in the destruction of the colony.
+If your Life Support tech level is equal to or greater than this value, then your species may safely colonize the planet.
+We will discuss later how these values are determined.
 
 Keep in mind that these values apply only to the species that does the scan.
-If you receive a scan from another player, the LSN values will probably not
-apply to your species.
-
+If you receive a scan from another player, the LSN values will probably not apply to your species.
 
 ==== PLANETARY ATMOSPHERE
 
-A planetary atmosphere will be described in terms of the gases that are its
-major components.  Each gas in the atmosphere will have a percentage value
-associated with it.  The following gases and their symbols are used in this
-game:
+A planetary atmosphere will be described in terms of the gases that are its major components.
+Each gas in the atmosphere will have a percentage value associated with it.
+The following gases and their symbols are used in this game:
 
 .Gas Codes
 |===
@@ -700,128 +621,99 @@ game:
 |===
 
 For example, an Earth-type atmosphere would be described as N2(78%), O2(22%).
-This means that Earth's atmosphere consists of approximately 78% Nitrogen and
-22% Oxygen.
-
+This means that Earth's atmosphere consists of approximately 78% Nitrogen and 22% Oxygen.
 
 ==== FURTHER NOTES ON TEMPERATURE, PRESSURE, AND ATMOSPHERE
 
-The temperature, pressure, and gaseous components of a planet are the prime
-criteria by which you can decide if the planet is suitable for colonization by
-your species.  Furthermore, there are many possible combinations, and finding
-a planet that closely matches your home planet will not be easy.
+The temperature, pressure, and gaseous components of a planet are the prime criteria by which you can decide if the planet is suitable for colonization by your species.
+Furthermore, there are many possible combinations, and finding a planet that closely matches your home planet will not be easy.
 
-For planets with a pressure class greater than about 20, the gases in the
-atmosphere will usually condense into liquids, and will often even solidify as
-you get closer to the surface.  On these planets, there is often no clear
-distinction between the atmosphere and the solid surface.  These planets are
-usually gas giants.  Only the most intrepid and advanced species would ever try
-to colonize the surface of such a planet since it is so inherently hostile to
-life.  Because of this, any colonies that you do establish "on" such planets
-will actually be on moons orbiting the planet, artificial satellites, etc.
+For planets with a pressure class greater than about 20, the gases in the atmosphere will usually condense into liquids, and will often even solidify as you get closer to the surface.
+On these planets, there is often no clear distinction between the atmosphere and the solid surface.
+These planets are usually gas giants.
+Only the most intrepid and advanced species would ever try to colonize the surface of such a planet since it is so inherently hostile to life.
+Because of this, any colonies that you do establish "on" such planets will actually be on moons orbiting the planet, artificial satellites, etc.
 
-If you wish to colonize or exploit a planet that is unsuitable for your
-species, then some form of life support must be provided.  This is where your
-Life Support tech level will play an important part.  A low value for this
-technology will give you few options - you will have to search longer and
-farther from home to find a planet that is suitable for colonizing.  As your
-Life Support tech level increases, you will have a wider range of options.
+If you wish to colonize or exploit a planet that is unsuitable for your species, then some form of life support must be provided.
+This is where your Life Support tech level will play an important part.
+A low value for this technology will give you few options - you will have to search longer and farther from home to find a planet that is suitable for colonizing.
+As your Life Support tech level increases, you will have a wider range of options.
 
-Another possibility open to a species is to actually modify or "terraform" the
-planet.  This can be done by seeding the atmosphere with specially designed
-micro-organisms, and by operating large plants on the surface that will convert
-the atmosphere to something more suitable.  Both temperature and pressure
-classes can also be changed in this way.  However, terraforming is available
-only to species with relatively high Biology tech levels.
-
-
+Another possibility open to a species is to actually modify or "terraform" the planet.
+This can be done by seeding the atmosphere with specially designed micro-organisms, and by operating large plants on the surface that will convert the atmosphere to something more suitable.
+Both temperature and pressure classes can also be changed in this way.
+However, terraforming is available only to species with relatively high Biology tech levels.
 
 == SETTING UP FOR THE GAME
 
-When a player is ready to enter the game, he must fill out a Set-up Form and
-send it to the gamemaster.  The form is in Appendix D.  The following sections
-explain how to fill it out.
-
+When a player is ready to enter the game, he must fill out a Set-up Form and send it to the gamemaster.
+The form is in the <<SET-UP FORM FOR ENTERING A GAME>> appendix.
+The following sections explain how to fill it out.
 
 === TECH LEVEL POINT ALLOCATION
 
-A starting player has a total of 15 points that can be allocated to Military,
-Gravitics, Life Support, and Biology tech levels.  Any combination is allowable
-as long as they add up to 15.
+A starting player has a total of 15 points that can be allocated to Military, Gravitics, Life Support, and Biology tech levels.
+Any combination is allowable as long as they add up to 15.
 
-A tech level can even be zero if you decide that your species has no knowledge
-in that area.  If Gravitics tech level is zero, then you may only build sub-
-light ships.  If your Life Support tech level is zero, then none of your ships
-will have defensive shields.  If a tech level is zero, then it can only be
-raised if another species transfers the knowledge to you.  We'll discuss how
-to do this later.
+A tech level can even be zero if you decide that your species has no knowledge in that area.
+If Gravitics tech level is zero, then you may only build sub-light ships.
+If your Life Support tech level is zero, then none of your ships will have defensive shields.
+If a tech level is zero, then it can only be raised if another species transfers the knowledge to you.
+We'll discuss how to do this later.
 
 All species start the game with Mining and Manufacturing equal to 10.
 
-
 === SPECIES, HOME PLANET AND GOVERNMENT
 
-Choose a name for your species.  It can be something out of science fiction or
-something you make up.  Feel free to use your imagination!  Examples: Human,
-Kenda Jo, Klingon, Graxian, Jubjub Denboy, Ferengi, Mo Ja'adebi, etc.
+Choose a name for your species.
+It can be something out of science fiction or something you make up.
+Feel free to use your imagination!
+Examples: Human, Kenda Jo, Klingon, Graxian, Jubjub Denboy, Ferengi, Mo Ja'adebi, etc.
 
-Choose a name for your home planet.  Examples: Earth, Mars, Barsoom, Dune,
-Giver of Life, Korunkorunkoruniman, Toi di Bai, etc.
+Choose a name for your home planet.
+Examples: Earth, Mars, Barsoom, Dune, Giver of Life, Korunkorunkoruniman, Toi di Bai, etc.
 
-Choose a name for your government or political system.  Examples: The United
-States of America, The Korun Federation, The Holy Alliance of Denadan, The
-Jubjub Denboy Empire, etc.
+Choose a name for your government or political system.
+Examples: The United States of America, The Korun Federation, The Holy Alliance of Denadan, The Jubjub Denboy Empire, etc.
 
-All of the above names are limited to 31 characters and will be truncated if
-they are longer.  When referring to them later, case will not be significant.
-Names may contain spaces and any printable characters except commas and
-semi-colons.  ALL characters in a name, including spaces, are included
-in the 31-character limit.  Names may NOT contain tabs!
+All of the above names are limited to 31 characters and will be truncated if they are longer.
+When referring to them later, case will not be significant.
+Names may contain spaces and any printable characters except commas and semi-colons.
+ALL characters in a name, including spaces, are included in the 31-character limit.
+Names may NOT contain tabs!
 
-Name the type of government or political system of your species.  (In this
-game, we assume that all planets owned by a species are run by a single
-government.)  Be descriptive but limit yourself to 31 characters.  Examples:
-Libertarian Democracy, Communist Totalitarianism, Constitutional Monarchy,
-Absolute Dictatorship, Benevolent Plutocracy, Slaver Republic, Ruthless
-Oligarchy, Theocratic Monarchy, Military Republic, etc.
+Name the type of government or political system of your species.
+(In this game, we assume that all planets owned by a species are run by a single government.)
+Be descriptive but limit yourself to 31 characters.
+Examples: Libertarian Democracy, Communist Totalitarianism, Constitutional Monarchy, Absolute Dictatorship, Benevolent Plutocracy, Slaver Republic, Ruthless Oligarchy, Theocratic Monarchy, Military Republic, etc.
 
-The political system you choose could have an impact on the game, since species
-may react to each other differently, depending on ideology.  Also, since Far
-Horizons is a role-playing game, the player should always operate within the
-limitations imposed by the type of government he chooses.
-
+The political system you choose could have an impact on the game, since species may react to each other differently, depending on ideology.
+Also, since Far Horizons is a role-playing game, the player should always operate within the limitations imposed by the type of government he chooses.
 
 === PROCESSING TURNS
 
-After the gamemaster has received your set-up information, he will either send
-you a map of the galaxy or he'll tell you where you can obtain a copy via ftp.
-He will also send you a status report which contains a detailed description of
-your home planet and its production capabilities.  At the end of the status
-report, there will be an order form that you can fill out for your first turn.
+After the gamemaster has received your set-up information, he will either send you a map of the galaxy or he'll tell you where you can obtain a copy via ftp.
+He will also send you a status report which contains a detailed description of your home planet and its production capabilities.
+At the end of the status report, there will be an order form that you can fill out for your first turn.
 
 In the following sections, we will discuss these items in more detail.
 
-
 === STAR SYSTEM DATA
 
-The star system data sent to you for the first turn provides a detailed
-description of the home star system.  Refer to Chapter 2 if you have any
-problem deciphering the information.
+The star system data sent to you for the first turn provides a detailed description of the home star system.
+Refer to <<STARS AND PLANETS, Chapter 2>>, if you have any problem deciphering the information.
 
-Star system data can be provided to you for every star system that your species
-visits.  However, you will not receive this information automatically, but must
-specifically request a "scan".  This can be done in the pre-departure or post-
-arrival section of the orders you send to the gamemaster.  (We'll have more to
-say about the 'scan' command later.)
-
+Star system data can be provided to you for every star system that your species visits.
+However, you will not receive this information automatically, but must specifically request a "scan".
+This can be done in the pre-departure or post- arrival section of the orders you send to the gamemaster.
+(We'll have more to say about the 'scan' command later.)
 
 === SPECIES STATUS REPORT
 
-This section of the information sent to you describes your species' current
-situation.  At the start of a game, you will not have any planetary defenses,
-ships, etc.  You start the game with a blank slate.  You DO, however, have
-mining and manufacturing capability which you can start using immediately
-to build ships and other items.
+This section of the information sent to you describes your species' current situation.
+At the start of a game, you will not have any planetary defenses, ships, etc.
+You start the game with a blank slate.
+You DO, however, have mining and manufacturing capability which you can start using immediately to build ships and other items.
 
 Names of items that are available for use on a planet will be printed out in full, along with their class abbreviation, required carrying capacity, and quantity.
 For example:
@@ -830,81 +722,81 @@ For example:
 Raw Material Units (RM,C1) = 17
 ```
 
-The above example indicates that the planet has 17 unused raw material units,
-which require a carrying capacity of 1 each, and have the abbreviation "RM".
+The above example indicates that the planet has 17 unused raw material units, which require a carrying capacity of 1 each, and have the abbreviation "RM."
 (We'll have more to say about raw material units and carrying capacity later.)
 
-Ages of ships and their orbital status will be indicated as in the following
-example:
+Ages of ships and their orbital status will be indicated as in the following example:
 
-	CT Derby Dan (A5,O6)
+```
+CT Derby Dan (A5,O6)
+```
 
-Here, "CT" is the abbreviation for a corvette.  "A5" indicates that the age
-of the ship is 5 turns.  The letter "O6" indicates that the ship is in orbit
-around planet number 6 (as opposed to being landed on the surface).  If a ship
-is on the surface (i.e., "landed"), then "L" will be used.  If a ship is in
-deep space, not associated with any planet, the letter "D" will be used.  If a
-ship voluntarily withdrew from combat during the strike phase, then "WD" will
-be used.  If a ship was forced to jump using Forced Jump Units during the
-strike phase, then "FJ" will be used.  If a ship is still under construction,
-then the complete designation will be simply "(C)".  (We'll have more to say
-about landing, orbiting, and combat later.)
+Here, "CT" is the abbreviation for a corvette.
+"A5" indicates that the age of the ship is 5 turns.
+The letter "O6" indicates that the ship is in orbit around planet number 6 (as opposed to being landed on the surface).
+If a ship is on the surface (i.e., "landed"), then "L" will be used.
+If a ship is in deep space, not associated with any planet, the letter "D" will be used.
+If a ship voluntarily withdrew from combat during the strike phase, then "WD" will be used.
+If a ship was forced to jump using Forced Jump Units during the strike phase, then "FJ" will be used.
+If a ship is still under construction, then the complete designation will be simply "(C)".
+(We'll have more to say about landing, orbiting, and combat later.)
 
-The rest of the status section is intended to be self-explanatory.  It
-indicates what your current Mining and Manufacturing Bases are and how much
-you can produce in the current turn.  (Abbreviations MI = Mining Tech Level,
-MA = Manufacturing Tech Level, and MD = Mining Difficulty.)  How to use this
-data will be described later.  The atmospheric requirements and the list of
-gases poisonous and harmless to your species will be used later in the game
-to decide whether or not other planets are suitable for colonization.  How
-to colonize planets will be described later.
+.Orbital Status TODO
+|===
+|Code|Meaning
 
+|\(C)|Under construction
+|FJ|Forced to jump during the strike phase
+|L|Landed on the planet
+|O|Orbiting the planet
+|WD|Voluntarily withdrew from combat during the strike phase
+|===
+
+where stem:[n] is the number of the planet.
+
+The rest of the status section is intended to be self-explanatory.
+It indicates what your current Mining and Manufacturing Bases are and how much you can produce in the current turn.
+(Abbreviations MI = Mining Tech Level, MA = Manufacturing Tech Level, and MD = Mining Difficulty.)
+How to use this data will be described later.
+The atmospheric requirements and the list of gases poisonous and harmless to your species will be used later in the game to decide whether or not other planets are suitable for colonization.
+How to colonize planets will be described later.
 
 === NOMENCLATURE
 
-In order to make turn-processing as easy as possible for the gamemaster, and to
-allow as much processing as possible to be done by the computer, certain naming
-conventions have been established.  Players should be careful to follow these
-conventions carefully.
+In order to make turn-processing as easy as possible for the gamemaster, and to allow as much processing as possible to be done by the computer, certain naming conventions have been established.
+Players should be careful to follow these conventions carefully.
 
-All items in the game have a 2-5 letter abbreviation.  For example, heavy
-cruisers use the designation "CA", while starbases use "BAS".  These class
-designations should ALWAYS be used when giving orders for the items.
+All items in the game have a 2-5 letter abbreviation.
+For example, heavy cruisers use the designation "CA," while starbases use "BAS."
+These class designations should ALWAYS be used when giving orders for the items.
 
-Ship and planet names are limited to 31 characters and will be truncated if
-they are longer.  Case is not significant.  Thus, the following names for a
-heavy cruiser are all the same:
+Ship and planet names are limited to 31 characters and will be truncated if they are longer.
+Case is not significant.
+Thus, the following names for a heavy cruiser are all the same:
 
-	CA USS Enterprise
-	ca uss enterprise
-	CA USS ENTERPRISE
+```
+CA USS Enterprise
+ca uss enterprise
+CA USS ENTERPRISE
+```
 
-The particular upper/lower case combination that you use the first time you
-name a ship or planet will be used in all subsequent reports.  You may use
-ANY combination, however, in subsequent orders.
+The particular upper/lower case combination that you use the first time you name a ship or planet will be used in all subsequent reports.
+You may use ANY combination, however, in subsequent orders.
 
-Names may contain spaces and any printable characters except commas and
-semi-colons.  ALL characters in a name, including spaces, are included in
-the 31 character limit.
-
-
+Names may contain spaces and any printable characters except commas and semi-colons.
+ALL characters in a name, including spaces, are included in the 31 character limit.
 
 == MINING AND MANUFACTURING
 
 In order to explore the galaxy, you will need spaceships, among other things.
-The following sections will discuss how mining and manufacturing are used to
-produce the items you will need.
-
+The following sections will discuss how mining and manufacturing are used to produce the items you will need.
 
 === RAW MATERIAL UNITS
 
-As was mentioned earlier, Mining tech level does not apply strictly to mining,
-but also includes such operations as drilling for oil, refining metals,
-growing, harvesting, and processing crops, etc.  In other words, it is a
-generic term that covers all aspects of tapping a planet's natural resources.
-This technology is used to produce all of the raw materials that, in turn, are
-used for final production.  Thus, mining technology produces raw materials and
-manufacturing technology consumes them.
+As was mentioned earlier, Mining tech level does not apply strictly to mining, but also includes such operations as drilling for oil, refining metals, growing, harvesting, and processing crops, etc.
+In other words, it is a generic term that covers all aspects of tapping a planet's natural resources.
+This technology is used to produce all of the raw materials that, in turn, are used for final production.
+Thus, mining technology produces raw materials and manufacturing technology consumes them.
 
 In FAR HORIZONS, quantities of raw materials are measured in RAW MATERIAL UNITS.
 The number of raw material units that can be produced on a planet in a single turn is:
@@ -918,91 +810,70 @@ For example, if your mining tech level is 4, your mining base is 136 and the pla
 
 stem:[(4 xx 136) / 1.24 = 438.71 = 438 \ text(raw material units)]
 
-in the current turn.  Note that fractions are always dropped.  Since current
-values are always shown on status reports that are sent to players, it will
-NOT be necessary for players to do these calculations.
+in the current turn.
+Note that fractions are always dropped.
+Since current values are always shown on status reports that are sent to players, it will NOT be necessary for players to do these calculations.
 
-The mining base on all home planets will automatically increase by about 2% per
-turn.  On colonies, however, the mining base can only be increased by shipping
-in colonists and installing colonial mining units (we'll have more to say about
-this later).  This, in fact, is how colonies are actually started.
+The mining base on all home planets will automatically increase by about 2% per turn.
+On colonies, however, the mining base can only be increased by shipping in colonists and installing colonial mining units (we'll have more to say about this later).
+This, in fact, is how colonies are actually started.
 
-When referring to raw material units in orders which you send to the
-gamemaster, use the abbreviation "RM".  We'll have more to say about this
-later.
+When referring to raw material units in orders which you send to the gamemaster, use the abbreviation "RM."
+We'll have more to say about this later.
 
-Finally, unused raw material units may be carried over into later turns.  In
-effect, such carry-over is the equivalent of long term storage and stockpiling.
-
+Finally, unused raw material units may be carried over into later turns.
+In effect, such carry-over is the equivalent of long term storage and stockpiling.
 
 === PRODUCTION CAPACITY
 
-A species' PRODUCTION CAPACITY is a measure of its ability to convert raw
-material units into final products.  Specifically, it is a measure of the
-number of raw material units that may be converted into usable products in
-a single turn.  This value is determined as follows:
+A species' PRODUCTION CAPACITY is a measure of its ability to convert raw material units into final products.
+Specifically, it is a measure of the number of raw material units that may be converted into usable products in a single turn.
+This value is determined as follows:
 
 stem:[text(Production Capacity) = text(Manufacting Tech Level) xx text(Manufacturing Base)]
 
-MANUFACTURING BASE is a relative measure of the total physical plant available
-on a planet for the conversion of raw material units into final products.
-Thus, it is an indication of how many factories, dock yards, processing plants,
-etc. that can be used by the planet's population.
+MANUFACTURING BASE is a relative measure of the total physical plant available on a planet for the conversion of raw material units into final products.
+Thus, it is an indication of how many factories, dock yards, processing plants, etc. that can be used by the planet's population.
 
-For example, if manufacturing tech level is 6 and manufacturing base is 142,
-then
+For example, if manufacturing tech level is 6 and manufacturing base is 142, then
 
 stem:[text(Production Capacity) = 6 xx 142 = 852]
 
-in the current turn.  Thus, the planet has the production capacity to "consume"
-852 raw material units and "purchase" 852 units of final products.  Since
-current values are always shown on status reports that are sent to players,
-it will NOT be necessary for players to do these calculations.
+in the current turn.
+Thus, the planet has the production capacity to "consume" 852 raw material units and "purchase" 852 units of final products.
+Since current values are always shown on status reports that are sent to players, it will NOT be necessary for players to do these calculations.
 
-The manufacturing base on all home planets will automatically increase by
-about 2% per turn.  On colonies, however, the manufacturing base can only be
-increased by shipping in colonists and installing colonial manufacturing units
-(we'll have more to say about this later).
+The manufacturing base on all home planets will automatically increase by about 2% per turn.
+On colonies, however, the manufacturing base can only be increased by shipping in colonists and installing colonial manufacturing units (we'll have more to say about this later).
 
-Production capacity can only be utilized at its maximum if sufficient raw
-material units are available.  You cannot convert what you don't have.
-Furthermore, production capacity cannot be carried over into later turns.  If
-you don't utilize your full production capacity, then it simply means that
-your production facilities are not operating at full capacity.
+Production capacity can only be utilized at its maximum if sufficient raw material units are available.
+You cannot convert what you don't have.
+Furthermore, production capacity cannot be carried over into later turns.
+If you don't utilize your full production capacity, then it simply means that your production facilities are not operating at full capacity.
 
 It is possible to use raw materials in the same turn as they are produced.
-They do not have to be stockpiled in earlier turns.  Thus, the total number of
-raw material units available for manufacturing in the current turn is the sum
-of what was carried over from the previous turns plus what will be produced in
-the current turn.
-
-
+They do not have to be stockpiled in earlier turns.
+Thus, the total number of raw material units available for manufacturing in the current turn is the sum of what was carried over from the previous turns plus what will be produced in the current turn.
 
 == PRODUCTION
 
-At the end of each status report that you receive, there will be an order form
-which you must fill out and send to the gamemaster.  In it you will provide
-your orders for the current turn.  The form has sections for combat orders,
-pre-departure orders, jump orders, production orders, post-arrival orders,
-and strike orders.
+At the end of each status report that you receive, there will be an order form which you must fill out and send to the gamemaster.
+In it you will provide your orders for the current turn.
+The form has sections for combat orders, pre-departure orders, jump orders, production orders, post-arrival orders, and strike orders.
 
-At the start of a game, you will only be able to provide production orders
-for one planet - your home planet.  In later turns, you will need to fill
-out orders for each planet on which you have production capacity.
+At the start of a game, you will only be able to provide production orders for one planet - your home planet.
+In later turns, you will need to fill out orders for each planet on which you have production capacity.
 
 Production for each planet must be preceded by the order:
 
 	PRODUCTION PL name
 
-where "PL" is the class abbreviation for a planet and "name" is the name of the
-planet.  This command indicates that the orders that follow apply only to the
-indicated planet.  Orders for each planet must be preceded by a PRODUCTION
-command.
+where "PL" is the class abbreviation for a planet and "name" is the name of the planet.
+This command indicates that the orders that follow apply only to the indicated planet.
+Orders for each planet must be preceded by a PRODUCTION command.
 
-Each section of the orders is started for you, and you must provide your
-specific orders.  For example, if your home planet is called "Earth", and you
-have a colony called "Mars", the initial production section will look something
-like this:
+Each section of the orders is started for you, and you must provide your specific orders.
+For example, if your home planet is called "Earth", and you have a colony called "Mars", the initial production section will look something like this:
 
 ```
 START PRODUCTION
@@ -1015,72 +886,71 @@ PRODUCTION PL Earth
 END PRODUCTION
 ```
 
-Note that some lines begin with a semi-colon.  The semi-colon indicates that
-the line is actually a comment and that the computer should ignore it.  You may
-add comments of your own.  Comments may appear anywhere and always start with a
-semi-colon.  Everything on a line that follows a semi-colon is ignored by the
-computer.  Completely blank lines are also ignored.
-
-Each order begins with a command word, such as "TRANSFER", "RESEARCH", etc.
-These command words are not case sensitive and may be truncated to just the
-first THREE letters.  Any letters after the first three are ignored.  Thus, all
-of the following are equivalent to "RESEARCH": "reS", "RESEA", "REsoQQQ", etc.
-
-When a name (such as the name of a ship or planet) is not the last item on a
-line, it should be terminated by a comma.  This is necessary because names can
-contain spaces.  Thus, in the following example, the name "Laughing Dog" is
-immediately followed by a comma:
-
-	JUMP	CT Laughing Dog, PL Shangri La
-
-Note though that "Shangri La" is NOT followed by a comma, since it is the last
-item on the line.
+Note that some lines begin with a semi-colon.
+The semi-colon indicates that the line is actually a comment and that the computer should ignore it.
+You may add comments of your own.
+Comments may appear anywhere and always start with a semi-colon.
+Everything on a line that follows a semi-colon is ignored by the computer.
+Completely blank lines are also ignored.
 
 [Warning]
 ====
-WARNING! Omitting a required comma is one of the most common
-mistakes made by players.  It is also one of the most frustrating,
-since the computer will reject the order.
+Your e-mail program may "wrap" long lines.
+When it does, the order processing program will be fooled into thinking that are two lines.
+That may cause other-wise valid orders to be rejected.
 ====
 
-You may use as many tabs and/or spaces as you wish to separate items in a
-command to make it more readable.  Tabs and spaces at the very beginning of a
-command line are ignored.  For example, the following are valid orders:
+Each order begins with a command word, such as "TRANSFER", "RESEARCH", etc.
+These command words are not case sensitive and may be truncated to just the first THREE letters.
+Any letters after the first three are ignored.
+Thus, all of the following are equivalent to "RESEARCH": "reS," "RESEA," "REsoQQQ," etc.
+
+When a name (such as the name of a ship or planet) is not the last item on a line, it should be terminated by a comma.
+This is necessary because names can contain spaces.
+Thus, in the following example, the name "Laughing Dog" is immediately followed by a comma:
+
+	JUMP	CT Laughing Dog, PL Shangri La
+
+Note though that "Shangri La" is NOT followed by a comma, since it is the last item on the line.
+
+[Warning]
+====
+WARNING!
+
+Omitting a required comma is one of the most common mistakes made by players.
+It is also one of the most frustrating, since the computer will reject the order.
+====
+
+You may use as many tabs and/or spaces as you wish to separate items in a command to make it more readable.
+Tabs and spaces at the very beginning of a command line are ignored.
+For example, the following are valid orders:
 
 	Orbit	FF	Thomas Edison,		PL	Mars
 	JUMP	PB	Benjamin Franklin,	12	7	18
 
-Tabs, like commas, will terminate a name.  However, use of commas is
-recommended because tabs are not always easily visible.  Any spaces that
-appear in a name will become part of the name.
+Tabs, like commas, will terminate a name.
+However, use of commas is recommended because tabs are not always easily visible.
+Any spaces that appear in a name will become part of the name.
 
-If a comment appears after an order on the same line, spaces and tabs that
-precede the semi-colon are ignored.  Thus, there is no need to terminate a name
-with a comma if the name is immediately followed by a comment.  For example:
+If a comment appears after an order on the same line, spaces and tabs that precede the semi-colon are ignored.
+Thus, there is no need to terminate a name with a comma if the name is immediately followed by a comment.
+For example:
 
 	Jump	TR7 Love Dove,	PL Mars    ;Deliver new colonists.
 
-Note that "Mars" is not followed by a comma, and that the spaces between "Mars"
-and the semi-colon will not be considered as part of the name "Mars".
+Note that "Mars" is not followed by a comma, and that the spaces between "Mars" and the semi-colon will not be considered as part of the name "Mars."
 
-Any items that you may wish to build, such as ships, planetary defenses, etc.
-will have a "cost" of equal amounts of raw material units and production
-capacity.  Thus, if you wish to build a spaceship with a cost of 200, then
-a total of 200 raw material units will be used in its construction, and a
-total production capacity of 200 will be needed to actually build it.
+Any items that you may wish to build, such as ships, planetary defenses, etc. will have a "cost" of equal amounts of raw material units and production capacity.
+Thus, if you wish to build a spaceship with a cost of 200, then a total of 200 raw material units will be used in its construction, and a total production capacity of 200 will be needed to actually build it.
 
-Except for ships, all items must be built in a single turn.  You can take as
-many turns as you like to build ships.  Thus, if we continue the above example,
-you could build the ship in, say, 4 turns.  You could allocate 100 raw material
-units and production capacity in the first turn, 70 in the second turn, 0 in
-the third turn, and 30 in the fourth turn.
+Except for ships, all items must be built in a single turn.
+You can take as many turns as you like to build ships.
+Thus, if we continue the above example, you could build the ship in, say, 4 turns.
+You could allocate 100 raw material units and production capacity in the first turn, 70 in the second turn, 0 in the third turn, and 30 in the fourth turn.
 
-Finally, keep in mind that raw material units and production capacity must
-always be spent in equal amounts.  Thus, for example, if your production
-capacity is greater than the number of raw material units, then the excess may
-not be used.  Also keep in mind that unused raw material units MAY be carried
-over into later turns, but that unused production capacity may NOT.
-
+Finally, keep in mind that raw material units and production capacity must always be spent in equal amounts.
+Thus, for example, if your production capacity is greater than the number of raw material units, then the excess may not be used.
+Also keep in mind that unused raw material units MAY be carried over into later turns, but that unused production capacity may NOT.
 
 === SPACESHIPS
 
@@ -1108,44 +978,34 @@ Spaceships come in all sizes as can be seen in the following table:
 |140|BR|Battlestar|700,000|70|7,000|5,250
 |===
 
-"Minimum MA" is the minimum Manufacturing tech level that a species must have
-before it is capable of building a ship of the corresponding tonnage.  For
-example, a species must have a Manufacturing tech level of 40 or higher in
-order to be able to build a light cruiser.
+"Minimum MA" is the minimum Manufacturing tech level that a species must have before it is capable of building a ship of the corresponding tonnage.
+For example, a species must have a Manufacturing tech level of 40 or higher in order to be able to build a light cruiser.
 
-"Abbr" is the abbreviation that will be used for the corresponding class of
-ship.  The correct abbreviation must ALWAYS be used when making reference to
-a specific ship.  Thus, if you build a battleship named "USS Iowa", you must
-always refer to it as BS USS Iowa.  You are free to give your ships whatever
-names you wish, as long as you conform to some simple naming conventions that
-will be discussed later.
+"Abbr" is the abbreviation that will be used for the corresponding class of ship.
+The correct abbreviation must ALWAYS be used when making reference to a specific ship.
+Thus, if you build a battleship named "USS Iowa", you must always refer to it as BS USS Iowa.
+You are free to give your ships whatever names you wish, as long as you conform to some simple naming conventions that will be discussed later.
 
-"Tonnage" is the ship's fully loaded deadweight in long tons in standard
-gravity.  (Note that the maximum tonnage that a species can handle is equal
-to 5000 times the Manufacturing tech level.)
+"Tonnage" is the ship's fully loaded deadweight in long tons in standard gravity.
+(Note that the maximum tonnage that a species can handle is equal to 5000 times the Manufacturing tech level.)
 
-"Carrying Capacity" is the amount of cargo units or colonist units units that
-a ship can carry.  More will be said about this later.  (Note that carrying
-capacity is equal to the tonnage divided by 10,000.)
+"Carrying Capacity" is the amount of cargo units or colonist units units that a ship can carry.
+More will be said about this later.
+(Note that carrying capacity is equal to the tonnage divided by 10,000.)
 
-"FTL Cost" is the number of raw material units and production capacity needed
-to build a ship capable of interstellar travel (FTL stands for "Faster-than-
-light").
+"FTL Cost" is the number of raw material units and production capacity needed to build a ship capable of interstellar travel (FTL stands for "Faster-than-light").
 
 [Note]
 ====
 Note that the FTL cost is equal to the tonnage divided by 100.
 ====
 
-"Sub-light Cost" is the number of raw material units and production capacity
-needed to build a ship that is NOT capable of interstellar travel.  These ships
-have all of the capabilities of the equivalent FTL ship, except that they must
-either remain in the star system in which they were constructed, or move very
-slowly from one sector to the next.  (Note that the sub-light ship cost is
-equal to the FTL cost minus 25%.)
+"Sub-light Cost" is the number of raw material units and production capacity needed to build a ship that is NOT capable of interstellar travel.
+These ships have all of the capabilities of the equivalent FTL ship, except that they must either remain in the star system in which they were constructed, or move very slowly from one sector to the next.
+(Note that the sub-light ship cost is equal to the 75% of the FTL cost.)
 
-To build ships, use the BUILD command, and be careful to use the correct class
-abbreviation.  For example:
+To build ships, use the BUILD command, and be careful to use the correct class abbreviation.
+For example:
 
 ```
 START PRODUCTION
@@ -1162,13 +1022,11 @@ PRODUCTION PL Earth
 END PRODUCTION
 ```
 
-Note that if a payment amount is not specified, then the ship will be
-completely built.  The computer will calculate the needed cost.  You will, of
-course, have to keep track of the costs yourself to make sure that you don't
-try to spend more than what you have.
+Note that if a payment amount is not specified, then the ship will be completely built.
+The computer will calculate the needed cost.
+You will, of course, have to keep track of the costs yourself to make sure that you don't try to spend more than what you have.
 
-To continue construction on a ship, use the CONTINUE command, as in the
-following examples:
+To continue construction on a ship, use the CONTINUE command, as in the following examples:
 
 ```
 START PRODUCTION
@@ -1184,80 +1042,55 @@ PRODUCTION PL Earth
 END PRODUCTION
 ```
 
-If you do not specify the amount to spend, then the computer will calculate
-the cost needed to finish construction.
+If you do not specify the amount to spend, then the computer will calculate the cost needed to finish construction.
 
-NEVER use the same name for two different ships, even if their classes are
-different.  For example, if corvette "CT Danny Boy" already exists, then an
-order to build frigate "FF Danny Boy" will fail.
-
+NEVER use the same name for two different ships, even if their classes are different.
+For example, if corvette "CT Danny Boy" already exists, then an order to build frigate "FF Danny Boy" will fail.
 
 === COMBAT EFFECTIVENESS
 
-In this section, we will digress slightly and consider just how effective the
-above-listed ships would be in combat situations.
+In this section, we will digress slightly and consider just how effective the above-listed ships would be in combat situations.
 
-In a game where each turn is five years long, any rules regarding combat must,
-of necessity, be highly abstract.  Furthermore, FAR HORIZONS is a strategic
-game, as opposed to a tactical game.  And since the game must be played by
-mail, it is not possible for players to be directly involved in the details of
-space combat.  As a result, the outcome of all battles must be determined by
-the gamemaster's computer.
+In a game where each turn is five years long, any rules regarding combat must, of necessity, be highly abstract.
+Furthermore, FAR HORIZONS is a strategic game, as opposed to a tactical game.
+And since the game must be played by mail, it is not possible for players to be directly involved in the details of space combat.
+As a result, the outcome of all battles must be determined by the gamemaster's computer.
 
-Whenever combat does occur, the computer will assign probabilities defining
-each side's offensive and defensive potentials.  Offensive potentials will
-depend most heavily on the numbers and sizes of the ships (i.e. how much
-firepower is available) and their Military tech levels (i.e. how effective
-their weaponry and tactics are).  Defensive potentials will depend most heavily
-on the sizes of the ships (i.e. how much armor and defensive shield generators
-can be carried) and their Life Support tech level (since the design of shields
-is an application of life support technology).
+Whenever combat does occur, the computer will assign probabilities defining each side's offensive and defensive potentials.
+Offensive potentials will depend most heavily on the numbers and sizes of the ships (i.e. how much firepower is available) and their Military tech levels (i.e. how effective their weaponry and tactics are).
+Defensive potentials will depend most heavily on the sizes of the ships (i.e. how much armor and defensive shield generators can be carried) and their Life Support tech level (since the design of shields is an application of life support technology).
 
-MOST IMPORTANTLY, a single, large ship has MUCH more offensive and defensive
-capability than several smaller ships of the same total tonnage.  For example,
-a single frigate (100,000 tons) could EASILY destroy a fleet of five corvettes
-(20,000 tons each) or ten picketboats (10,000 tons each) if tech levels are
-about the same.
+MOST IMPORTANTLY, a single, large ship has MUCH more offensive and defensive capability than several smaller ships of the same total tonnage.
+For example, a single frigate (100,000 tons) could EASILY destroy a fleet of five corvettes (20,000 tons each) or ten picketboats (10,000 tons each) if tech levels are about the same.
 
-Each battle will consist of one or more "rounds", during which ships on either
-side may be damaged or destroyed.  The battle will proceed until one side is
-destroyed or forced to leave.
+Each battle will consist of one or more "rounds," during which ships on either side may be damaged or destroyed.
+The battle will proceed until one side is destroyed or forced to leave.
 
-Thus, the players will not be directly involved in determining the outcome
-of a battle.  Only the results of a battle will be reported to them, on their
-status reports.
-
+Thus, the players will not be directly involved in determining the outcome of a battle.
+Only the results of a battle will be reported to them, on their status reports.
 
 === PLANETARY DEFENSES
 
 Planetary defenses are intended to protect a planet from attack by enemy ships.
-They can attack and be attacked by ships in space near the planet.  A planet
-may not be controlled by an invading force until all planetary defenses have
-been destroyed.  Planetary defenses can also be used in besieging a planet if
-they are on the planet that is under siege.
+They can attack and be attacked by ships in space near the planet.
+A planet may not be controlled by an invading force until all planetary defenses have been destroyed.
+Planetary defenses can also be used in besieging a planet if they are on the planet that is under siege.
 
-In this game, we will not be concerned with the number, location or strength of
-the individual bases and facilities that make up a planet's planetary defenses.
-If a planet is attacked, only the total planetary defense strength is
-important.
+In this game, we will not be concerned with the number, location or strength of the individual bases and facilities that make up a planet's planetary defenses.
+If a planet is attacked, only the total planetary defense strength is important.
 
-Specifically, each planetary defense unit will have a cost of 1, and will have
-the combat "value" of a 50 ton FTL warship.  For example, if a planet has
-produced 2000 planetary defense units (at a total cost of 2000), then it will
-have the same combat effectiveness as a 100,000 ton frigate.
+Specifically, each planetary defense unit will have a cost of 1, and will have the combat "value" of a 50 ton FTL warship.
+For example, if a planet has produced 2000 planetary defense units (at a total cost of 2000), then it will have the same combat effectiveness as a 100,000 ton frigate.
 
-At first glance, it might seem that planetary defenses are not very effective
-for the amount spent in their construction.  Keep in mind, though, that
-planetary defenses can grow without limit, becoming more and more powerful at
-each step in their growth.  Also, planetary defenses are not limited in size
-by the species' Manufacturing tech level, as ships are.  And, as we will see
-later, planetary defenses don't suffer from aging effects.
+At first glance, it might seem that planetary defenses are not very effective for the amount spent in their construction.
+Keep in mind, though, that planetary defenses can grow without limit, becoming more and more powerful at each step in their growth.
+Also, planetary defenses are not limited in size by the species' Manufacturing tech level, as ships are.
+And, as we will see later, planetary defenses don't suffer from aging effects.
 
-When referring to planetary defenses in orders, use the abbreviation "PD".
+When referring to planetary defenses in orders, use the abbreviation "PD."
 Each planetary defense unit requires a cargo capacity of 3.
 
-To construct planetary defenses, use the BUILD command, as in the following
-examples:
+To construct planetary defenses, use the BUILD command, as in the following examples:
 
 ```
 START PRODUCTION
@@ -1274,28 +1107,22 @@ PRODUCTION PL Earth
 END PRODUCTION
 ```
 
-The units produced will remain on the producing planet unless they are
-transferred elsewhere.
-
+The units produced will remain on the producing planet unless they are transferred elsewhere.
 
 === TRANSPORTS
 
 Transports are ships that are specially designed to carry colonists and cargo.
-They CAN take part in combat, but their offensive and defensive capabilities
-are about one-tenth that of warships.  (As indicated in the warship list above,
-warships also have carrying capacity, but it is much less than a transport of
-the same tonnage.)
+They CAN take part in combat, but their offensive and defensive capabilities are about one-tenth that of warships.
+(As indicated in the warship list above, warships also have carrying capacity, but it is much less than a transport of the same tonnage.)
 
-Transports can be built in any multiple of 10,000 tons.  The maximum tonnage,
-as for other ships, is 5000 times the Manufacturing tech level.
+Transports can be built in any multiple of 10,000 tons.
+The maximum tonnage, as for other ships, is 5000 times the Manufacturing tech level.
 
-The carrying capacity of a transport is the total number of colonist units or
-cargo units (or combination thereof) that a transport can carry at any one
-time.  Colonist units will be discussed later.  A cargo unit is the equivalent
-of one raw material unit.  For example, a transport with a carrying capacity
-of 200 could carry 90 colonist units and 110 raw material units.  Transports
-should use the class abbreviation "TRn", where "n" is the tonnage divided by
-10,000.
+The carrying capacity of a transport is the total number of colonist units or cargo units (or combination thereof) that a transport can carry at any one time.
+Colonist units will be discussed later.
+A cargo unit is the equivalent of one raw material unit.
+For example, a transport with a carrying capacity of 200 could carry 90 colonist units and 110 raw material units.
+Transports should use the class abbreviation "TRn," where "n" is the tonnage divided by 10,000.
 
 The carrying capacity of a transport is calculated as follows:
 
@@ -1327,13 +1154,11 @@ Here are some more examples:
 |===
 
 
-You may build a transport of any tonnage as long as it is a multiple of 10,000,
-and as long as your Manufacturing tech level is high enough.  Note that you do
-NOT have to calculate the carrying capacity of ships each time you give orders
-for the ships, since all capacities are listed on your status reports.
+You may build a transport of any tonnage as long as it is a multiple of 10,000, and as long as your Manufacturing tech level is high enough.
+Note that you do NOT have to calculate the carrying capacity of ships each time you give orders for the ships, since all capacities are listed on your status reports.
 
-To build transports, use the BUILD command, and be careful to use the correct
-class abbreviation.  For example:
+To build transports, use the BUILD command, and be careful to use the correct class abbreviation.
+For example:
 
 ```
 START PRODUCTION
@@ -1350,13 +1175,11 @@ PRODUCTION PL Earth
 END PRODUCTION
 ```
 
-Note that if a payment amount is not specified, then the ship will be
-completely built.  The computer will calculate the needed cost.  You will, of
-course, have to keep track of the costs yourself to make sure that you don't
-try to spend more than what you have.
+Note that if a payment amount is not specified, then the ship will be completely built.
+The computer will calculate the needed cost.
+You will, of course, have to keep track of the costs yourself to make sure that you don't try to spend more than what you have.
 
-To continue construction on a transport, use the CONTINUE command, as in the
-following example:
+To continue construction on a transport, use the CONTINUE command, as in the following example:
 
 ```
 START PRODUCTION
@@ -1374,33 +1197,26 @@ PRODUCTION PL Earth
 END PRODUCTION
 ```
 
-NEVER use the same name for two different ships/transports, even if their
-classes are different.  For example, if frigate "FF Danny Boy" already
-exists, then an order to build transport "TR8 Danny Boy" will fail.
-
+NEVER use the same name for two different ships/transports, even if their classes are different.
+For example, if frigate "FF Danny Boy" already exists, then an order to build transport "TR8 Danny Boy" will fail.
 
 === MORE ON SUB-LIGHT SHIPS
 
-As mentioned above, sub-light ships have all of the capabilities of FTL ships
-of the same tonnage.  However, their cost is 25% less because they do not
-have the engines that allow them to make interstellar jumps.  Thus, they
-are primarily intended for local use.
+As mentioned above, sub-light ships have all of the capabilities of FTL ships of the same tonnage.
+However, their cost is 25% less because they do not have the engines that allow them to make interstellar jumps.
+Thus, they are primarily intended for local use.
 
-Sub-light ships should add the letter "S" to their class abbreviations.  For
-example, a sub-light frigate would have the class designator "FFS", a sub-light
-40,000 ton transport would use "TR4S", etc.
-
+Sub-light ships should add the letter "S" to their class abbreviations.
+For example, a sub-light frigate would have the class designator "FFS", a sub-light 40,000 ton transport would use "TR4S", etc.
 
 === STARBASES
 
-Starbases are essentially floating fortresses.  Unless towed, they cannot
-move under their own power, but must remain in orbit around a planet.
+Starbases are essentially floating fortresses.
+Unless towed, they cannot move under their own power, but must remain in orbit around a planet.
 
 Once construction has started, a starbase may be added to indefinitely.
-However, the total tonnage cannot exceed the maximum tonnage allowed by
-a species' Manufacturing tech level.  This limit is exactly the same as
-for ships; i.e., the maximum tonnage of a starbase is 5000 times the
-Manufacturing tech level.
+However, the total tonnage cannot exceed the maximum tonnage allowed by a species' Manufacturing tech level.
+This limit is exactly the same as for ships; i.e., the maximum tonnage of a starbase is 5000 times the Manufacturing tech level.
 
 Starbases are constructed in the same way as ships.
 The player simply places an order for a starbase of a specific tonnage, or for additional tonnage to be added to an existing starbase.
