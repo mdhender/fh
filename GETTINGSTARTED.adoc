@@ -1,0 +1,109 @@
+= Far Horizons Rules
+Michael D Henderson <doc@example.com>
+v0.0.1, 2021-05-10
+:doctype: book
+:sectnums:
+:sectnumlevels: 5
+:partnums:
+:toc: right
+:stem:
+
+:sectnums!:
+== Forward
+
+:sectnums:
+
+== First Turn
+Your first turn should concentrate on building a second shipyard, creating a colonial transport, and increasing your technology levels.
+
+1. Concentrate on building up Technology Levels at the beginning of the game because they're cheaper.
+2. Try to keep your Manufacturing and Mining tech levels as equal as possible.
+3. Spend a couple of turns building shipyards before raising your Manufacturing tech level (MA).
+4. Ignore Planetary Defense (PD) units.
+You're unlikely to have opponents attacking your home world for the few turns because the game engine starts with home worlds spread out over the cluster.
+
+If you're playing a militant species...
+
+=== Sources
+https://groups.io/g/farhorizons/message/92[Dwayne's Post]
+
+== Next Few Turns
+Advice on actions to take while you're exploring and before you've made "first contact."
+
+=== Sources
+
+== Exploring
+=== Sources
+
+== Colonizing
+=== Sources
+
+== First Contact
+=== Sources
+
+== Combat
+=== Sources
+
+== Long Term Strategies
+=== Sources
+
+== Glossary
+
+AF::
+attack factor
+
+Biology Tech Level::
+Biology tech level (BL) is a measure of a species' knowledge and experience in the life sciences.
+Its most obvious applications are in genetic engineering, germ warfare, and terraforming (i.e., using specially designed micro-organisms to modify the atmosphere and micro-flora of a planet, making it more suitable for habitation).
+
+BL::
+Biology Tech Level
+
+Gravitics Tech Level::
+Gravitics tech level (GV) is a measure of a species' knowledge of gravity control.
+Gravitics allows the design of the engines which drive interstellar ships, since a black hole cannot be created and controlled without the ability to manipulate gravitational fields.
+
+GV::
+Gravitics Tech Level
+
+Life Support Tech Level::
+Life support tech level (LS) is a measure of a species' experience in surviving in hostile environments.
+It is used to construct and maintain artificial shelters on planets with temperatures or atmospheres that differ from the home planet.
+It also determines the effectiveness of defensive shields used on ships.
+
+LS::
+Life Support Tech Level
+
+MA::
+Manufacturing Tech Level
+
+Manufacturing Tech Level::
+Manufacturing tech level (MA) is a measure of proficiency at converting raw materials to usable, final forms.
+It is used to determine how many units, such as ships, can be built each turn.
+It also places a limit on the maximum size of ships that a species can build.
+
+MI::
+Mining Tech Level
+
+Mining Tech Level::
+Mining tech level (MI) is a measure of how proficient a species is at tapping a planet's natural resources.
+It includes functions such as mining and farming, basic refining, and food processing.
+As mining tech level increases, greater quantities of raw materials can be produced.
+
+Military Tech Level::
+Military tech level (ML) is a measure of experience in warfare.
+It indicates the level of sophistication in military strategy, tactics, and weaponry.
+It is one of the major factors used to determine the outcome of armed conflict.
+
+ML::
+Military Tech Level
+
+PD::
+Planetary Defense Units
+
+Tech Level::
+A tech level is a measure of how advanced a species is in a specific field of technology.
+Six technologies are defined and used in this game, Biology (BL), Gravitics (GV), Life Support (LS), Manufacturing (MA), Military (ML), and Mining (MI).
+
+[index]
+== Index

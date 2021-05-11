@@ -110,29 +110,21 @@ less susceptible to sudden destruction or mis-jumps.
 
 === COMMUNICATIONS
 
-Communications across interstellar distances utilizes the same technology as
-space travel, but on a much smaller scale.  Any two tranceivers can be "tuned"
-to each other (if both sides cooperate), effectively creating a small wormhole
-through which radio waves can pass.  Also, since radio waves have very close
-to zero mass, the transmission time is close to zero.  Thus, although ships
-require five years to move between star systems, radio communication is
-essentially instantaneous, and home planets can always be in instant
-communication with their ships and colonies.  Note, though, that ships in
-transit are incapable of communicating, since, for them, no time is actually
-passing.
+Communications across interstellar distances utilizes the same technology as space travel, but on a much smaller scale.
+Any two transceivers can be "tuned" to each other (if both sides cooperate), effectively creating a small wormhole through which radio waves can pass.
+Also, since radio waves have very close to zero mass, the transmission time is close to zero.
+Thus, although ships require five years to move between star systems, radio communication is essentially instantaneous, and home planets can always be in instant communication with their ships and colonies.
+Note, though, that ships in transit are incapable of communicating, since, for them, no time is actually passing.
 
 
 === THE HOME PLANET
 
-Each player starts the game with a home planet.  This is where his species
-evolved, acquired intelligence, and eventually learned how to travel among the
-stars.
+Each player starts the game with a home planet.
+This is where his species evolved, acquired intelligence, and eventually learned how to travel among the stars.
 
-At the start of the game, the only material resources available to a species
-are those of its home planet.  These resources can be used to build units
-such as mines, factories, spaceships, planetary defenses, etc.  As the game
-proceeds, a species can colonize other planets and tap them for resources
-as well.
+At the start of the game, the only material resources available to a species are those of its home planet.
+These resources can be used to build units such as mines, factories, spaceships, planetary defenses, etc.
+As the game proceeds, a species can colonize other planets and tap them for resources as well.
 
 
 === TECH LEVELS
