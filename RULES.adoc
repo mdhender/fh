@@ -1,6 +1,6 @@
 = Far Horizons Rules
 Rick Morneau <doc@example.com>
-v7.0.1, 2021-05-10
+v7.0.2, 2021-05-10
 :doctype: book
 :sectnums:
 :sectnumlevels: 5
@@ -9,7 +9,7 @@ v7.0.1, 2021-05-10
 :stem:
 
 :sectnums!:
-== Forward
+== Foreword
 
  Seventh Edition Rules for FAR HORIZONS
  by Rick Morneau
