@@ -50,60 +50,142 @@ Advice on actions to take while you're exploring and before you've made "first c
 == Glossary
 
 AF::
-attack factor
-
+Attack Factor
+AU::
+Colonial Manufacturing Unit
+BAS::
+Starbase
+BC::
+Battlecruiser.
+A 400,000 ton Spaceship.
+BI::
+Biology tech level
 Biology Tech Level::
 Biology tech level (BL) is a measure of a species' knowledge and experience in the life sciences.
 Its most obvious applications are in genetic engineering, germ warfare, and terraforming (i.e., using specially designed micro-organisms to modify the atmosphere and micro-flora of a planet, making it more suitable for habitation).
-
 BL::
-Biology Tech Level
-
+Biology tech level
+BM::
+Battlemoon.
+A 600,000 ton Spaceship.
+BR::
+Battlestar.
+A 700,000 ton Spaceship.
+BS::
+Battleship.
+A 450,000 ton Spaceship.
+BW::
+Battleworld.
+A 650,000 ton Spaceship.
+CA::
+Heavy Cruiser.
+A 300,000 ton Spaceship.
+Carrying Capacity::
+Carrying Capacity TODO.
+CC::
+Command Cruiser.
+A 350,000 ton Spaceship.
+CL::
+Light Cruiser.
+A 200,000 ton Spaceship.
+CS::
+Strike Cruiser.
+A 250,000 ton Spaceship.
+CT::
+Corvette.
+A 20,000 ton Spaceship.
+CU::
+Colonist Unit
+DD::
+Destroyer.
+A 150,000 ton Spaceship.
+DN::
+Dreadnought.
+A 500,000 ton Spaceship.
+DR::
+Damage Repair Unit
+ES::
+Escort.
+A 50,000 ton Spaceship.
+FD::
+Field Distortion Unit
+FF::
+Frigate.
+A 100,000 ton Spaceship.
+FJ::
+Forced Jump Unit
+FM::
+Forced Mis-jump Unit
+FS::
+Fail-Safe Jump Unit
 Gravitics Tech Level::
 Gravitics tech level (GV) is a measure of a species' knowledge of gravity control.
 Gravitics allows the design of the engines which drive interstellar ships, since a black hole cannot be created and controlled without the ability to manipulate gravitational fields.
-
+GT::
+Gravitic Telescope Unit
+GUn::
+Auxiliary Gun Unit, Mark-n
 GV::
-Gravitics Tech Level
-
+Gravitics tech level
+GW::
+Germ Warfare Bomb
+IU::
+Colonial Mining Unit
+JP::
+Jump Portal Units
 Life Support Tech Level::
-Life support tech level (LS) is a measure of a species' experience in surviving in hostile environments.
+Life Support tech level (LS) is a measure of a species' experience in surviving in hostile environments.
 It is used to construct and maintain artificial shelters on planets with temperatures or atmospheres that differ from the home planet.
 It also determines the effectiveness of defensive shields used on ships.
-
 LS::
-Life Support Tech Level
-
+Life Support tech level
 MA::
 Manufacturing Tech Level
-
 Manufacturing Tech Level::
 Manufacturing tech level (MA) is a measure of proficiency at converting raw materials to usable, final forms.
 It is used to determine how many units, such as ships, can be built each turn.
 It also places a limit on the maximum size of ships that a species can build.
-
 MI::
-Mining Tech Level
-
+Mining tech level
 Mining Tech Level::
 Mining tech level (MI) is a measure of how proficient a species is at tapping a planet's natural resources.
 It includes functions such as mining and farming, basic refining, and food processing.
 As mining tech level increases, greater quantities of raw materials can be produced.
-
 Military Tech Level::
 Military tech level (ML) is a measure of experience in warfare.
 It indicates the level of sophistication in military strategy, tactics, and weaponry.
 It is one of the major factors used to determine the outcome of armed conflict.
-
 ML::
-Military Tech Level
-
+Military tech level
+PB::
+Picketboat.
+A 10,000 ton Spaceship with Carrying Capacity of 1.
 PD::
-Planetary Defense Units
-
+Planetary Defense unit
+PL::
+Planet
+RM::
+Raw Material Unit
+SD::
+Super Dreadnought.
+A 550,000 ton Spaceship.
+SGn::
+Auxiliary Shield Generator, Mark-n.
+The stem:[n] is the "Mark" of the ASG.
+For example, an ASG5 is a "Mark-5 Auxiliary Shield Generator."
+SP::
+Species
+SU::
+Starbase Unit
 Tech Level::
 A tech level is a measure of how advanced a species is in a specific field of technology.
 Six technologies are defined and used in this game, Biology (BL), Gravitics (GV), Life Support (LS), Manufacturing (MA), Military (ML), and Mining (MI).
+TP::
+Terraforming Plant
+TRn::
+Transport.
+The stem:[n] is the "class" of transport and is the tonnage divided by 10,000.
+For example, a 70,000 ton Transport would be TR7 and TR13 would be a 130,000 ton Transport.
 
 [index]
 == Index
