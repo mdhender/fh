@@ -36,4 +36,6 @@ var reportCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(reportCmd)
+	reportCmd.Flags().BoolP("test", "t", false, "enable test mode")
+	reportCmd.Flags().BoolP("verbose", "v", false, "enable verbose mode")
 }
