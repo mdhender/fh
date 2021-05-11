@@ -33,6 +33,9 @@ Advice on actions to take while you're exploring and before you've made "first c
 === Sources
 
 == Exploring
+1. You must issue a SCAN order the first time you visit a system.
+If you don't, you won't receive information on the planets in the system.
+
 === Sources
 
 == Colonizing
