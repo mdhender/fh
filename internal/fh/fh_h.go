@@ -261,39 +261,6 @@ type ship_data_struct struct {
 	padding              [28]char         /* Use for expansion. Initialized to all zeroes. */
 }
 
-/* Interspecies transactions. */
-
-const MAX_TRANSACTIONS = 1000
-
-const EU_TRANSFER = 1
-const MESSAGE_TO_SPECIES = 2
-const BESIEGE_PLANET = 3
-const SIEGE_EU_TRANSFER = 4
-const TECH_TRANSFER = 5
-const DETECTION_DURING_SIEGE = 6
-const SHIP_MISHAP = 7
-const ASSIMILATION = 8
-const INTERSPECIES_CONSTRUCTION = 9
-const TELESCOPE_DETECTION = 10
-const ALIEN_JUMP_PORTAL_USAGE = 11
-const KNOWLEDGE_TRANSFER = 12
-const LANDING_REQUEST = 13
-const LOOTING_EU_TRANSFER = 14
-const ALLIES_ORDER = 15
-
-type trans_data struct {
-	trans_type       int /* Transaction type. */ // was `type`
-	donor, recipient short
-	value            long /* Value of transaction. */
-	x, y, z, pn      char /* Location associated with transaction. */
-	number1          long /* Other items associated with transaction.*/
-	name1            [40]char
-	number2          long
-	name2            [40]char
-	number3          long
-	name3            [40]char
-}
-
 /* Command codes. */
 const UNDEFINED = 0
 const ALLY = 1

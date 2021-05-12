@@ -287,9 +287,23 @@ func (g *GalaxyData) AllStars() []*StarData {
 }
 
 // Finish completes a turn
-func (g *GalaxyData) Finish(verbose_mode bool) error {
+func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_mode bool) error {
 	if verbose_mode {
-		fmt.Printf("\nFinishing up for all species...\n")
+		_, _ = fmt.Fprintf(w, "\nFinishing up for all species...\n")
+	}
+
+	l := &Logger{Stdout: os.Stdout}
+
+	var header_printed bool
+	print_header := func() {
+		l.String("\nOther events:\n")
+		header_printed = true
+	}
+
+	transaction, err := GetTransactionData(galaxyPath)
+	if err != nil {
+		_, _ = fmt.Fprintf(w, "Loaded %d transactions\n", len(transaction))
+		return err
 	}
 
 	// bump the turn number
@@ -311,45 +325,62 @@ func (g *GalaxyData) Finish(verbose_mode bool) error {
 		if g.TurnNumber == 1 {
 			orders_received = true
 		} else {
-			orderFile := fmt.Sprintf("D:/GoLand/farHorizons/testdata/sp%02d.ord", species.Number)
+			orderFile := path.Join(galaxyPath, fmt.Sprintf("t%06d-sp%02d.ord", g.TurnNumber, species.Number))
 			_, err := ioutil.ReadFile(orderFile)
 			orders_received = err == nil
 		}
 
 		// display name of species
 		if verbose_mode {
-			fmt.Printf("  Now doing SP %s...", species.Name)
+			_, _ = fmt.Fprintf(w, "  Now doing SP %s...", species.Name)
 			if !orders_received {
-				fmt.Printf(" WARNING: player did not submit orders this turn!")
+				_, _ = fmt.Fprintf(w, " WARNING: player did not submit orders this turn!")
 			}
-			fmt.Printf("\n")
+			_, _ = fmt.Fprintf(w, "\n")
 		}
 
 		// open log file
-		//log_file, err := os.Create(fmt.Sprintf("D:/GoLand/farHorizons/testdata/sp%02d.t%04d.log", species.Number, g.TurnNumber))
-		//if err != nil {
-		//	return err
-		//}
-		//log_stdout, header_printed := false, false
-
-		if g.TurnNumber == 1 {
-			// goto checkForMessage
+		var err error
+		l.File, err = os.Create(path.Join(galaxyPath, fmt.Sprintf("t%06d-sp%02d.log", g.TurnNumber, species.Number)))
+		if err != nil {
+			return err
 		}
-		/* Check if any ships of this species experienced mishaps. */
-		/* Take care of any disbanded colonies. */
-		/* Check if this species is the recipient of a transfer of economic units from another species. */
-		/* Check if any jump portals of this species were used by aliens. */
-		/* Check if any starbases of this species detected the use of gravitic telescopes by aliens. */
-		/* Check if this species is the recipient of a tech transfer from another species. */
-		/* Calculate tech level increases. */
-		/* Notify of any new high tech items. */
-		/* Check if this species is the recipient of a knowledge transfer from another species. */
-		/* Loop through each nampla for this species. */
-		/* Loop through all ships for this species. */
-		/* Check if this species has a populated planet that another species tried to land on. */
-		/* Check if this species is the recipient of interspecies construction. */
-		/* Check if this species is besieging another species and detects forbidden construction, landings, etc. */
-		/* Check if this species is the recipient of a message from another species. */
+		l.Stdout = nil
+
+		// only process actions after the first turn.
+		// TODO: try to get straight on Turn 0 being setup and Turn 1 being first turn orders are processed
+		if g.TurnNumber != 1 {
+			/* Check if any ships of this species experienced mishaps. */
+			/* Take care of any disbanded colonies. */
+			/* Check if this species is the recipient of a transfer of economic units from another species. */
+			/* Check if any jump portals of this species were used by aliens. */
+			/* Check if any starbases of this species detected the use of gravitic telescopes by aliens. */
+			/* Check if this species is the recipient of a tech transfer from another species. */
+			/* Calculate tech level increases. */
+			/* Notify of any new high tech items. */
+			/* Check if this species is the recipient of a knowledge transfer from another species. */
+			/* Loop through each nampla for this species. */
+			/* Loop through all ships for this species. */
+			/* Check if this species has a populated planet that another species tried to land on. */
+			/* Check if this species is the recipient of interspecies construction. */
+			/* Check if this species is besieging another species and detects forbidden construction, landings, etc. */
+		}
+
+		// check if this species is the recipient of a message from another species
+		for _, t := range transaction {
+			if t.Type == MESSAGE_TO_SPECIES && t.Number2 == species.Number {
+				if !header_printed {
+					print_header()
+				}
+				fmt.Printf("SP %d received the following message from SP %s:\n\n", species.Number, t.Name1)
+				l.String(fmt.Sprintf("\n  You received the following message from SP %s:\n\n", t.Name1))
+				msg, err := GetMessage(galaxyPath, t.Value)
+				if err == nil && l.File != nil {
+					l.File.Write([]byte(msg))
+				}
+				l.String("\n  *** End of Message ***\n\n")
+			}
+		}
 	}
 
 	// S10.9 - calculate economic efficiency for each planet
@@ -363,12 +394,11 @@ func (g *GalaxyData) Finish(verbose_mode bool) error {
 	}
 
 	/* Create new locations array. */
-	/* Go through all species one more time to update alien contact masks,
-	report tech transfer results to donors, and calculate fleet
-	maintenance costs. */
+	/* Go through all species one more time to update alien contact masks, report tech transfer results to donors, and calculate fleet maintenance costs. */
 	if verbose_mode {
-		fmt.Printf("\nNow updating contact masks et al.\n")
+		_, _ = fmt.Fprintf(w, "\nNow updating contact masks et al.\n")
 	}
+
 	/* Clean up and exit. */
 	return nil
 }
