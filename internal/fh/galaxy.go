@@ -166,7 +166,7 @@ func GenerateGalaxy(logFile io.Writer, setupData *SetupData) (*GalaxyData, error
 			continue
 		}
 		// verify that we don't already have a star here
-		if _, exists := galaxy.Stars[XYZToID(x, y, z)]; exists {
+		if _, exists := galaxy.Stars[Coords{x, y, z}.String()]; exists {
 			continue
 		}
 		// add the star at these coordinates
@@ -200,8 +200,7 @@ func GenerateGalaxy(logFile io.Writer, setupData *SetupData) (*GalaxyData, error
 				continue
 			}
 			// eliminate wormholes less than the minimum
-			dx, dy, dz := star.X-ps.X, star.Y-ps.Y, star.Z-ps.Z
-			if distance_squared := (dx * dx) + (dy * dy) + (dz * dz); distance_squared < minWormholeLength*minWormholeLength {
+			if star.Coords.DistanceSquaredTo(ps.Coords) < minWormholeLength*minWormholeLength {
 				continue
 			}
 			worm_star = ps
@@ -212,10 +211,10 @@ func GenerateGalaxy(logFile io.Writer, setupData *SetupData) (*GalaxyData, error
 		}
 
 		star.WormHere = true
-		star.WormX, star.WormY, star.WormZ = worm_star.X, worm_star.Y, worm_star.Z
+		star.WormCoords = worm_star.Coords
 
 		worm_star.WormHere = true
-		worm_star.WormX, worm_star.WormY, worm_star.WormZ = star.X, star.Y, star.Z
+		worm_star.Coords = star.Coords
 
 		// todo: consider making a number of the wormholes one-way
 		galaxy.NumberOfWormHoles++
@@ -308,6 +307,7 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 
 	// bump the turn number
 	g.TurnNumber++
+	turnPath := path.Join(galaxyPath, fmt.Sprintf("t%06d", g.TurnNumber))
 
 	// Total economic base includes all of the colonies on the planet, not just the one species.
 	total_econ_base := make([]int, len(g.AllPlanets()), len(g.AllPlanets()))
@@ -325,7 +325,7 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 		if g.TurnNumber == 1 {
 			orders_received = true
 		} else {
-			orderFile := path.Join(galaxyPath, fmt.Sprintf("t%06d-sp%02d.ord", g.TurnNumber, species.Number))
+			orderFile := path.Join(turnPath, fmt.Sprintf("sp%02d.ord", species.Number))
 			_, err := ioutil.ReadFile(orderFile)
 			orders_received = err == nil
 		}
@@ -341,7 +341,7 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 
 		// open log file
 		var err error
-		l.File, err = os.Create(path.Join(galaxyPath, fmt.Sprintf("t%06d-sp%02d.log", g.TurnNumber, species.Number)))
+		l.File, err = os.Create(path.Join(turnPath, fmt.Sprintf("sp%02d.log", species.Number)))
 		if err != nil {
 			return err
 		}
@@ -406,7 +406,7 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 // GetFirstXYZ returns the first system that is not a home system
 // or has a worm hole or is within a given distance of any other home
 // system.
-func (g *GalaxyData) GetFirstXYZ(d int, forbidWormHoles bool) (int, int, int, error) {
+func (g *GalaxyData) GetFirstXYZ(d int, forbidWormHoles bool) (Coords, error) {
 	minDSquared := d * d
 	var forbiddenSystems []*StarData
 	for _, star := range g.AllStars() {
@@ -420,16 +420,16 @@ func (g *GalaxyData) GetFirstXYZ(d int, forbidWormHoles bool) (int, int, int, er
 		}
 		nearForbiddenSystem := false
 		for _, star := range forbiddenSystems {
-			if origin.DistanceSquaredTo(star) < minDSquared {
+			if origin.Coords.DistanceSquaredTo(star.Coords) < minDSquared {
 				nearForbiddenSystem = true
 				break
 			}
 		}
 		if !nearForbiddenSystem {
-			return origin.X, origin.Y, origin.Z, nil
+			return origin.Coords, nil
 		}
 	}
-	return 0, 0, 0, fmt.Errorf("all suitable systems are within %d parsecs of each other", d)
+	return Coords{}, fmt.Errorf("all suitable systems are within %d parsecs of each other", d)
 }
 
 func (g *GalaxyData) GetSpeciesByID(id string) *SpeciesData {
@@ -444,8 +444,8 @@ func (g *GalaxyData) GetSpeciesByName(name string) *SpeciesData {
 	return g.GetSpeciesByID(id)
 }
 
-func (g *GalaxyData) GetStarAt(x, y, z int) *StarData {
-	return g.Stars[XYZToID(x, y, z)]
+func (g *GalaxyData) GetStarAt(c Coords) *StarData {
+	return g.Stars[c.String()]
 }
 
 func (g *GalaxyData) GetStarByID(id string) *StarData {
@@ -467,7 +467,7 @@ func (g *GalaxyData) List(listPlanets, listWormholes bool) error {
 			if listPlanets {
 				fmt.Printf("System #%d:\t", star.SystemNumber)
 			}
-			fmt.Printf("x = %d\ty = %d\tz = %d", star.X, star.Y, star.Z)
+			fmt.Printf("x = %d\ty = %d\tz = %d", star.Coords.X, star.Coords.Y, star.Coords.Z)
 			fmt.Printf("\tstellar type = %s%s%s", star.Type.Char(), star.Color.Char(), StarSizeChar[star.Size])
 			if listPlanets {
 				fmt.Printf("\t%d planets.", star.NumPlanets)
@@ -488,11 +488,11 @@ func (g *GalaxyData) List(listPlanets, listWormholes bool) error {
 		if star.WormHere {
 			total_wormstars++
 			if listPlanets {
-				fmt.Printf("!!! Natural wormhole from here to %d %d %d\n", star.WormX, star.WormY, star.WormZ)
+				fmt.Printf("!!! Natural wormhole from here to %s\n", star.WormCoords)
 			} else if listWormholes {
-				fmt.Printf("Wormhole #%d: from %d %d %d to %d %d %d\n", total_wormstars, star.X, star.Y, star.Z, star.WormX, star.WormY, star.WormZ)
+				fmt.Printf("Wormhole #%d: from %s to %s\n", total_wormstars, star.Coords, star.WormCoords)
 				// turn off the target's worm flag to avoid double-reporting
-				wormSystem := g.GetStarAt(star.WormX, star.WormY, star.WormZ)
+				wormSystem := g.GetStarAt(star.WormCoords)
 				if wormSystem != nil {
 					wormSystem.WormHere = false
 				}
@@ -591,27 +591,27 @@ func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *S
 	// HomeSystemAuto step in setup_game.py
 	forbidNearbyWormholes := setupData.Galaxy.ForbidNearbyWormholes
 	minDistance := setupData.Galaxy.MinimumDistance
-	x, y, z, err := g.GetFirstXYZ(minDistance, forbidNearbyWormholes)
+	coords, err := g.GetFirstXYZ(minDistance, forbidNearbyWormholes)
 	if err != nil {
 		return err
 	}
 	// convert the system at those coordinates to a home system
-	star := g.GetStarAt(x, y, z)
+	star := g.GetStarAt(coords)
 	if star == nil {
-		return fmt.Errorf("There is no star at %d %d %d", x, y, z)
+		return fmt.Errorf("There is no star at %s", coords)
 	}
 	// fetch the home system template and update the star with values from the template
 	star.ConvertToHomeSystem(g.Templates.Homes[star.NumPlanets])
 	pn := star.HomePlanetNumber()
-	_, _ = fmt.Fprintf(w, "Converted system %d %d %d, home planet %d\n", x, y, z, pn)
+	_, _ = fmt.Fprintf(w, "Converted system %s, home planet %d\n", coords, pn)
 
 	// get pointer to home planet
 	s.HomePlanet = star.Planets[star.HomePlanetIndex()]
 
 	// AddSpecies step in setup_game.py
-	s.X, s.Y, s.Z = x, y, z
+	s.Coords = coords
 	s.PN = pn
-	home_nampla.X, home_nampla.Y, home_nampla.Z = x, y, z
+	home_nampla.Coords = coords
 	home_nampla.PN = pn
 
 	_, _ = fmt.Fprintf(w, "Scan of star system:\n\n")
@@ -723,7 +723,7 @@ func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *S
 	_, _ = fmt.Fprintf(w, "\n  Summary for species #%d:\n", s.Number)
 	_, _ = fmt.Fprintf(w, "\tName of species: %s\n", s.Name)
 	_, _ = fmt.Fprintf(w, "\tName of home planet: %s\n", home_nampla.Name)
-	_, _ = fmt.Fprintf(w, "\t\tCoordinates: %d %d %d #%d\n", s.X, s.Y, s.Z, s.PN)
+	_, _ = fmt.Fprintf(w, "\t\tCoordinates: %s #%d\n", s.Coords, s.PN)
 	_, _ = fmt.Fprintf(w, "\tName of government: %s\n", s.GovtName)
 	_, _ = fmt.Fprintf(w, "\tType of government: %s\n\n", s.GovtType)
 
@@ -778,10 +778,10 @@ func (g *GalaxyData) MakeHomeTemplates(w io.Writer) error {
 	return nil
 }
 
-func (g *GalaxyData) Scan(w io.Writer, x, y, z int) error {
-	star := g.GetStarAt(x, y, z)
+func (g *GalaxyData) Scan(w io.Writer, c Coords) error {
+	star := g.GetStarAt(c)
 	if star == nil {
-		_, _ = fmt.Fprintf(w, "Scan Report: There is no star system at x = %d, y = %d, z = %d.\n", x, y, z)
+		_, _ = fmt.Fprintf(w, "Scan Report: There is no star system at x = %d, y = %d, z = %d.\n", c.X, c.Y, c.Z)
 		return nil
 	}
 	return star.Scan(w, nil)

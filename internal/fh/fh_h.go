@@ -45,12 +45,7 @@ const HP_AVAILABLE_POP = 1500
 const NUM_EXTRA_NAMPLAS = 50
 const NUM_EXTRA_SHIPS = 100
 
-const MAX_LOCATIONS = 10000
-
 type char = byte
-type sp_loc_data struct {
-	s, x, y, z char /* Species number, x, y, and z. */
-}
 
 type galaxy_data struct {
 	d_num_species int /* Design number of species in galaxy. */

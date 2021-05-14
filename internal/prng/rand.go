@@ -26,7 +26,7 @@ type PRNG struct {
 	seed uint64
 }
 
-var defaultPRNG = &PRNG{seed: 0xC0FFEE}
+var defaultPRNG = &PRNG{seed: 0x00C0FFEE}
 
 func New(seed uint64) *PRNG {
 	return &PRNG{seed: seed}

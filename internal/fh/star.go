@@ -24,35 +24,30 @@ import (
 )
 
 type StarData struct {
-	ID                  string          `json:"id"`
-	SystemNumber        int             `json:"system_number"` // one base index
-	X, Y, Z             int             /* Coordinates. */
-	Type                StarType        /* Dwarf, degenerate, main sequence or giant. */ // was `type`
-	Color               StarColor       /* Star color. Blue, blue-white, etc. */
-	Size                int             /* Star size, from 0 thru 9 inclusive. */
-	NumPlanets          int             /* Number of usable planets in star system. */
-	HomeSystem          bool            /* TRUE if this is a good potential home system. */
-	WormHere            bool            /* TRUE if wormhole entry/exit. */
-	WormX, WormY, WormZ int             /* Coordinates. */
-	Message             int             /* Message associated with this star system, if any. */
-	VisitedBy           map[string]bool `json:"visited_by"` // map of species id, true if corresponding species has been here.
-	PlanetIndex         int             /* Index (starting at zero) into the file "planets.dat" of the first planet in the star system. */
-	Planets             []*PlanetData
-}
-
-func XYZToID(x, y, z int) string {
-	return fmt.Sprintf("%03d/%03d/%03d", x, y, z)
+	ID           string                                                           `json:"id"`
+	SystemNumber int                                                              `json:"system_number"` // one base index
+	Coords       Coords                                                           `json:"xyz"`           /* Coordinates. */
+	Type         StarType        /* Dwarf, degenerate, main sequence or giant. */ // was `type`
+	Color        StarColor       /* Star color. Blue, blue-white, etc. */
+	Size         int             /* Star size, from 0 thru 9 inclusive. */
+	NumPlanets   int             /* Number of usable planets in star system. */
+	HomeSystem   bool            /* TRUE if this is a good potential home system. */
+	WormHere     bool            /* TRUE if wormhole entry/exit. */
+	WormCoords   Coords          `json:"worm_xyz"` /* Coordinates. */
+	Message      int             /* Message associated with this star system, if any. */
+	VisitedBy    map[string]bool `json:"visited_by"` // map of species id, true if corresponding species has been here.
+	PlanetIndex  int             /* Index (starting at zero) into the file "planets.dat" of the first planet in the star system. */
+	Planets      []*PlanetData
 }
 
 func GenerateStar(x, y, z, nSpecies int) (*StarData, error) {
 	fmt.Printf("Generating star (%3d, %3d, %3d)\n", x, y, z)
 
 	/* Set coordinates. */
+	xyz := Coords{x, y, z}
 	star := &StarData{
-		ID:          XYZToID(x, y, z),
-		X:           x,
-		Y:           y,
-		Z:           z,
+		ID:          xyz.String(),
+		Coords:      xyz,
 		NumPlanets:  -2, // default value to initialize the planet generator
 		PlanetIndex: -1,
 		VisitedBy:   make(map[string]bool),
@@ -150,7 +145,7 @@ func GenerateStar(x, y, z, nSpecies int) (*StarData, error) {
 }
 
 func (s *StarData) At(x, y, z int) bool {
-	return s != nil && s.X == x && s.Y == y && s.Z == z
+	return s != nil && s.Coords.X == x && s.Coords.Y == y && s.Coords.Z == z
 }
 
 // convert the system to a system with a home planet
@@ -207,11 +202,6 @@ func (s *StarData) ConvertToHomeSystem(src []*PlanetData) {
 	}
 }
 
-func (s *StarData) DistanceSquaredTo(to *StarData) int {
-	deltaX, deltaY, deltaZ := s.X-to.X, s.Y-to.Y, s.Z-to.Z
-	return (deltaX)*(deltaX) + (deltaY)*(deltaY) + (deltaZ)*(deltaZ)
-}
-
 // returns index, not number
 func (s *StarData) HomePlanetIndex() int {
 	for i, planet := range s.Planets {
@@ -234,7 +224,7 @@ func (s *StarData) HomePlanetNumber() int {
 
 func (s *StarData) Scan(w io.Writer, species *SpeciesData) error {
 	/* Print data for star, */
-	fmt.Fprintf(w, "Coordinates:\tx = %d\ty = %d\tz = %d", s.X, s.Y, s.Z)
+	fmt.Fprintf(w, "Coordinates:\tx = %d\ty = %d\tz = %d", s.Coords.X, s.Coords.Y, s.Coords.Z)
 	fmt.Fprintf(w, "\tstellar type = %s%s%d", s.Type.Char(), s.Color.Char(), s.Size)
 
 	fmt.Fprintf(w, "   %d planets.\n\n", s.NumPlanets)

@@ -43,7 +43,7 @@ type GasData struct {
 type NamedPlanetData struct {
 	ID           string         `json:"id"`
 	Name         string         /* Name of planet. */
-	X, Y, Z      int            // coordinates
+	Coords       Coords         `json:"xyz"` // coordinates
 	PN           int            // planet number?
 	Status       uint64         // bitmask for Status of planet
 	Hiding       bool           /* HIDE order given. */

@@ -43,7 +43,7 @@ in the very first turn, or immediately after running PostArrival
 on all subsequent turns.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		started := time.Now()
-		prng.Seed(0xC0FFEE) // seed random number generator
+		prng.Seed(0x00C0FFEE) // seed random number generator
 
 		galaxyPath, err := cmd.Flags().GetString("galaxy-path")
 		if err != nil {
@@ -58,7 +58,7 @@ on all subsequent turns.`,
 		if err != nil {
 			return err
 		}
-		tn:=g.TurnNumber
+		tn := g.TurnNumber
 
 		logFile, err := os.Create(path.Join(galaxyPath, fmt.Sprintf("t%06d-finish.log", g.TurnNumber)))
 		if err != nil {

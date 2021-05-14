@@ -26,7 +26,7 @@ type SpeciesData struct {
 	GovtType         string      // Type of government.
 	HomePlanet       *PlanetData `json:"-"`
 	HomeNampla       string      `json:"home_planet_id"`
-	X, Y, Z          int         // Coordinates of home planet.
+	Coords           Coords      `json:"coords"` // Coordinates of home planet.
 	PN               int         // planet number?
 	RequiredGas      GasType     // Gas required by species.
 	RequiredGasMin   int         // Minimum needed percentage.

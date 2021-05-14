@@ -50,7 +50,7 @@ func (l *Logger) Char(ch byte) {
 	if (ch == ' ' || ch == '\n') && l.Position > 77 {
 		// find closest preceding space
 		temp_position := l.Position - 1
-		for ; temp_position >= 0 && l.Line[l.Position] != ' '; {
+		for temp_position >= 0 && l.Line[l.Position] != ' ' {
 			temp_position--
 		}
 		if temp_position == -1 {
@@ -64,7 +64,7 @@ func (l *Logger) Char(ch byte) {
 
 		// copy overflow word to beginning of next line
 		l.Line = rest
-		l.Position = l.Indentation + 2		// why do we add 2 here?
+		l.Position = l.Indentation + 2 // why do we add 2 here?
 		for i := 0; i < l.Position; i++ {
 			l.Line[i] = ' '
 		}
@@ -103,8 +103,8 @@ func (l *Logger) Char(ch byte) {
 }
 
 func (l *Logger) Int(value int) {
-	if (l.Disabled) {
-		return;
+	if l.Disabled {
+		return
 	}
 	l.String(fmt.Sprintf("%d", value))
 }
@@ -167,4 +167,3 @@ func GetMessage(galaxyPath string, n int) (string, error) {
 	}
 	return s, nil
 }
-
