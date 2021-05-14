@@ -19,34 +19,37 @@
 package fh
 
 type SpeciesData struct {
-	ID               string      `json:"id"`
-	Number           int         // one-based index of species
-	Name             string      // Name of species.
-	GovtName         string      // Name of government.
-	GovtType         string      // Type of government.
-	HomePlanet       *PlanetData `json:"-"`
-	HomeNampla       string      `json:"home_planet_id"`
-	Coords           Coords      `json:"coords"` // Coordinates of home planet.
-	PN               int         // planet number?
-	RequiredGas      GasType     // Gas required by species.
-	RequiredGasMin   int         // Minimum needed percentage.
-	RequiredGasMax   int         // Maximum allowed percentage.
-	NeutralGas       []GasType   // Gases neutral to species.
-	PoisonGas        []GasType   // Gases poisonous to species.
-	AutoOrders       bool        // AUTO command was issued.
-	TechLevel        [6]int      // Actual tech levels.
-	InitTechLevel    [6]int      // Tech levels at start of turn.
-	TechKnowledge    [6]int      // Unapplied tech level knowledge.
-	NumNamplas       int         // Number of named planets, including home planet and colonies.
-	NumShips         int         // Number of ships.
-	TechEps          [6]int      // Experience points for tech levels.
-	HPOriginalBase   int         // If non-zero, home planet was bombed either by bombardment or germ warfare and has not yet fully recovered. Value is total economic base before bombing.
-	EconUnits        int         // Number of economic units.
-	FleetCost        int         // Total fleet maintenance cost.
-	FleetPercentCost int         // Fleet maintenance cost as a percentage times one hundred.
-	Contact          []bool      // A bit is set if corresponding species has been met.
-	Ally             []bool      // A bit is set if corresponding species is considered an ally.
-	Enemy            []bool      // A bit is set if corresponding species is considered an enemy.
+	ID       string `json:"id"`
+	Number   int    // one-based index of species
+	Name     string // Name of species.
+	GovtName string // Name of government.
+	GovtType string // Type of government.
+	Home     struct {
+		Coords Coords      `json:"coords"`
+		PN     int         `json:"pn"` // planet number?
+		System *StarData   `json:"-"`
+		Planet *PlanetData `json:"-"`
+	} `json:"home"`
+	HomeNampla       string    `json:"home_planet_id"`
+	RequiredGas      GasType   // Gas required by species.
+	RequiredGasMin   int       // Minimum needed percentage.
+	RequiredGasMax   int       // Maximum allowed percentage.
+	NeutralGas       []GasType // Gases neutral to species.
+	PoisonGas        []GasType // Gases poisonous to species.
+	AutoOrders       bool      // AUTO command was issued.
+	TechLevel        [6]int    // Actual tech levels.
+	InitTechLevel    [6]int    // Tech levels at start of turn.
+	TechKnowledge    [6]int    // Unapplied tech level knowledge.
+	NumNamplas       int       // Number of named planets, including home planet and colonies.
+	NumShips         int       // Number of ships.
+	TechEps          [6]int    // Experience points for tech levels.
+	HPOriginalBase   int       // If non-zero, home planet was bombed either by bombardment or germ warfare and has not yet fully recovered. Value is total economic base before bombing.
+	EconUnits        int       // Number of economic units.
+	FleetCost        int       // Total fleet maintenance cost.
+	FleetPercentCost int       // Fleet maintenance cost as a percentage times one hundred.
+	Contact          []bool    // A bit is set if corresponding species has been met.
+	Ally             []bool    // A bit is set if corresponding species is considered an ally.
+	Enemy            []bool    // A bit is set if corresponding species is considered an enemy.
 	Translate        struct {
 		PlanetNameToID []string `json:"planet_name_to_id"`
 	} `json:"translate"`
@@ -58,17 +61,17 @@ func (s *SpeciesData) LifeSupportNeeded(colony *PlanetData) int {
 	var ls_needed int
 
 	// temperature class
-	if colony.TemperatureClass < s.HomePlanet.TemperatureClass {
-		ls_needed += 3 * (s.HomePlanet.TemperatureClass - colony.TemperatureClass)
-	} else if colony.TemperatureClass > s.HomePlanet.TemperatureClass {
-		ls_needed += 3 * (colony.TemperatureClass - s.HomePlanet.TemperatureClass)
+	if colony.TemperatureClass < s.Home.Planet.TemperatureClass {
+		ls_needed += 3 * (s.Home.Planet.TemperatureClass - colony.TemperatureClass)
+	} else if colony.TemperatureClass > s.Home.Planet.TemperatureClass {
+		ls_needed += 3 * (colony.TemperatureClass - s.Home.Planet.TemperatureClass)
 	}
 
 	// pressure class
-	if colony.PressureClass < s.HomePlanet.PressureClass {
-		ls_needed += 3 * (s.HomePlanet.PressureClass - colony.PressureClass)
-	} else if colony.PressureClass > s.HomePlanet.PressureClass {
-		ls_needed += 3 * (colony.PressureClass - s.HomePlanet.PressureClass)
+	if colony.PressureClass < s.Home.Planet.PressureClass {
+		ls_needed += 3 * (s.Home.Planet.PressureClass - colony.PressureClass)
+	} else if colony.PressureClass > s.Home.Planet.PressureClass {
+		ls_needed += 3 * (colony.PressureClass - s.Home.Planet.PressureClass)
 	}
 
 	// check for required and poisonous gases on planet

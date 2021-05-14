@@ -606,11 +606,11 @@ func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *S
 	_, _ = fmt.Fprintf(w, "Converted system %s, home planet %d\n", coords, pn)
 
 	// get pointer to home planet
-	s.HomePlanet = star.Planets[star.HomePlanetIndex()]
+	s.Home.Planet = star.Planets[star.HomePlanetIndex()]
 
 	// AddSpecies step in setup_game.py
-	s.Coords = coords
-	s.PN = pn
+	s.Home.Coords = coords
+	s.Home.PN = pn
 	home_nampla.Coords = coords
 	home_nampla.PN = pn
 
@@ -646,7 +646,7 @@ func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *S
 
 	// confirm that required gas is present
 	s.RequiredGas = O2 // (we're biased towards oxygen breathers?)
-	for _, gas := range s.HomePlanet.Gases {
+	for _, gas := range s.Home.Planet.Gases {
 		if gas.Type == s.RequiredGas {
 			s.RequiredGasMin = gas.Percentage / 2
 			if s.RequiredGasMin < 1 {
@@ -667,9 +667,9 @@ func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *S
 	}
 
 	// all home planet gases are either required or neutral
-	num_neutral := len(s.HomePlanet.Gases)
+	num_neutral := len(s.Home.Planet.Gases)
 	var goodGas [14]bool
-	for _, gas := range s.HomePlanet.Gases {
+	for _, gas := range s.Home.Planet.Gases {
 		goodGas[gas.Type] = true
 	}
 	if !goodGas[HE] {
@@ -706,7 +706,7 @@ func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *S
 	// Mining and manufacturing base will be reverse-calculated from the capacity.
 	levels := s.TechLevel[MI] + s.TechLevel[MA]
 	n := (25 * levels) + prng.Roll(levels) + prng.Roll(levels) + prng.Roll(levels)
-	home_nampla.MIBase = (n * s.HomePlanet.MiningDifficulty) / (10 * s.TechLevel[MI])
+	home_nampla.MIBase = (n * s.Home.Planet.MiningDifficulty) / (10 * s.TechLevel[MI])
 	home_nampla.MABase = (10 * n) / s.TechLevel[MA]
 
 	// initialize contact/ally/enemy masks
@@ -723,7 +723,7 @@ func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *S
 	_, _ = fmt.Fprintf(w, "\n  Summary for species #%d:\n", s.Number)
 	_, _ = fmt.Fprintf(w, "\tName of species: %s\n", s.Name)
 	_, _ = fmt.Fprintf(w, "\tName of home planet: %s\n", home_nampla.Name)
-	_, _ = fmt.Fprintf(w, "\t\tCoordinates: %s #%d\n", s.Coords, s.PN)
+	_, _ = fmt.Fprintf(w, "\t\tCoordinates: %s #%d\n", s.Home.Coords, s.Home.PN)
 	_, _ = fmt.Fprintf(w, "\tName of government: %s\n", s.GovtName)
 	_, _ = fmt.Fprintf(w, "\tType of government: %s\n\n", s.GovtType)
 
@@ -743,7 +743,7 @@ func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *S
 	}
 
 	_, _ = fmt.Fprintf(w, "\n\n\tInitial mining base = %d.%d. Initial manufacturing base = %d.%d.\n", home_nampla.MIBase/10, home_nampla.MIBase%10, home_nampla.MABase/10, home_nampla.MABase%10)
-	_, _ = fmt.Fprintf(w, "\tIn the first turn, %d raw material units will be produced,\n", (10*s.TechLevel[MI]*home_nampla.MIBase)/s.HomePlanet.MiningDifficulty)
+	_, _ = fmt.Fprintf(w, "\tIn the first turn, %d raw material units will be produced,\n", (10*s.TechLevel[MI]*home_nampla.MIBase)/s.Home.Planet.MiningDifficulty)
 	_, _ = fmt.Fprintf(w, "\tand the total production capacity will be %d.\n\n", (s.TechLevel[MA]*home_nampla.MABase)/10)
 
 	// set visited_by bit in star data
