@@ -645,25 +645,25 @@ func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *S
 	}
 
 	// confirm that required gas is present
-	s.RequiredGas = O2 // (we're biased towards oxygen breathers?)
+	s.Gases.Required.Type = O2 // (we're biased towards oxygen breathers?)
 	for _, gas := range s.Home.Planet.Gases {
-		if gas.Type == s.RequiredGas {
-			s.RequiredGasMin = gas.Percentage / 2
-			if s.RequiredGasMin < 1 {
-				s.RequiredGasMin = 1
+		if gas.Type == s.Gases.Required.Type {
+			s.Gases.Required.Min = gas.Percentage / 2
+			if s.Gases.Required.Min < 1 {
+				s.Gases.Required.Min = 1
 			}
-			s.RequiredGasMax = 2 * gas.Percentage
-			if s.RequiredGasMax < 20 {
-				s.RequiredGasMax += 20
-			} else if s.RequiredGasMax > 100 {
+			s.Gases.Required.Max = 2 * gas.Percentage
+			if s.Gases.Required.Max < 20 {
+				s.Gases.Required.Max += 20
+			} else if s.Gases.Required.Max > 100 {
 				// TODO: i prefer 99% for the max
-				s.RequiredGasMax = 100
+				s.Gases.Required.Max = 100
 			}
 		}
 	}
-	if s.RequiredGasMax == 0 {
-		_, _ = fmt.Fprintf(w, "\n\tERROR! Planet does not have %s(%s)!\n", s.RequiredGas.String(), s.RequiredGas.Char())
-		return fmt.Errorf("planet does not have required gas %s", s.RequiredGas.Char())
+	if s.Gases.Required.Max == 0 {
+		_, _ = fmt.Fprintf(w, "\n\tERROR! Planet does not have %s(%s)!\n", s.Gases.Required.Type.String(), s.Gases.Required.Type.Char())
+		return fmt.Errorf("planet does not have required gas %s", s.Gases.Required.Type.Char())
 	}
 
 	// all home planet gases are either required or neutral
@@ -695,9 +695,9 @@ func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *S
 	for n := 1; n <= 13; n++ {
 		t := GasType(n)
 		if !goodGas[n] {
-			s.PoisonGas = append(s.PoisonGas, t)
-		} else if t != s.RequiredGas { // required gas isn't neutral!
-			s.NeutralGas = append(s.NeutralGas, t)
+			s.Gases.Poison = append(s.Gases.Poison, t)
+		} else if t != s.Gases.Required.Type { // required gas isn't neutral!
+			s.Gases.Neutral = append(s.Gases.Neutral, t)
 		}
 	}
 
@@ -730,15 +730,15 @@ func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *S
 	_, _ = fmt.Fprintf(w, "\tTech levels: %s = %d,  %s = %d,  %s = %d\n", TechName[MI], s.TechLevel[MI], TechName[MA], s.TechLevel[MA], TechName[ML], s.TechLevel[ML])
 	_, _ = fmt.Fprintf(w, "\t             %s = %d,  %s = %d,  %s = %d\n", TechName[MI], s.TechLevel[GV], TechName[MA], s.TechLevel[LS], TechName[ML], s.TechLevel[BI])
 
-	_, _ = fmt.Fprintf(w, "\n\n\tFor this species, the required gas is %s (%d%%-%d%%).\n", s.RequiredGas.Char(), s.RequiredGasMin, s.RequiredGasMax)
+	_, _ = fmt.Fprintf(w, "\n\n\tFor this species, the required gas is %s (%d%%-%d%%).\n", s.Gases.Required.Type.Char(), s.Gases.Required.Min, s.Gases.Required.Max)
 
 	_, _ = fmt.Fprintf(w, "\tGases neutral to species:")
-	for _, gasType := range s.NeutralGas {
+	for _, gasType := range s.Gases.Neutral {
 		_, _ = fmt.Fprintf(w, " %s ", gasType.Char())
 	}
 
 	_, _ = fmt.Fprintf(w, "\n\tGases poisonous to species:")
-	for _, gasType := range s.PoisonGas {
+	for _, gasType := range s.Gases.Poison {
 		_, _ = fmt.Fprintf(w, " %s ", gasType.Char())
 	}
 

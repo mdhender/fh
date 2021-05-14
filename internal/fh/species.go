@@ -30,26 +30,30 @@ type SpeciesData struct {
 		System *StarData   `json:"-"`
 		Planet *PlanetData `json:"-"`
 	} `json:"home"`
-	HomeNampla       string    `json:"home_planet_id"`
-	RequiredGas      GasType   // Gas required by species.
-	RequiredGasMin   int       // Minimum needed percentage.
-	RequiredGasMax   int       // Maximum allowed percentage.
-	NeutralGas       []GasType // Gases neutral to species.
-	PoisonGas        []GasType // Gases poisonous to species.
-	AutoOrders       bool      // AUTO command was issued.
-	TechLevel        [6]int    // Actual tech levels.
-	InitTechLevel    [6]int    // Tech levels at start of turn.
-	TechKnowledge    [6]int    // Unapplied tech level knowledge.
-	NumNamplas       int       // Number of named planets, including home planet and colonies.
-	NumShips         int       // Number of ships.
-	TechEps          [6]int    // Experience points for tech levels.
-	HPOriginalBase   int       // If non-zero, home planet was bombed either by bombardment or germ warfare and has not yet fully recovered. Value is total economic base before bombing.
-	EconUnits        int       // Number of economic units.
-	FleetCost        int       // Total fleet maintenance cost.
-	FleetPercentCost int       // Fleet maintenance cost as a percentage times one hundred.
-	Contact          []bool    // A bit is set if corresponding species has been met.
-	Ally             []bool    // A bit is set if corresponding species is considered an ally.
-	Enemy            []bool    // A bit is set if corresponding species is considered an enemy.
+	HomeNampla string `json:"home_planet_id"`
+	Gases      struct {
+		Required struct {
+			Type GasType
+			Min  int // Minimum needed percentage.
+			Max  int // Maximum allowed percentage.
+		} // Gas required by species.
+		Neutral []GasType // Gases neutral to species.
+		Poison  []GasType // Gases poisonous to species.
+	} `json:"gases"`
+	AutoOrders       bool   // AUTO command was issued.
+	TechLevel        [6]int // Actual tech levels.
+	InitTechLevel    [6]int // Tech levels at start of turn.
+	TechKnowledge    [6]int // Unapplied tech level knowledge.
+	NumNamplas       int    // Number of named planets, including home planet and colonies.
+	NumShips         int    // Number of ships.
+	TechEps          [6]int // Experience points for tech levels.
+	HPOriginalBase   int    // If non-zero, home planet was bombed either by bombardment or germ warfare and has not yet fully recovered. Value is total economic base before bombing.
+	EconUnits        int    // Number of economic units.
+	FleetCost        int    // Total fleet maintenance cost.
+	FleetPercentCost int    // Fleet maintenance cost as a percentage times one hundred.
+	Contact          []bool // A bit is set if corresponding species has been met.
+	Ally             []bool // A bit is set if corresponding species is considered an ally.
+	Enemy            []bool // A bit is set if corresponding species is considered an enemy.
 	Translate        struct {
 		PlanetNameToID []string `json:"planet_name_to_id"`
 	} `json:"translate"`
@@ -81,11 +85,11 @@ func (s *SpeciesData) LifeSupportNeeded(colony *PlanetData) int {
 			continue
 		}
 		// check for required gas at required levels
-		if gas.Type == s.RequiredGas {
-			requiredGasFound = s.RequiredGasMin <= gas.Percentage && gas.Percentage <= s.RequiredGasMax
+		if gas.Type == s.Gases.Required.Type {
+			requiredGasFound = s.Gases.Required.Min <= gas.Percentage && gas.Percentage <= s.Gases.Required.Max
 		} else {
 			// compare with poisonous gases
-			for _, poison := range s.PoisonGas {
+			for _, poison := range s.Gases.Poison {
 				if gas.Type == poison {
 					ls_needed += 3
 					break
