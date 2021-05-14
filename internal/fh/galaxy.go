@@ -345,10 +345,10 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 		l.Stdout = nil
 
 		var check struct {
-			mishaps      bool /* Check if any ships of this species experienced mishaps. */
-			disbanded    bool /* Take care of any disbanded colonies. */
-			transferInEU bool /* Check if this species is the recipient of a transfer of economic units from another species. */
-			/* Check if any jump portals of this species were used by aliens. */
+			mishaps         bool /* Check if any ships of this species experienced mishaps. */
+			disbanded       bool /* Take care of any disbanded colonies. */
+			transferInEU    bool /* Check if this species is the recipient of a transfer of economic units from another species. */
+			jumpPortalsUsed bool /* Check if any jump portals of this species were used by aliens. */
 			/* Check if any starbases of this species detected the use of gravitic telescopes by aliens. */
 			/* Check if this species is the recipient of a tech transfer from another species. */
 			/* Calculate tech level increases. */
@@ -362,10 +362,10 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 			messages bool // check if this species is the recipient of a message from another species
 		}
 		// TODO: try to get straight on Turn 0 being setup and Turn 1 being first turn orders are processed
-		check.mishaps = g.TurnNumber > 1      /* Check if any ships of this species experienced mishaps. */
-		check.disbanded = g.TurnNumber > 1    /* Take care of any disbanded colonies. */
-		check.transferInEU = g.TurnNumber > 1 /* Check if this species is the recipient of a transfer of economic units from another species. */
-		/* Check if any jump portals of this species were used by aliens. */
+		check.mishaps = g.TurnNumber > 1         /* Check if any ships of this species experienced mishaps. */
+		check.disbanded = g.TurnNumber > 1       /* Take care of any disbanded colonies. */
+		check.transferInEU = g.TurnNumber > 1    /* Check if this species is the recipient of a transfer of economic units from another species. */
+		check.jumpPortalsUsed = g.TurnNumber > 1 /* Check if any jump portals of this species were used by aliens. */
 		/* Check if any starbases of this species detected the use of gravitic telescopes by aliens. */
 		/* Check if this species is the recipient of a tech transfer from another species. */
 		/* Calculate tech level increases. */
@@ -549,6 +549,23 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 		}
 
 		/* Check if any jump portals of this species were used by aliens. */
+		if check.jumpPortalsUsed {
+			for _, t := range transaction {
+				if t.Type == ALIEN_JUMP_PORTAL_USAGE && t.Number1 == species.Number {
+					if !header_printed {
+						print_header()
+					}
+					l.String("  ")
+					l.String(t.Name1)
+					l.Char(' ')
+					l.String(t.Name2)
+					l.String(" used jump portal ")
+					l.String(t.Name3)
+					l.String(".\n")
+				}
+			}
+		}
+
 		/* Check if any starbases of this species detected the use of gravitic telescopes by aliens. */
 		/* Check if this species is the recipient of a tech transfer from another species. */
 		/* Calculate tech level increases. */
