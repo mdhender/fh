@@ -20,10 +20,10 @@ package fh
 
 type SpeciesData struct {
 	ID       string `json:"id"`
-	Number   int    // one-based index of species
-	Name     string // Name of species.
-	GovtName string // Name of government.
-	GovtType string // Type of government.
+	Number   int    `json:"number"`// one-based index of species
+	Name     string `json:"name"`// Name of species.
+	GovtName string `json:"govt_name"`// Name of government.
+	GovtType string `json:"govt_type"`// Type of government.
 	Home     struct {
 		Coords Coords      `json:"coords"`
 		PN     int         `json:"pn"` // planet number?
@@ -33,12 +33,12 @@ type SpeciesData struct {
 	HomeNampla string `json:"home_planet_id"`
 	Gases      struct {
 		Required struct {
-			Type GasType
-			Min  int // Minimum needed percentage.
-			Max  int // Maximum allowed percentage.
-		} // Gas required by species.
-		Neutral []GasType // Gases neutral to species.
-		Poison  []GasType // Gases poisonous to species.
+			Type GasType `json:"type"`
+			Min  int     `json:"min_pct"` // Minimum needed percentage.
+			Max  int     `json:"max_pct"` // Maximum allowed percentage.
+		} `json:"required"` // Gas required by species.
+		Neutral []GasType `json:"neutral"` // Gases neutral to species.
+		Poison  []GasType `json:"poison"`  // Gases poisonous to species.
 	} `json:"gases"`
 	AutoOrders       bool   // AUTO command was issued.
 	TechLevel        [6]int // Actual tech levels.
