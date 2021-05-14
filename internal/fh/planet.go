@@ -21,33 +21,33 @@ package fh
 import "fmt"
 
 type PlanetData struct {
-	ID               string `json:"id"`
-	TemperatureClass int    /* Temperature class, 1-30. */
-	PressureClass    int    /* Pressure class, 0-29. */
-	Special          PlanetSpecialType
-	Gases            []*GasData /* Gas in atmosphere. Nil if none. */
-	Diameter         int        /* Diameter in thousands of kilometers. */
-	Density          int
-	Gravity          int /* Surface gravity. Multiple of Earth gravity times 100. */
-	MiningDifficulty int /* Mining difficulty times 100. */
-	EconEfficiency   int /* Economic efficiency. Always 100 for a home planet. */
-	MDIncrease       int /* Increase in mining difficulty. */
-	Message          int /* Message associated with this planet, if any. */
+	ID               string            `json:"id"`
+	TemperatureClass int               `json:"temperature_class"` /* Temperature class, 1-30. */
+	PressureClass    int               `json:"pressure_class"`    /* Pressure class, 0-29. */
+	Special          PlanetSpecialType `json:"special"`
+	Gases            []*GasData        `json:"atmosphere,omitempty"` /* Gas in atmosphere. Nil if none. */
+	Diameter         int               `json:"diameter"`            /* Diameter in thousands of kilometers. */
+	Density          int               `json:"density"`
+	Gravity          int               `json:"gravity"`                              /* Surface gravity. Multiple of Earth gravity times 100. */
+	MiningDifficulty int               `json:"mining_difficulty"`                    /* Mining difficulty times 100. */
+	EconEfficiency   int               `json:"econ_efficiency"`                      /* Economic efficiency. Always 100 for a home planet. */
+	MDIncrease       int               `json:"mining_difficulty_increase,omitempty"` /* Increase in mining difficulty. */
+	Message          int               `json:"message_id,omitempty"`                 /* Message associated with this planet, if any. */
 }
 
 type GasData struct {
-	Type       GasType
-	Percentage int
+	Type       GasType `json:"type"`
+	Percentage int     `json:"pct"`
 }
 
 type NamedPlanetData struct {
 	ID           string         `json:"id"`
 	Name         string         /* Name of planet. */
-	Coords       Coords         `json:"xyz"` // coordinates
+	Coords       Coords         `json:"coords"` // coordinates
 	PN           int            // planet number?
 	Status       uint64         // bitmask for Status of planet
-	Hiding       bool           /* HIDE order given. */
-	Hidden       bool           /* Colony is hidden. */
+	Hiding       bool           `json:"hide_order_give,omitempty"` /* HIDE order given. */
+	Hidden       bool           `json:"hidden,omitempty"`          /* Colony is hidden. */
 	PlanetIndex  int            /* Index (starting at zero) into the file "planets.dat" of this planet. */
 	SiegeEff     int            /* Siege effectiveness - a percentage between 0 and 99. */
 	Shipyards    int            /* Number of shipyards on planet. */
