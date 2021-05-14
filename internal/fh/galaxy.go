@@ -345,9 +345,9 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 		l.Stdout = nil
 
 		var check struct {
-			mishaps   bool /* Check if any ships of this species experienced mishaps. */
-			disbanded bool /* Take care of any disbanded colonies. */
-			/* Check if this species is the recipient of a transfer of economic units from another species. */
+			mishaps      bool /* Check if any ships of this species experienced mishaps. */
+			disbanded    bool /* Take care of any disbanded colonies. */
+			transferInEU bool /* Check if this species is the recipient of a transfer of economic units from another species. */
 			/* Check if any jump portals of this species were used by aliens. */
 			/* Check if any starbases of this species detected the use of gravitic telescopes by aliens. */
 			/* Check if this species is the recipient of a tech transfer from another species. */
@@ -362,9 +362,9 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 			messages bool // check if this species is the recipient of a message from another species
 		}
 		// TODO: try to get straight on Turn 0 being setup and Turn 1 being first turn orders are processed
-		check.mishaps = g.TurnNumber > 1   /* Check if any ships of this species experienced mishaps. */
-		check.disbanded = g.TurnNumber > 1 /* Take care of any disbanded colonies. */
-		/* Check if this species is the recipient of a transfer of economic units from another species. */
+		check.mishaps = g.TurnNumber > 1      /* Check if any ships of this species experienced mishaps. */
+		check.disbanded = g.TurnNumber > 1    /* Take care of any disbanded colonies. */
+		check.transferInEU = g.TurnNumber > 1 /* Check if this species is the recipient of a transfer of economic units from another species. */
 		/* Check if any jump portals of this species were used by aliens. */
 		/* Check if any starbases of this species detected the use of gravitic telescopes by aliens. */
 		/* Check if this species is the recipient of a tech transfer from another species. */
@@ -515,7 +515,39 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 				species.Ships = ships
 			}
 		}
+
 		/* Check if this species is the recipient of a transfer of economic units from another species. */
+		if check.transferInEU {
+			for _, t := range transaction {
+				if t.Recipient == species.Number && (t.Type == EU_TRANSFER || t.Type == SIEGE_EU_TRANSFER || t.Type == LOOTING_EU_TRANSFER) {
+					// Transfer EUs to attacker if this is a siege or looting transfer.
+					// If this is a normal transfer, then just log the result since the actual transfer was done when the order was processed.
+					if t.Type != EU_TRANSFER {
+						species.EconUnits += t.Value
+					}
+
+					if !header_printed {
+						print_header()
+					}
+					l.String("  ")
+					l.Long(t.Value)
+					l.String(" economic units were received from SP ")
+					l.String(t.Name1)
+					if t.Type == SIEGE_EU_TRANSFER {
+						l.String(" as a result of your successful siege of their PL ")
+						l.String(t.Name3)
+						l.String(". The siege was ")
+						l.Long(t.Number1)
+						l.String("% effective")
+					} else if t.Type == LOOTING_EU_TRANSFER {
+						l.String(" as a result of your looting their PL ")
+						l.String(t.Name3)
+					}
+					l.String(".\n")
+				}
+			}
+		}
+
 		/* Check if any jump portals of this species were used by aliens. */
 		/* Check if any starbases of this species detected the use of gravitic telescopes by aliens. */
 		/* Check if this species is the recipient of a tech transfer from another species. */

@@ -51,20 +51,20 @@ const (
 )
 
 type TransactionData struct {
-	Type      int    `json:"type"` /* Transaction type. */
-	Donor     int    `json:"donor"`
-	Recipient int    `json:"recipient"`
-	Value     int    `json:"value"` /* Value of transaction. */
-	X         int    `json:"x"`
-	Y         int    `json:"y"`
-	Z         int    `json:"z"`
-	PN        int    `json:"pn"`       /* Location associated with transaction. */
-	Number1   int    `json:"number_1"` /* Other items associated with transaction.*/
-	Name1     string `json:"name_1"`
-	Number2   int    `json:"number_2"`
-	Name2     string `json:"name_2"`
-	Number3   int    `json:"number_3"`
-	Name3     string `json:"name_3"`
+	Type      TransType `json:"type"` /* Transaction type. */
+	Donor     int       `json:"donor"`
+	Recipient int       `json:"recipient"`
+	Value     int       `json:"value"` /* Value of transaction. */
+	X         int       `json:"x"`
+	Y         int       `json:"y"`
+	Z         int       `json:"z"`
+	PN        int       `json:"pn"`       /* Location associated with transaction. */
+	Number1   int       `json:"number_1"` /* Other items associated with transaction.*/
+	Name1     string    `json:"name_1"`
+	Number2   int       `json:"number_2"`
+	Name2     string    `json:"name_2"`
+	Number3   int       `json:"number_3"`
+	Name3     string    `json:"name_3"`
 }
 
 func GetTransactionData(galaxyPath string) ([]*TransactionData, error) {
