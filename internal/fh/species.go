@@ -20,13 +20,12 @@ package fh
 
 type SpeciesData struct {
 	ID       string `json:"id"`
-	Number   int    `json:"number"`// one-based index of species
-	Name     string `json:"name"`// Name of species.
-	GovtName string `json:"govt_name"`// Name of government.
-	GovtType string `json:"govt_type"`// Type of government.
+	Number   int    `json:"number"`    // one-based index of species
+	Name     string `json:"name"`      // Name of species.
+	GovtName string `json:"govt_name"` // Name of government.
+	GovtType string `json:"govt_type"` // Type of government.
 	Home     struct {
 		Coords Coords      `json:"coords"`
-		PN     int         `json:"pn"` // planet number?
 		System *StarData   `json:"-"`
 		Planet *PlanetData `json:"-"`
 	} `json:"home"`
@@ -40,20 +39,22 @@ type SpeciesData struct {
 		Neutral []GasType `json:"neutral"` // Gases neutral to species.
 		Poison  []GasType `json:"poison"`  // Gases poisonous to species.
 	} `json:"gases"`
-	AutoOrders       bool   // AUTO command was issued.
-	TechLevel        [6]int // Actual tech levels.
-	InitTechLevel    [6]int // Tech levels at start of turn.
-	TechKnowledge    [6]int // Unapplied tech level knowledge.
-	NumNamplas       int    // Number of named planets, including home planet and colonies.
-	NumShips         int    // Number of ships.
-	TechEps          [6]int // Experience points for tech levels.
-	HPOriginalBase   int    // If non-zero, home planet was bombed either by bombardment or germ warfare and has not yet fully recovered. Value is total economic base before bombing.
-	EconUnits        int    // Number of economic units.
-	FleetCost        int    // Total fleet maintenance cost.
-	FleetPercentCost int    // Fleet maintenance cost as a percentage times one hundred.
-	Contact          []bool // A bit is set if corresponding species has been met.
-	Ally             []bool // A bit is set if corresponding species is considered an ally.
-	Enemy            []bool // A bit is set if corresponding species is considered an enemy.
+	AutoOrders       bool               // AUTO command was issued.
+	TechLevel        [6]int             // Actual tech levels.
+	InitTechLevel    [6]int             // Tech levels at start of turn.
+	TechKnowledge    [6]int             // Unapplied tech level knowledge.
+	NumNamplas       int                // Number of named planets, including home planet and colonies.
+	NamedPlanets     []*NamedPlanetData `json:"named_planets"`
+	Ships            []*ShipData        `json:"ships"`
+	NumShips         int                // Number of ships.
+	TechEps          [6]int             // Experience points for tech levels.
+	HPOriginalBase   int                // If non-zero, home planet was bombed either by bombardment or germ warfare and has not yet fully recovered. Value is total economic base before bombing.
+	EconUnits        int                // Number of economic units.
+	FleetCost        int                // Total fleet maintenance cost.
+	FleetPercentCost int                // Fleet maintenance cost as a percentage times one hundred.
+	Contact          []bool             // A bit is set if corresponding species has been met.
+	Ally             []bool             // A bit is set if corresponding species is considered an ally.
+	Enemy            []bool             // A bit is set if corresponding species is considered an enemy.
 	Translate        struct {
 		PlanetNameToID []string `json:"planet_name_to_id"`
 	} `json:"translate"`

@@ -159,14 +159,6 @@ const X5 = 37  /* Unassigned. */
 
 const MAX_ITEMS = 38 /* Always bump this up to a multiple of two. Don't forget to make room for zeroth element! */
 
-/* Status codes for named planets. These are logically ORed together. */
-const HOME_PLANET = 1
-const COLONY = 2
-const POPULATED = 8
-const MINING_COLONY = 16
-const RESORT_COLONY = 32
-const DISBANDED_COLONY = 64
-
 type nampla_data struct {
 	name           [32]char        /* Name of planet. */
 	x, y, z, pn    char            /* Coordinates. */
@@ -195,65 +187,6 @@ type nampla_data struct {
 	message        long            /* Message associated with this planet, if any. */
 	special        long            /* Different for each application. */
 	padding        [28]char        /* Use for expansion. Initialized to all zeroes. */
-}
-
-/* Ship classes. */
-const PB = 0  /* Picketboat. */
-const CT = 1  /* Corvette. */
-const ES = 2  /* Escort. */
-const DD = 3  /* Destroyer. */
-const FG = 4  /* Frigate. */
-const CL = 5  /* Light Cruiser. */
-const CS = 6  /* Strike Cruiser. */
-const CA = 7  /* Heavy Cruiser. */
-const CC = 8  /* Command Cruiser. */
-const BC = 9  /* Battlecruiser. */
-const BS = 10 /* Battleship. */
-const DN = 11 /* Dreadnought. */
-const SD = 12 /* Super Dreadnought. */
-const BM = 13 /* Battlemoon. */
-const BW = 14 /* Battleworld. */
-const BR = 15 /* Battlestar. */
-const BA = 16 /* Starbase. */
-const TR = 17 /* Transport. */
-
-const NUM_SHIP_CLASSES = 18
-
-/* Ship types. */
-const FTL = 0
-const SUB_LIGHT = 1
-const STARBASE = 2
-
-/* Ship status codes. */
-const UNDER_CONSTRUCTION = 0
-const ON_SURFACE = 1
-const IN_ORBIT = 2
-const IN_DEEP_SPACE = 3
-const JUMPED_IN_COMBAT = 4
-const FORCED_JUMP = 5
-
-type ship_data_struct struct {
-	name                 [32]char         /* Name of ship. */
-	x, y, z, pn          char             /* Current coordinates. */
-	status               char             /* Current status of ship. */
-	ship_type            char             /* Ship type. */ // was `type`
-	dest_x, dest_y       char             /* Destination if ship was forced to jump from combat. */
-	dest_z               char             /* Ditto. Also used by TELESCOPE command. */
-	just_jumped          char             /* Set if ship jumped this turn. */
-	arrived_via_wormhole char             /* Ship arrived via wormhole in the PREVIOUS turn. */
-	reserved1            char             /* Unused. Zero for now. */
-	reserved2            short            /* Unused. Zero for now. */
-	reserved3            short            /* Unused. Zero for now. */
-	class                short            /* Ship class. */
-	tonnage              short            /* Ship tonnage divided by 10,000. */
-	item_quantity        [MAX_ITEMS]short /* Quantity of each item carried. */
-	age                  short            /* Ship age. */
-	remaining_cost       short            /* The cost needed to complete the ship if still under construction. */
-	reserved4            short            /* Unused. Zero for now. */
-	loading_point        short            /* Nampla index for planet where ship was last loaded with CUs. Zero = none. Use 9999 for home planet. */
-	unloading_point      short            /* Nampla index for planet that ship should be given orders to jump to where it will unload. Zero = none. Use 9999 for home planet. */
-	special              long             /* Different for each application. */
-	padding              [28]char         /* Use for expansion. Initialized to all zeroes. */
 }
 
 /* Command codes. */

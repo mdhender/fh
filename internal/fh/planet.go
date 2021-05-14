@@ -26,7 +26,7 @@ type PlanetData struct {
 	PressureClass    int               `json:"pressure_class"`    /* Pressure class, 0-29. */
 	Special          PlanetSpecialType `json:"special"`
 	Gases            []*GasData        `json:"atmosphere,omitempty"` /* Gas in atmosphere. Nil if none. */
-	Diameter         int               `json:"diameter"`            /* Diameter in thousands of kilometers. */
+	Diameter         int               `json:"diameter"`             /* Diameter in thousands of kilometers. */
 	Density          int               `json:"density"`
 	Gravity          int               `json:"gravity"`                              /* Surface gravity. Multiple of Earth gravity times 100. */
 	MiningDifficulty int               `json:"mining_difficulty"`                    /* Mining difficulty times 100. */
@@ -40,30 +40,46 @@ type GasData struct {
 	Percentage int     `json:"pct"`
 }
 
+/* Status codes for named planets. These are logically ORed together. */
+const HOME_PLANET = 1
+const COLONY = 2
+const POPULATED = 8
+const MINING_COLONY = 16
+const RESORT_COLONY = 32
+const DISBANDED_COLONY = 64
+
 type NamedPlanetData struct {
-	ID           string         `json:"id"`
-	Name         string         /* Name of planet. */
-	Coords       Coords         `json:"coords"` // coordinates
-	PN           int            // planet number?
-	Status       uint64         // bitmask for Status of planet
-	Hiding       bool           `json:"hide_order_give,omitempty"` /* HIDE order given. */
-	Hidden       bool           `json:"hidden,omitempty"`          /* Colony is hidden. */
-	PlanetIndex  int            /* Index (starting at zero) into the file "planets.dat" of this planet. */
-	SiegeEff     int            /* Siege effectiveness - a percentage between 0 and 99. */
-	Shipyards    int            /* Number of shipyards on planet. */
-	IUsNeeded    int            /* Incoming ship with only CUs on board. */
-	AUsNeeded    int            /* Incoming ship with only CUs on board. */
-	AutoIUs      int            /* Number of IUs to be automatically installed. */
-	AutoAUs      int            /* Number of AUs to be automatically installed. */
-	IUsToInstall int            /* Colonial mining units to be installed. */
-	AUsToInstall int            /* Colonial manufacturing units to be installed. */
-	MIBase       int            /* Mining base times 10. */
-	MABase       int            /* Manufacturing base times 10. */
-	PopUnits     int            /* Number of available population units. */
-	UseOnAmbush  int            /* Amount to use on ambush. */
-	Message      int            /* Message associated with this planet, if any. */
-	Special      int            /* Different for each application. */
-	ItemQuantity [MAX_ITEMS]int /* Quantity of each item available. */
+	ID           string            `json:"id"`
+	Name         string            /* Name of planet. */
+	Coords       Coords            `json:"coords"` // coordinates
+	Status       NamedPlanetStatus `json:"status,omitempty"`
+	Hiding       bool              `json:"hide_order_give,omitempty"` /* HIDE order given. */
+	Hidden       bool              `json:"hidden,omitempty"`          /* Colony is hidden. */
+	PlanetIndex  int               /* Index (starting at zero) into the file "planets.dat" of this planet. */
+	SiegeEff     int               /* Siege effectiveness - a percentage between 0 and 99. */
+	Shipyards    int               /* Number of shipyards on planet. */
+	IUsNeeded    int               /* Incoming ship with only CUs on board. */
+	AUsNeeded    int               /* Incoming ship with only CUs on board. */
+	AutoIUs      int               /* Number of IUs to be automatically installed. */
+	AutoAUs      int               /* Number of AUs to be automatically installed. */
+	IUsToInstall int               /* Colonial mining units to be installed. */
+	AUsToInstall int               /* Colonial manufacturing units to be installed. */
+	MIBase       int               /* Mining base times 10. */
+	MABase       int               /* Manufacturing base times 10. */
+	PopUnits     int               /* Number of available population units. */
+	UseOnAmbush  int               /* Amount to use on ambush. */
+	Message      int               /* Message associated with this planet, if any. */
+	Special      int               /* Different for each application. */
+	ItemQuantity [MAX_ITEMS]int    /* Quantity of each item available. */
+}
+
+type NamedPlanetStatus struct {
+	HomePlanet      bool `json:"home_planet,omitempty"`
+	Colony          bool `json:"colony,omitempty"`
+	Populated       bool `json:"populated,omitempty"`
+	MiningColony    bool `json:"mining_colony,omitempty"`
+	ResortColony    bool `json:"resort_colony,omitempty"`
+	DisbandedColony bool `json:"disbanded_colony,omitempty"`
 }
 
 // Values for the planets of Earth's solar system will be used as starting values.

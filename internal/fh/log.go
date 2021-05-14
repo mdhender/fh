@@ -113,6 +113,15 @@ func (l *Logger) Long(value int) {
 	l.Int(value)
 }
 
+func (l *Logger) Message(msg string) {
+	if l.File == nil {
+		return
+	}
+	if _, err := l.File.Write([]byte(msg)); err != nil {
+		panic(err)
+	}
+}
+
 func (l *Logger) Puts(line []byte) {
 	nl := []byte{'\n'}
 	if l.File != nil {

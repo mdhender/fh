@@ -21,13 +21,10 @@ package fh
 import "fmt"
 
 type Coords struct {
-	X int `json:"x"`
-	Y int `json:"y"`
-	Z int `json:"z"`
-}
-
-func (c Coords) String() string {
-	return fmt.Sprintf("%d %d %d", c.X, c.Y, c.Z)
+	X     int `json:"x"`
+	Y     int `json:"y"`
+	Z     int `json:"z"`
+	Orbit int `json:"orbit"` // zero means the star, non-zero is planet number
 }
 
 func (c Coords) DeltaXYZ(t Coords) (int, int, int) {
@@ -47,4 +44,20 @@ func (c Coords) DeltaXYZ(t Coords) (int, int, int) {
 func (c Coords) DistanceSquaredTo(t Coords) int {
 	dX, dY, dZ := c.X-t.X, c.Y-t.Y, c.Z-t.Z
 	return (dX)*(dX) + (dY)*(dY) + (dZ)*(dZ)
+}
+
+func (c Coords) ID() string {
+	return fmt.Sprintf("03%d.%03d.%03d/%02d", c.X, c.Y, c.Z, c.Orbit)
+}
+
+func (c Coords) SamePlanet(t Coords) bool {
+	return c.X == t.X && c.Y == t.Y && c.Z == t.Z && c.Orbit == t.Orbit
+}
+
+func (c Coords) SameSystem(t Coords) bool {
+	return c.X == t.X && c.Y == t.Y && c.Z == t.Z
+}
+
+func (c Coords) String() string {
+	return fmt.Sprintf("%d %d %d", c.X, c.Y, c.Z)
 }

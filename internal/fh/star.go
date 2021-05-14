@@ -44,7 +44,7 @@ func GenerateStar(x, y, z, nSpecies int) (*StarData, error) {
 	fmt.Printf("Generating star (%3d, %3d, %3d)\n", x, y, z)
 
 	/* Set coordinates. */
-	xyz := Coords{x, y, z}
+	xyz := Coords{x, y, z, 0}
 	star := &StarData{
 		ID:          xyz.String(),
 		Coords:      xyz,

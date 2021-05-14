@@ -35,40 +35,43 @@ type SpeciesLocationData struct {
 	Z int `json:"z"`
 }
 
-//func DoLocations(g *GalaxyData) *SpeciesLocation {
-//	loc := &SpeciesLocation{data:make(map[string][]int}
-//
-//	for _, species := range g.AllSpecies() {
-//		nampla_base := namp_data[species.Number-1]
-//		ship_base := ship_data[species.Number-1]
-//
-//		nampla := nampla_base - 1
-//		for i := 0; i < species.NumNamplas; i++ {
-//			nampla++
-//
-//			if nampla.pn == 99 {
-//				continue
-//			}
-//
-//			if nampla.status&POPULATED != 0 {
-//				loc = add_location(loc, nampla.x, nampla.y, nampla.z, species.Number)
-//			}
-//		}
-//
-//		ship := ship_base - 1
-//		for i := 0; i < species.NumShips; i++ {
-//			ship++
-//
-//			if ship.pn == 99 {
-//				continue
-//			}
-//			if ship.status == FORCED_JUMP || ship.status == JUMPED_IN_COMBAT {
-//				continue
-//			}
-//
-//			loc = add_location(loc, ship.x, ship.y, ship.z, species.Number)
-//		}
-//	}
-//
-//	return loc
-//}
+func DoLocations(g *GalaxyData) *SpeciesLocation {
+	loc := &SpeciesLocation{data: make(map[string][]int)}
+
+	for _, species := range g.AllSpecies() {
+		for _, nampla := range species.NamedPlanets {
+			// TODO: what is special about 99?
+			if nampla.Coords.Orbit == 99 {
+				continue
+			}
+
+			if nampla.Status.Populated {
+				loc.AddLocation(species.Number, nampla.Coords)
+			}
+		}
+
+		for _, ship := range species.Ships {
+			// TODO: what is special about 99?
+			if ship.Coords.Orbit == 99 {
+				continue
+			}
+			if ship.Status.ForcedJump || ship.Status.JumpedInCombat {
+				continue
+			}
+
+			loc.AddLocation(species.Number, ship.Coords)
+		}
+	}
+
+	return loc
+}
+
+func (s *SpeciesLocation) AddLocation(sn int, c Coords) {
+	for _, n := range s.data[c.String()] {
+		if sn == n {
+			// species already in this location
+			return
+		}
+	}
+	s.data[c.String()] = append(s.data[c.String()], sn)
+}

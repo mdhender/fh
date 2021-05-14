@@ -166,7 +166,7 @@ func GenerateGalaxy(logFile io.Writer, setupData *SetupData) (*GalaxyData, error
 			continue
 		}
 		// verify that we don't already have a star here
-		if _, exists := galaxy.Stars[Coords{x, y, z}.String()]; exists {
+		if _, exists := galaxy.Stars[Coords{x, y, z, 0}.String()]; exists {
 			continue
 		}
 		// add the star at these coordinates
@@ -320,19 +320,16 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 
 	/* Main loop. For each species, take appropriate action. */
 	for _, species := range g.AllSpecies() {
-		// check if player submitted orders for this turn.
-		var orders_received bool
-		if g.TurnNumber == 1 {
-			orders_received = true
-		} else {
-			orderFile := path.Join(turnPath, fmt.Sprintf("sp%02d.ord", species.Number))
-			_, err := ioutil.ReadFile(orderFile)
-			orders_received = err == nil
-		}
-
 		// display name of species
 		if verbose_mode {
 			_, _ = fmt.Fprintf(w, "  Now doing SP %s...", species.Name)
+		}
+
+		// check if player submitted orders for this turn.
+		orderFile := path.Join(turnPath, fmt.Sprintf("sp%02d.ord", species.Number))
+		_, err = ioutil.ReadFile(orderFile)
+		orders_received := err == nil || g.TurnNumber == 1
+		if verbose_mode {
 			if !orders_received {
 				_, _ = fmt.Fprintf(w, " WARNING: player did not submit orders this turn!")
 			}
@@ -347,11 +344,9 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 		}
 		l.Stdout = nil
 
-		// only process actions after the first turn.
-		// TODO: try to get straight on Turn 0 being setup and Turn 1 being first turn orders are processed
-		if g.TurnNumber != 1 {
-			/* Check if any ships of this species experienced mishaps. */
-			/* Take care of any disbanded colonies. */
+		var check struct {
+			mishaps   bool /* Check if any ships of this species experienced mishaps. */
+			disbanded bool /* Take care of any disbanded colonies. */
 			/* Check if this species is the recipient of a transfer of economic units from another species. */
 			/* Check if any jump portals of this species were used by aliens. */
 			/* Check if any starbases of this species detected the use of gravitic telescopes by aliens. */
@@ -364,21 +359,190 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 			/* Check if this species has a populated planet that another species tried to land on. */
 			/* Check if this species is the recipient of interspecies construction. */
 			/* Check if this species is besieging another species and detects forbidden construction, landings, etc. */
+			messages bool // check if this species is the recipient of a message from another species
+		}
+		// TODO: try to get straight on Turn 0 being setup and Turn 1 being first turn orders are processed
+		check.mishaps = g.TurnNumber > 1   /* Check if any ships of this species experienced mishaps. */
+		check.disbanded = g.TurnNumber > 1 /* Take care of any disbanded colonies. */
+		/* Check if this species is the recipient of a transfer of economic units from another species. */
+		/* Check if any jump portals of this species were used by aliens. */
+		/* Check if any starbases of this species detected the use of gravitic telescopes by aliens. */
+		/* Check if this species is the recipient of a tech transfer from another species. */
+		/* Calculate tech level increases. */
+		/* Notify of any new high tech items. */
+		/* Check if this species is the recipient of a knowledge transfer from another species. */
+		/* Loop through each nampla for this species. */
+		/* Loop through all ships for this species. */
+		/* Check if this species has a populated planet that another species tried to land on. */
+		/* Check if this species is the recipient of interspecies construction. */
+		/* Check if this species is besieging another species and detects forbidden construction, landings, etc. */
+		check.messages = true // always check messages
+
+		/* Check if any ships of this species experienced mishaps. */
+		if check.mishaps {
+			for _, t := range transaction {
+				if t.Type == SHIP_MISHAP && t.Number1 == species.Number {
+					if !header_printed {
+						print_header()
+					}
+					l.String("  !!! ")
+					l.String(t.Name1)
+					if t.Value < 3 {
+						/* Intercepted or self-destructed. */
+						l.String(" disappeared without a trace, cause unknown!\n")
+					} else if t.Value == 3 {
+						/* Mis-jumped. */
+						l.String(" mis-jumped to ")
+						l.Int(t.X)
+						l.Char(' ')
+						l.Int(t.Y)
+						l.Char(' ')
+						l.Int(t.Z)
+						l.String("!\n")
+					} else {
+						/* One fail-safe jump unit used. */
+						l.String(" had a jump mishap! A fail-safe jump unit was expended.\n")
+					}
+				}
+			}
 		}
 
-		// check if this species is the recipient of a message from another species
-		for _, t := range transaction {
-			if t.Type == MESSAGE_TO_SPECIES && t.Number2 == species.Number {
+		/* Take care of any disbanded colonies. */
+		if check.disbanded {
+			var coloniesDestroyed, shipsDestroyed int
+			for _, nampla := range species.NamedPlanets {
+				if !nampla.Status.DisbandedColony {
+					continue
+				}
+
+				/* Salvage ships on the surface and starbases in orbit. */
+				salvage_EUs := 0
+				for _, ship := range species.Ships {
+					if !nampla.Coords.SameSystem(ship.Coords) {
+						continue
+					}
+					if ship.Status.InOrbit && ship.Type != STARBASE {
+						continue
+					}
+
+					/* Transfer cargo to planet. */
+					for i := 0; i < MAX_ITEMS; i++ {
+						nampla.ItemQuantity[i] += ship.ItemQuantity[i]
+					}
+
+					/* Salvage the ship. */
+					original_cost := shipData[ship.Class].cost
+					if ship.Class == TR || ship.Type == STARBASE {
+						original_cost *= ship.Tonnage
+					}
+
+					if ship.Type == SUB_LIGHT {
+						original_cost = (3 * original_cost) / 4
+					}
+
+					var salvage_value int
+					if ship.Status.UnderConstruction {
+						salvage_value = (original_cost - ship.RemainingCost) / 4
+					} else {
+						salvage_value = (3 * original_cost * (60 - ship.Age)) / 400
+					}
+
+					salvage_EUs += salvage_value
+
+					/* Destroy the ship. */
+					ship.Status.Destroyed = true
+					shipsDestroyed++
+				}
+
+				/* Salvage items on the planet. */
+				for i := 0; i < MAX_ITEMS; i++ {
+					var salvage_value int
+					if i == RM {
+						salvage_value = nampla.ItemQuantity[RM] / 10
+					} else if nampla.ItemQuantity[i] > 0 {
+						original_cost := nampla.ItemQuantity[i] * itemData[i].cost
+						if i == TP {
+							if species.TechLevel[BI] > 0 {
+								original_cost /= species.TechLevel[BI]
+							} else {
+								original_cost /= 100
+							}
+						}
+						salvage_value = original_cost / 4
+					} else {
+						salvage_value = 0
+					}
+
+					salvage_EUs += salvage_value
+				}
+
+				/* Transfer EUs to species. */
+				species.EconUnits += salvage_EUs
+
+				/* Log what happened. */
 				if !header_printed {
 					print_header()
 				}
-				fmt.Printf("SP %d received the following message from SP %s:\n\n", species.Number, t.Name1)
-				l.String(fmt.Sprintf("\n  You received the following message from SP %s:\n\n", t.Name1))
-				msg, err := GetMessage(galaxyPath, t.Value)
-				if err == nil && l.File != nil {
-					l.File.Write([]byte(msg))
+				l.String("  PL ")
+				l.String(nampla.Name)
+				l.String(" was disbanded, generating ")
+				l.Long(salvage_EUs)
+				l.String(" economic units in salvage.\n")
+
+				coloniesDestroyed++
+			}
+
+			// destroy the disbanded colonies
+			if coloniesDestroyed != 0 {
+				var namedPlanets []*NamedPlanetData
+				for _, nampla := range species.NamedPlanets {
+					if !nampla.Status.DisbandedColony {
+						continue
+					}
+					namedPlanets = append(namedPlanets, nampla)
 				}
-				l.String("\n  *** End of Message ***\n\n")
+				species.NamedPlanets = namedPlanets
+			}
+
+			// destroy the salvaged ships
+			if shipsDestroyed != 0 {
+				var ships []*ShipData
+				for _, ship := range species.Ships {
+					if !ship.Status.Destroyed {
+						ships = append(ships, ship)
+					}
+				}
+				species.Ships = ships
+			}
+		}
+		/* Check if this species is the recipient of a transfer of economic units from another species. */
+		/* Check if any jump portals of this species were used by aliens. */
+		/* Check if any starbases of this species detected the use of gravitic telescopes by aliens. */
+		/* Check if this species is the recipient of a tech transfer from another species. */
+		/* Calculate tech level increases. */
+		/* Notify of any new high tech items. */
+		/* Check if this species is the recipient of a knowledge transfer from another species. */
+		/* Loop through each nampla for this species. */
+		/* Loop through all ships for this species. */
+		/* Check if this species has a populated planet that another species tried to land on. */
+		/* Check if this species is the recipient of interspecies construction. */
+		/* Check if this species is besieging another species and detects forbidden construction, landings, etc. */
+
+		// check if this species is the recipient of a message from another species
+		if check.messages {
+			for _, t := range transaction {
+				if t.Type == MESSAGE_TO_SPECIES && t.Number2 == species.Number {
+					if !header_printed {
+						print_header()
+					}
+					fmt.Printf("SP %d received the following message from SP %s:\n\n", species.Number, t.Name1)
+					l.String(fmt.Sprintf("\n  You received the following message from SP %s:\n\n", t.Name1))
+					msg, err := GetMessage(galaxyPath, t.Value)
+					if err == nil && l.File != nil {
+						l.Message(msg)
+					}
+					l.String("\n  *** End of Message ***\n\n")
+				}
 			}
 		}
 	}
@@ -609,10 +773,8 @@ func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *S
 	s.Home.Planet = star.Planets[star.HomePlanetIndex()]
 
 	// AddSpecies step in setup_game.py
-	s.Home.Coords = coords
-	s.Home.PN = pn
-	home_nampla.Coords = coords
-	home_nampla.PN = pn
+	s.Home.Coords = Coords{coords.X, coords.Y, coords.Z, coords.Orbit}
+	home_nampla.Coords = Coords{coords.X, coords.Y, coords.Z, coords.Orbit}
 
 	_, _ = fmt.Fprintf(w, "Scan of star system:\n\n")
 	star.Scan(os.Stdout, nil)
@@ -715,7 +877,8 @@ func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *S
 	s.Enemy = make([]bool, g.DNumSpecies+1, g.DNumSpecies+1)
 
 	s.NumNamplas = 1 // just the home planet for now ("nampla" means "named planet")
-	home_nampla.Status = HOME_PLANET | POPULATED
+	home_nampla.Status.HomePlanet = true
+	home_nampla.Status.Populated = true
 	home_nampla.PopUnits = HP_AVAILABLE_POP
 	home_nampla.Shipyards = 1
 
@@ -723,7 +886,7 @@ func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *S
 	_, _ = fmt.Fprintf(w, "\n  Summary for species #%d:\n", s.Number)
 	_, _ = fmt.Fprintf(w, "\tName of species: %s\n", s.Name)
 	_, _ = fmt.Fprintf(w, "\tName of home planet: %s\n", home_nampla.Name)
-	_, _ = fmt.Fprintf(w, "\t\tCoordinates: %s #%d\n", s.Home.Coords, s.Home.PN)
+	_, _ = fmt.Fprintf(w, "\t\tCoordinates: %s #%d\n", s.Home.Coords, s.Home.Coords.Orbit)
 	_, _ = fmt.Fprintf(w, "\tName of government: %s\n", s.GovtName)
 	_, _ = fmt.Fprintf(w, "\tType of government: %s\n\n", s.GovtType)
 
