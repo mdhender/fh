@@ -53,13 +53,22 @@ const (
 	STARBASE
 )
 
+type JumpStatus int
+
+const (
+	DidNotJump        JumpStatus = iota
+	JustJumped        JumpStatus = 1
+	JustMovedHere     JumpStatus = 50
+	JumpedViaWormhole JumpStatus = 99
+)
+
 type ShipData struct {
 	Name               string         /* Name of ship. */
 	Coords             Coords         `json:"coords"` /* Current coordinates. */
 	Status             ShipStatus     `json:"status"` /* Current status of ship. */
 	Type               ShipType       `json:"type"`   /* Ship type. */
 	Dest               Coords         `json:"dest"`   // Destination if ship was forced to jump from combat. Also used by TELESCOPE command.
-	JustJumped         bool           /* Set if ship jumped this turn. */
+	JustJumped         JumpStatus     /* Set if ship jumped this turn. */
 	ArrivedViaWormhole bool           /* Ship arrived via wormhole in the PREVIOUS turn. */
 	Class              ShipClass      `json:"class"` /* Ship class. */
 	Tonnage            int            /* Ship tonnage divided by 10,000. */

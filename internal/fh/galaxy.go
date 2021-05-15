@@ -437,6 +437,49 @@ func (g *GalaxyData) AddSpecies(s *SpeciesData) {
 	g.allSpecies = append(g.allSpecies, s)
 }
 
+// AlienIsVisible returns true only if:
+//     the alien has a ship or starbase here that is in orbit or in deep space
+//  or both species have a colony on the same planet
+//  or the alien has a colony in the system that is not hidden
+func (g *GalaxyData) AlienIsVisible(species, alien *SpeciesData, coords Coords) bool {
+	for _, ship := range alien.Ships {
+		if !coords.SameSystem(ship.Coords) {
+			continue
+		} else if ship.ItemQuantity[FD] == ship.Tonnage {
+			// TODO: whatever FD is, it helps hide the ship?
+			continue
+		}
+		if ship.Status.InOrbit || ship.Status.InDeepSpace {
+			return true
+		}
+	}
+
+	/* Check if alien has a planet that is not hidden. */
+	for _, alien_nampla := range alien.NamedPlanets {
+		if !coords.SameSystem(coords) {
+			continue
+		} else if !alien_nampla.Status.Populated {
+			continue
+		}
+		if !alien_nampla.Hidden {
+			return true
+		}
+
+		/* The colony is hidden. See if we have population on the same planet. */
+		for _, nampla := range species.NamedPlanets {
+			if !nampla.Coords.SamePlanet(alien_nampla.Coords) {
+				continue
+			} else if !nampla.Status.Populated {
+				continue
+			}
+			/* We have population on the same planet, so the alien cannot hide. */
+			return true
+		}
+	}
+
+	return false
+}
+
 func (g *GalaxyData) AllPlanets() []*PlanetData {
 	if g.allPlanets == nil {
 		for _, star := range g.AllStars() {
@@ -527,7 +570,8 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 		}
 		l.Stdout = nil
 
-		var check struct {
+		// TODO: try to get straight on Turn 0 being setup and Turn 1 being first turn orders are processed
+		check := struct {
 			mishaps            bool /* Check if any ships of this species experienced mishaps. */
 			disbanded          bool /* Take care of any disbanded colonies. */
 			transferInEU       bool /* Check if this species is the recipient of a transfer of economic units from another species. */
@@ -537,27 +581,27 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 			increaseTL         bool /* Calculate tech level increases. */
 			transferInKN       bool /* Check if this species is the recipient of a knowledge transfer from another species. */
 			loopNamedPlanets   bool /* Loop through each nampla for this species. */
-			/* Loop through all ships for this species. */
-			/* Check if this species has a populated planet that another species tried to land on. */
-			/* Check if this species is the recipient of interspecies construction. */
-			/* Check if this species is besieging another species and detects forbidden construction, landings, etc. */
-			messages bool // check if this species is the recipient of a message from another species
+			loopShips          bool /* Loop through all ships for this species. */
+			alienIncursion     bool /* Check if this species has a populated planet that another species tried to land on. */
+			alienConstruction  bool /* Check if this species is the recipient of interspecies construction. */
+			besiegingOthers    bool /* Check if this species is besieging another species and detects forbidden construction, landings, etc. */
+			messages           bool // check if this species is the recipient of a message from another species
+		}{
+			mishaps:            g.TurnNumber > 1,
+			disbanded:          g.TurnNumber > 1,
+			transferInEU:       g.TurnNumber > 1,
+			jumpPortalsUsed:    g.TurnNumber > 1,
+			detectedTelescopes: g.TurnNumber > 1,
+			transferInTL:       g.TurnNumber > 1,
+			increaseTL:         g.TurnNumber > 1,
+			transferInKN:       g.TurnNumber > 1,
+			loopNamedPlanets:   g.TurnNumber > 1,
+			loopShips:          g.TurnNumber > 1,
+			alienIncursion:     g.TurnNumber > 1,
+			alienConstruction:  g.TurnNumber > 1,
+			besiegingOthers:    g.TurnNumber > 1,
+			messages:           true, // always check messages
 		}
-		// TODO: try to get straight on Turn 0 being setup and Turn 1 being first turn orders are processed
-		check.mishaps = g.TurnNumber > 1
-		check.disbanded = g.TurnNumber > 1
-		check.transferInEU = g.TurnNumber > 1
-		check.jumpPortalsUsed = g.TurnNumber > 1
-		check.detectedTelescopes = g.TurnNumber > 1
-		check.transferInTL = g.TurnNumber > 1     /* Check if this species is the recipient of a tech transfer from another species. */
-		check.increaseTL = g.TurnNumber > 1       /* Calculate tech level increases. */
-		check.transferInKN = g.TurnNumber > 1     /* Check if this species is the recipient of a knowledge transfer from another species. */
-		check.loopNamedPlanets = g.TurnNumber > 1 /* Loop through each nampla for this species. */
-		/* Loop through all ships for this species. */
-		/* Check if this species has a populated planet that another species tried to land on. */
-		/* Check if this species is the recipient of interspecies construction. */
-		/* Check if this species is besieging another species and detects forbidden construction, landings, etc. */
-		check.messages = true // always check messages
 
 		/* Check if any ships of this species experienced mishaps. */
 		if check.mishaps {
@@ -1195,9 +1239,137 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 		}
 
 		/* Loop through all ships for this species. */
+		if check.loopShips {
+			for _, ship := range species.Ships {
+				if ship.Coords.Orbit == 99 {
+					continue
+				}
+
+				/* Set flag if ship arrived via a natural wormhole. */
+				ship.ArrivedViaWormhole = ship.JustJumped == JumpedViaWormhole
+
+				/* Clear 'just-jumped' flag. */
+				ship.JustJumped = DidNotJump
+
+				/* Increase age of ship. */
+				if ship.Status.UnderConstruction {
+					ship.Age++
+					if ship.Age > 49 {
+						ship.Age = 49
+					}
+				}
+			}
+		}
+
 		/* Check if this species has a populated planet that another species tried to land on. */
+		if check.alienIncursion {
+			for _, t := range transaction {
+				if !(t.Type == LANDING_REQUEST && t.Number1 == species.Number) {
+					continue
+				}
+				if !header_printed {
+					print_header()
+				}
+				l.String("  ")
+				l.String(t.Name2)
+				l.String(" owned by SP ")
+				l.String(t.Name3)
+				if t.Value != 0 {
+					l.String(" was granted")
+				} else {
+					l.String(" was denied")
+				}
+				l.String(" permission to land on PL ")
+				l.String(t.Name1)
+				l.String(".\n")
+			}
+		}
+
 		/* Check if this species is the recipient of interspecies construction. */
+		if check.alienConstruction {
+			for _, t := range transaction {
+				if !(t.Type == INTERSPECIES_CONSTRUCTION && t.Recipient == species.Number) {
+					continue
+				}
+				/* Simply log the result. */
+				if !header_printed {
+					print_header()
+				}
+				l.String("  ")
+				if t.Value == 1 {
+					l.Long(t.Number1)
+					l.Char(' ')
+					l.String(itemData[t.Number2].name)
+					if t.Number1 == 1 {
+						l.String(" was")
+					} else {
+						l.String("s were")
+					}
+					l.String(" constructed for you by SP ")
+					l.String(t.Name1)
+					l.String(" on PL ")
+					l.String(t.Name2)
+				} else {
+					l.String(t.Name2)
+					l.String(" was constructed for you by SP ")
+					l.String(t.Name1)
+				}
+				l.String(".\n")
+			}
+		}
+
 		/* Check if this species is besieging another species and detects forbidden construction, landings, etc. */
+		if check.besiegingOthers {
+			for _, t := range transaction {
+				if !(t.Type == DETECTION_DURING_SIEGE && t.Number3 == species.Number) {
+					continue
+				}
+				/* Log what was detected and/or destroyed. */
+				if !header_printed {
+					print_header()
+				}
+				l.String("  ")
+				l.String("During the siege of ")
+				l.String(t.Name3)
+				l.String(" PL ")
+				l.String(t.Name1)
+				l.String(", your forces detected the ")
+				if t.Value == 1 {
+					/* Landing of enemy ship. */
+					l.String("landing of ")
+					l.String(t.Name2)
+					l.String(" on the planet.\n")
+				} else if t.Value == 2 {
+					/* Enemy ship or starbase construction. */
+					l.String("construction of ")
+					l.String(t.Name2)
+					l.String(", but you destroyed it before it")
+					l.String(" could be completed.\n")
+				} else if t.Value == 3 {
+					/* Enemy PD construction. */
+					l.String("construction of planetary defenses, but you")
+					l.String(" destroyed them before they could be completed.\n")
+				} else if t.Value == 4 || t.Value == 5 {
+					/* Enemy item construction. */
+					l.String("transfer of ")
+					l.Int(t.Number1)
+					l.Char(' ')
+					l.String(itemData[t.Number2].name)
+					if t.Number1 > 1 {
+						l.Char('s')
+					}
+					if t.Value == 4 {
+						l.String(" to PL ")
+					} else {
+						l.String(" from PL ")
+					}
+					l.String(t.Name2)
+					l.String(", but you destroyed them in transit.\n")
+				} else {
+					panic("\n\tInternal error!  Cannot reach this point!\n\n")
+				}
+			}
+		}
 
 		// check if this species is the recipient of a message from another species
 		if check.messages {
@@ -1229,12 +1401,171 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 	}
 
 	/* Create new locations array. */
+	locations := DoLocations(g)
+
 	/* Go through all species one more time to update alien contact masks, report tech transfer results to donors, and calculate fleet maintenance costs. */
-	if verbose_mode {
-		_, _ = fmt.Fprintf(w, "\nNow updating contact masks et al.\n")
+	if g.TurnNumber != 1 {
+		if verbose_mode {
+			_, _ = fmt.Fprintf(w, "\nNow updating contact masks et al.\n")
+		}
+		for _, species := range g.AllSpecies() {
+			/* Update contact mask in species data if this species has met a new alien. */
+			for _, loc := range locations {
+				if loc.S != species.Number {
+					continue
+				}
+
+				for _, aloc := range locations {
+					alienSpeciesNumber := aloc.S
+					if species.Contact[alienSpeciesNumber] || species.Number == alienSpeciesNumber {
+						continue // already made contact
+					} else if !(aloc.X == loc.X && aloc.Y == loc.Y && aloc.Z == loc.Z) {
+						continue
+					}
+					// we are in contact with an alien if it is visible
+					alienSpecies := g.GetSpeciesByNumber(alienSpeciesNumber)
+					species.Contact[alienSpeciesNumber] = g.AlienIsVisible(species, alienSpecies, Coords{X: loc.X, Y: loc.Y, Z: loc.Z})
+				}
+			}
+
+			/* Report results of tech transfers to donor species. */
+			for _, t := range transaction {
+				if t.Type == TECH_TRANSFER && t.Donor == species.Number {
+					continue
+				}
+				/* Open log file for appending. */
+				filename := fmt.Sprintf("sp%02d.log", species.Number)
+				fd, err := os.OpenFile(filename, os.O_APPEND, 0600)
+				if err != nil {
+					fmt.Printf("%+v\n", err)
+					panic(fmt.Sprintf("\n\tCannot open '%s' for appending!\n\n", filename))
+
+				}
+				l := &Logger{
+					File: fd,
+				}
+
+				l.String("  ")
+				l.String(techData[t.Value].name)
+				l.String(" tech transfer to SP ")
+				l.String(t.Name2)
+
+				if t.Number1 < 0 {
+					l.String(" failed")
+					if t.Number1 == -2 {
+						l.String(" due to lack of funding")
+					}
+				} else {
+					l.String(" raised their tech level from ")
+					l.Long(t.Number2)
+					l.String(" to ")
+					l.Long(t.Number3)
+					l.String(" at a cost to you of ")
+					l.Long(t.Number1)
+				}
+
+				l.String(".\n")
+				l = nil // wish i could flush and close
+			}
+
+			/* Calculate fleet maintenance cost and its percentage of total production. */
+			fleet_maintenance_cost := 0
+			for _, ship := range species.Ships {
+				if ship.Coords.Orbit == 99 {
+					continue
+				}
+
+				var n int
+				if ship.Class == TR {
+					n = 4 * ship.Tonnage
+				} else if ship.Class == BA {
+					n = 10 * ship.Tonnage
+				} else {
+					n = 20 * ship.Tonnage
+				}
+
+				if ship.Type == SUB_LIGHT {
+					n -= (25 * n) / 100
+				}
+
+				fleet_maintenance_cost += n
+			}
+
+			/* Subtract military discount. */
+			i := species.TechLevel[ML] / 2
+			fleet_maintenance_cost -= (i * fleet_maintenance_cost) / 100
+
+			/* Calculate total production. */
+			total_species_production := 0
+			for _, nampla := range species.NamedPlanets {
+
+				if nampla.Coords.Orbit == 99 {
+					continue
+				}
+				if nampla.Status.DisbandedColony {
+					continue
+				}
+
+				/* Get planet pointer. */
+				planet := g.GetPlanet(nampla.Coords)
+				if planet == nil {
+					panic("assert(planet != nil)")
+				}
+
+				ls_needed := species.LifeSupportNeeded(planet)
+
+				production_penalty := 0
+				if ls_needed != 0 {
+					production_penalty = (100 * ls_needed) / species.TechLevel[LS]
+				}
+
+				RMs_produced := (10 * species.TechLevel[MI] * nampla.MIBase) / planet.MiningDifficulty
+				RMs_produced -= (production_penalty * RMs_produced) / 100
+
+				production_capacity := (species.TechLevel[MA] * nampla.MABase) / 10
+				production_capacity -= (production_penalty * production_capacity) / 100
+
+				var balance int
+				if nampla.Status.MiningColony {
+					balance = (2 * RMs_produced) / 3
+				} else if nampla.Status.ResortColony {
+					balance = (2 * production_capacity) / 3
+				} else {
+					RMs_produced += nampla.ItemQuantity[RM]
+					if RMs_produced > production_capacity {
+						balance = production_capacity
+					} else {
+						balance = RMs_produced
+					}
+				}
+
+				balance = ((planet.EconEfficiency * balance) + 50) / 100
+
+				total_species_production += balance
+			}
+
+			// If cost is greater than production, take as much as possible from EUs in treasury.
+			// 	if (fleet_maintenance_cost > total_species_production) {
+			// 		if (fleet_maintenance_cost > species.econ_units) {
+			// 			fleet_maintenance_cost -= species.econ_units;
+			// 			species.econ_units = 0;
+			// 		} else {
+			// 			species.econ_units -= fleet_maintenance_cost;
+			// 			fleet_maintenance_cost = 0;
+			// 		}
+			// 	}
+
+			/* Save fleet maintenance results. */
+			species.FleetCost = fleet_maintenance_cost
+			if total_species_production > 0 {
+				species.FleetPercentCost = (10000 * fleet_maintenance_cost) / total_species_production
+			} else {
+				species.FleetPercentCost = 10000
+			}
+		}
 	}
 
-	/* Clean up and exit. */
+	// clean up and exit
 	return nil
 }
 

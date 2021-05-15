@@ -24,10 +24,6 @@ type sp_loc_data struct {
 	s, x, y, z char /* Species number, x, y, and z. */
 }
 
-type SpeciesLocation struct {
-	data map[string][]int
-}
-
 type SpeciesLocationData struct {
 	S int `json:"species_number"`
 	X int `json:"x"`
@@ -35,8 +31,8 @@ type SpeciesLocationData struct {
 	Z int `json:"z"`
 }
 
-func DoLocations(g *GalaxyData) *SpeciesLocation {
-	loc := &SpeciesLocation{data: make(map[string][]int)}
+func DoLocations(g *GalaxyData) []*SpeciesLocationData {
+	var locations []*SpeciesLocationData
 
 	for _, species := range g.AllSpecies() {
 		for _, nampla := range species.NamedPlanets {
@@ -46,7 +42,7 @@ func DoLocations(g *GalaxyData) *SpeciesLocation {
 			}
 
 			if nampla.Status.Populated {
-				loc.AddLocation(species.Number, nampla.Coords)
+				locations = AddLocation(locations, species.Number, nampla.Coords)
 			}
 		}
 
@@ -59,19 +55,19 @@ func DoLocations(g *GalaxyData) *SpeciesLocation {
 				continue
 			}
 
-			loc.AddLocation(species.Number, ship.Coords)
+			locations = AddLocation(locations, species.Number, ship.Coords)
 		}
 	}
 
-	return loc
+	return locations
 }
 
-func (s *SpeciesLocation) AddLocation(sn int, c Coords) {
-	for _, n := range s.data[c.String()] {
-		if sn == n {
+func AddLocation(locations []*SpeciesLocationData, sn int, c Coords) []*SpeciesLocationData {
+	for _, loc := range locations {
+		if sn == loc.S {
 			// species already in this location
-			return
+			return locations
 		}
 	}
-	s.data[c.String()] = append(s.data[c.String()], sn)
+	return append(locations, &SpeciesLocationData{X: c.X, Y: c.Y, Z: c.Z, S: sn})
 }
