@@ -345,16 +345,15 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 		l.Stdout = nil
 
 		var check struct {
-			mishaps         bool /* Check if any ships of this species experienced mishaps. */
-			disbanded       bool /* Take care of any disbanded colonies. */
-			transferInEU    bool /* Check if this species is the recipient of a transfer of economic units from another species. */
-			jumpPortalsUsed bool /* Check if any jump portals of this species were used by aliens. */
-			/* Check if any starbases of this species detected the use of gravitic telescopes by aliens. */
-			/* Check if this species is the recipient of a tech transfer from another species. */
-			/* Calculate tech level increases. */
-			/* Notify of any new high tech items. */
-			/* Check if this species is the recipient of a knowledge transfer from another species. */
-			/* Loop through each nampla for this species. */
+			mishaps            bool /* Check if any ships of this species experienced mishaps. */
+			disbanded          bool /* Take care of any disbanded colonies. */
+			transferInEU       bool /* Check if this species is the recipient of a transfer of economic units from another species. */
+			jumpPortalsUsed    bool /* Check if any jump portals of this species were used by aliens. */
+			detectedTelescopes bool /* Check if any starbases of this species detected the use of gravitic telescopes by aliens. */
+			transferInTL       bool /* Check if this species is the recipient of a tech transfer from another species. */
+			increaseTL         bool /* Calculate tech level increases. */
+			transferInKN       bool /* Check if this species is the recipient of a knowledge transfer from another species. */
+			loopNamedPlanets   bool /* Loop through each nampla for this species. */
 			/* Loop through all ships for this species. */
 			/* Check if this species has a populated planet that another species tried to land on. */
 			/* Check if this species is the recipient of interspecies construction. */
@@ -362,16 +361,15 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 			messages bool // check if this species is the recipient of a message from another species
 		}
 		// TODO: try to get straight on Turn 0 being setup and Turn 1 being first turn orders are processed
-		check.mishaps = g.TurnNumber > 1         /* Check if any ships of this species experienced mishaps. */
-		check.disbanded = g.TurnNumber > 1       /* Take care of any disbanded colonies. */
-		check.transferInEU = g.TurnNumber > 1    /* Check if this species is the recipient of a transfer of economic units from another species. */
-		check.jumpPortalsUsed = g.TurnNumber > 1 /* Check if any jump portals of this species were used by aliens. */
-		/* Check if any starbases of this species detected the use of gravitic telescopes by aliens. */
-		/* Check if this species is the recipient of a tech transfer from another species. */
-		/* Calculate tech level increases. */
-		/* Notify of any new high tech items. */
-		/* Check if this species is the recipient of a knowledge transfer from another species. */
-		/* Loop through each nampla for this species. */
+		check.mishaps = g.TurnNumber > 1
+		check.disbanded = g.TurnNumber > 1
+		check.transferInEU = g.TurnNumber > 1
+		check.jumpPortalsUsed = g.TurnNumber > 1
+		check.detectedTelescopes = g.TurnNumber > 1
+		check.transferInTL = g.TurnNumber > 1     /* Check if this species is the recipient of a tech transfer from another species. */
+		check.increaseTL = g.TurnNumber > 1       /* Calculate tech level increases. */
+		check.transferInKN = g.TurnNumber > 1     /* Check if this species is the recipient of a knowledge transfer from another species. */
+		check.loopNamedPlanets = g.TurnNumber > 1 /* Loop through each nampla for this species. */
 		/* Loop through all ships for this species. */
 		/* Check if this species has a populated planet that another species tried to land on. */
 		/* Check if this species is the recipient of interspecies construction. */
@@ -567,11 +565,449 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 		}
 
 		/* Check if any starbases of this species detected the use of gravitic telescopes by aliens. */
+		if check.detectedTelescopes {
+			for _, t := range transaction {
+				if !(t.Type == TELESCOPE_DETECTION && t.Number1 == species.Number) {
+					continue
+				}
+				if !header_printed {
+					print_header()
+				}
+				l.String("! ")
+				l.String(t.Name1)
+				l.String(" detected the operation of an alien gravitic telescope at x = ")
+				l.Int(t.X)
+				l.String(", y = ")
+				l.Int(t.Y)
+				l.String(", z = ")
+				l.Int(t.Z)
+				l.String(".\n")
+			}
+		}
+
 		/* Check if this species is the recipient of a tech transfer from another species. */
+		if check.transferInTL {
+			for _, t := range transaction {
+				if !(t.Type == TECH_TRANSFER && t.Recipient == species.Number) {
+					continue
+				}
+
+				/* Try to transfer technology. */
+				//rec := t.Recipient - 1
+				don := t.Donor - 1
+
+				if !header_printed {
+					print_header()
+				}
+				l.String("  ")
+				tech := t.Value
+				l.String(techData[tech].name)
+				l.String(" tech transfer from SP ")
+				l.String(t.Name1)
+				their_level := t.Number3
+				my_level := species.TechLevel[tech]
+
+				if their_level <= my_level {
+					l.String(" failed.\n")
+					t.Number1 = -1
+					continue
+				}
+
+				donor_species := g.GetSpeciesByNumber(don)
+				actual_cost, max_cost := 0, t.Number1
+				if max_cost == 0 {
+					max_cost = donor_species.EconUnits
+				} else if donor_species.EconUnits < max_cost {
+					max_cost = donor_species.EconUnits
+				}
+				new_level := my_level
+				for new_level < their_level {
+					one_point_cost := new_level * new_level
+					one_point_cost -= one_point_cost / 4 /* 25% discount. */
+					if (actual_cost + one_point_cost) > max_cost {
+						break
+					}
+					actual_cost += one_point_cost
+					new_level++
+				}
+
+				if new_level == my_level {
+					l.String(" failed due to lack of funding.\n")
+					t.Number1 = -2
+				} else {
+					l.String(" raised your tech level from ")
+					l.Int(my_level)
+					l.String(" to ")
+					l.Int(new_level)
+					l.String(" at a cost to them of ")
+					l.Long(actual_cost)
+					l.String(".\n")
+					t.Number1 = actual_cost
+					t.Number2 = my_level
+					t.Number3 = new_level
+
+					species.TechLevel[tech] = new_level
+					donor_species.EconUnits -= actual_cost
+				}
+			}
+		}
+
 		/* Calculate tech level increases. */
+		if check.increaseTL {
+			for tech := MI; tech <= BI; tech++ {
+				old_tech_level := species.TechLevel[tech]
+				new_tech_level := old_tech_level
+
+				var max_tech_level int
+
+				experience_points := species.TechEps[tech]
+				if experience_points != 0 {
+					/* Determine increase as if there were NO randomness in the process. */
+					i := experience_points
+					j := old_tech_level
+					for i >= j*j {
+						i -= j * j
+						j++
+					}
+
+					// When extremely large amounts are spent on research, tech level increases are sometimes excessive.  Set a limit.
+					if old_tech_level > 50 {
+						max_tech_level = j + 1
+					} else {
+						max_tech_level = 9999
+					}
+
+					/* Allocate half of the calculated increase NON-RANDOMLY. */
+					n := (j - old_tech_level) / 2
+					for i = 0; i < n; i++ {
+						experience_points -= new_tech_level * new_tech_level
+						new_tech_level++
+					}
+
+					/* Allocate the rest randomly. */
+					for experience_points >= new_tech_level {
+						experience_points -= new_tech_level
+						n = new_tech_level
+
+						/* The chance of success is 1 in n. At this point, n is always at least 1. */
+						i = rnd(16 * n)
+						if i >= 8*n && i <= 8*n+15 {
+							new_tech_level = n + 1
+						}
+					}
+
+					/* Save unused experience points. */
+					species.TechEps[tech] = experience_points
+				}
+
+				/* See if any random increase occurred. Odds are 1 in 6. */
+				if old_tech_level > 0 && rnd(6) == 6 {
+					new_tech_level++
+				}
+
+				if new_tech_level > max_tech_level {
+					new_tech_level = max_tech_level
+				}
+
+				/* Report result only if tech level went up. */
+				if new_tech_level > old_tech_level {
+					if !header_printed {
+						print_header()
+					}
+					l.String("  ")
+					l.String(techData[tech].name)
+					l.String(" tech level rose from ")
+					l.Int(old_tech_level)
+					l.String(" to ")
+					l.Int(new_tech_level)
+					l.String(".\n")
+
+					species.TechLevel[tech] = new_tech_level
+				}
+			}
+		}
+
 		/* Notify of any new high tech items. */
+		for tech := MI; tech <= BI; tech++ {
+			old_tech_level := species.InitTechLevel[tech]
+			new_tech_level := species.TechLevel[tech]
+
+			if new_tech_level > old_tech_level {
+				check_high_tech_items(tech, old_tech_level, new_tech_level, l)
+			}
+
+			species.InitTechLevel[tech] = new_tech_level
+		}
+
 		/* Check if this species is the recipient of a knowledge transfer from another species. */
+		if check.transferInKN {
+			for _, t := range transaction {
+				if t.Type == KNOWLEDGE_TRANSFER && t.Recipient == species.Number {
+					//rec := t.Recipient - 1
+					//don := t.Donor - 1
+
+					/* Try to transfer technology. */
+					tech := t.Value
+					their_level := t.Number3
+					my_level := species.TechLevel[tech]
+					n := species.TechKnowledge[tech]
+					if n > my_level {
+						my_level = n
+					}
+
+					if their_level <= my_level {
+						continue
+					}
+
+					species.TechKnowledge[tech] = their_level
+
+					if !header_printed {
+						print_header()
+					}
+					l.String("  SP ")
+					l.String(t.Name1)
+					l.String(" transferred knowledge of ")
+					l.String(techData[tech].name)
+					l.String(" to you up to tech level ")
+					l.Long(their_level)
+					l.String(".\n")
+				}
+			}
+		}
+
 		/* Loop through each nampla for this species. */
+		if check.loopNamedPlanets {
+			for _, nampla := range species.NamedPlanets {
+				if nampla.Coords.Orbit == 99 {
+					continue
+				}
+
+				/* Get planet pointer. */
+				planet := nampla.PlanetIndex
+
+				/* Clear any amount spent on ambush. */
+				nampla.UseOnAmbush = 0
+
+				/* Handle HIDE order. */
+				nampla.Hidden = nampla.Hiding
+				nampla.Hiding = false
+
+				/* Check if any IUs or AUs were installed. */
+				if nampla.IUsToInstall > 0 {
+					nampla.MIBase += nampla.IUsToInstall
+					nampla.IUsToInstall = 0
+				}
+
+				if nampla.AUsToInstall > 0 {
+					nampla.MABase += nampla.AUsToInstall
+					nampla.AUsToInstall = 0
+				}
+
+				/* Check if another species on the same planet has become
+				 *  assimilated. */
+				for _, t := range transaction {
+					if !(t.Type == ASSIMILATION && t.Value == species.Number && nampla.Coords.SamePlanet(Coords{t.X, t.Y, t.Z, t.PN})) {
+						continue
+					}
+					if !header_printed {
+						print_header()
+					}
+
+					ib, ab, ns := t.Number1, t.Number2, t.Number3
+					l.String("  Assimilation of ")
+					l.String(t.Name1)
+					l.String(" PL ")
+					l.String(t.Name2)
+					l.String(" increased mining base of ")
+					l.String(species.Name)
+					l.String(" PL ")
+					l.String(nampla.Name)
+					l.String(" by ")
+					l.Long(ib / 10)
+					l.Char('.')
+					l.Long(ib % 10)
+					l.String(", and manufacturing base by ")
+					l.Long(ab / 10)
+					l.Char('.')
+					l.Long(ab % 10)
+					if ns > 0 {
+						l.String(". Number of shipyards was also increased by ")
+						l.Int(ns)
+					}
+					l.String(".\n")
+				}
+
+				/* Calculate available population for this turn. */
+				nampla.PopUnits = 0
+
+				eb := nampla.MIBase + nampla.MABase
+				total_pop_units := eb + nampla.ItemQuantity[CU] + nampla.ItemQuantity[PD]
+
+				if nampla.Status.HomePlanet {
+					if nampla.Status.Populated {
+						nampla.PopUnits = HP_AVAILABLE_POP
+
+						if species.HPOriginalBase != 0 { /* HP was bombed. */
+							if eb >= species.HPOriginalBase {
+								species.HPOriginalBase = 0 /* Fully recovered. */
+							} else {
+								nampla.PopUnits = (eb * HP_AVAILABLE_POP) / species.HPOriginalBase
+							}
+						}
+					}
+				} else if nampla.Status.Populated {
+					/* Get life support tech level needed. */
+					ls_needed := life_support_needed(species, species.Home.Planet, planet)
+
+					/* Basic percent increase is 10*(1 - ls_needed/ls_actual). */
+					ls_actual := species.TechLevel[LS]
+					percent_increase := 10 * (100 - ((100 * ls_needed) / ls_actual))
+
+					if percent_increase < 0 { /* Colony wiped out! */
+						if !header_printed {
+							print_header()
+						}
+
+						l.String("  !!! Life support tech level was too low to support colony on PL ")
+						l.String(nampla.Name)
+						l.String(". Colony was destroyed.\n")
+
+						/* No longer populated or self-sufficient. */
+						nampla.Status = NamedPlanetStatus{Colony: true}
+						nampla.MIBase = 0
+						nampla.MABase = 0
+						nampla.PopUnits = 0
+						nampla.ItemQuantity[PD] = 0
+						nampla.ItemQuantity[CU] = 0
+						nampla.SiegeEff = 0
+					} else {
+						percent_increase /= 100
+
+						/* Add a small random variation. */
+						percent_increase +=
+							rnd(percent_increase/4) - rnd(percent_increase/4)
+
+						/* Add bonus for Biology technology. */
+						percent_increase += species.TechLevel[BI] / 20
+
+						/* Calculate and apply the change. */
+						change := (percent_increase * total_pop_units) / 100
+
+						if nampla.MIBase > 0 && nampla.MABase == 0 {
+							nampla.Status.MiningColony = true
+							change = 0
+						} else if nampla.Status.MiningColony {
+							/* A former mining colony has been converted to a normal colony. */
+							nampla.Status.MiningColony = false
+							change = 0
+						}
+
+						if nampla.MABase > 0 && nampla.MIBase == 0 && ls_needed <= 6 && planet.Gravity <= species.Home.Planet.Gravity {
+							nampla.Status.ResortColony = true
+							change = 0
+						} else if nampla.Status.ResortColony {
+							/* A former resort colony has been converted to a normal colony. */
+							nampla.Status.ResortColony = false
+							change = 0
+						}
+
+						if total_pop_units == nampla.ItemQuantity[PD] {
+							change = 0 /* Probably an invasion force. */
+						}
+						nampla.PopUnits = change
+					}
+				}
+
+				/* Handle losses due to attrition and update location array if planet is still populated. */
+				// the for loop is a hack to remove one goto statement
+				for nampla.Status.Populated {
+					total_pop_units = nampla.PopUnits + nampla.MIBase + nampla.MABase + nampla.ItemQuantity[CU] + nampla.ItemQuantity[PD]
+
+					if total_pop_units > 0 && total_pop_units < 50 {
+						if nampla.PopUnits > 0 {
+							nampla.PopUnits--
+							break
+						} else if nampla.ItemQuantity[CU] > 0 {
+							nampla.ItemQuantity[CU]--
+							if !header_printed {
+								print_header()
+							}
+							l.String("  Number of colonist units on PL ")
+							l.String(nampla.Name)
+							l.String(" was reduced by one unit due to normal attrition.")
+						} else if nampla.ItemQuantity[PD] > 0 {
+							nampla.ItemQuantity[PD]--
+							if !header_printed {
+								print_header()
+							}
+							l.String("  Number of planetary defense units on PL ")
+							l.String(nampla.Name)
+							l.String(" was reduced by one unit due to normal attrition.")
+						} else if nampla.MABase > 0 {
+							nampla.MABase--
+							if !header_printed {
+								print_header()
+							}
+							l.String("  Manufacturing base of PL ")
+							l.String(nampla.Name)
+							l.String(" was reduced by 0.1 due to normal attrition.")
+						} else {
+							nampla.MIBase--
+							if !header_printed {
+								print_header()
+							}
+							l.String("  Mining base of PL ")
+							l.String(nampla.Name)
+							l.String(" was reduced by 0.1 due to normal attrition.")
+						}
+
+						if total_pop_units == 1 {
+							if !header_printed {
+								print_header()
+							}
+							l.String(" The colony is dead!")
+						}
+
+						l.Char('\n')
+					}
+					// again, the for loop was a hack to remove a goto statement, so we never really want to loop
+					break
+				}
+
+				/* Apply automatic 2% increase to mining and manufacturing bases of home planets. */
+				if nampla.Status.HomePlanet {
+					growth_factor := 20
+					ib := nampla.MIBase
+					ab := nampla.MABase
+					old_base := ib + ab
+					increment := (growth_factor * old_base) / 1000
+					md := planet.MiningDificulty
+
+					denom := 100 + md
+					ab_increment := (100*(increment+ib) - (md * ab) + denom/2) / denom
+					ib_increment := increment - ab_increment
+
+					if ib_increment < 0 {
+						ab_increment = increment
+						ib_increment = 0
+					}
+					if ab_increment < 0 {
+						ib_increment = increment
+						ab_increment = 0
+					}
+					nampla.MIBase += ib_increment
+					nampla.MABase += ab_increment
+				}
+
+				check_population(nampla)
+
+				/* Update total economic base for colonies. */
+				if !nampla.Status.HomePlanet {
+					total_econ_base[nampla.PlanetIndex] += nampla.MIBase + nampla.MABase
+				}
+			}
+		}
+
 		/* Loop through all ships for this species. */
 		/* Check if this species has a populated planet that another species tried to land on. */
 		/* Check if this species is the recipient of interspecies construction. */
@@ -655,6 +1091,15 @@ func (g *GalaxyData) GetSpeciesByName(name string) *SpeciesData {
 		return nil
 	}
 	return g.GetSpeciesByID(id)
+}
+
+func (g *GalaxyData) GetSpeciesByNumber(n int) *SpeciesData {
+	for _, s := range g.AllSpecies() {
+		if n == s.Number {
+			return s
+		}
+	}
+	return nil
 }
 
 func (g *GalaxyData) GetStarAt(c Coords) *StarData {
@@ -939,8 +1384,8 @@ func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *S
 	_, _ = fmt.Fprintf(w, "\tName of government: %s\n", s.GovtName)
 	_, _ = fmt.Fprintf(w, "\tType of government: %s\n\n", s.GovtType)
 
-	_, _ = fmt.Fprintf(w, "\tTech levels: %s = %d,  %s = %d,  %s = %d\n", TechName[MI], s.TechLevel[MI], TechName[MA], s.TechLevel[MA], TechName[ML], s.TechLevel[ML])
-	_, _ = fmt.Fprintf(w, "\t             %s = %d,  %s = %d,  %s = %d\n", TechName[MI], s.TechLevel[GV], TechName[MA], s.TechLevel[LS], TechName[ML], s.TechLevel[BI])
+	_, _ = fmt.Fprintf(w, "\tTech levels: %s = %d,  %s = %d,  %s = %d\n", techData[MI].name, s.TechLevel[MI], techData[MA].name, s.TechLevel[MA], techData[ML].name, s.TechLevel[ML])
+	_, _ = fmt.Fprintf(w, "\t             %s = %d,  %s = %d,  %s = %d\n", techData[GV].name, s.TechLevel[GV], techData[LS].name, s.TechLevel[LS], techData[BI].name, s.TechLevel[BI])
 
 	_, _ = fmt.Fprintf(w, "\n\n\tFor this species, the required gas is %s (%d%%-%d%%).\n", s.Gases.Required.Type.Char(), s.Gases.Required.Min, s.Gases.Required.Max)
 

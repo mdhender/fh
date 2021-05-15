@@ -255,5 +255,14 @@ const SHIP_CLASS = 3
 const PLANET_ID = 4
 const SPECIES_ID = 5
 
-var TechAbbr = []string{"MI", "MA", "ML", "GV", "LS", "BI"}
-var TechName = []string{"Mining", "Manufacturing", "Military", "Gravitics", "Life Support", "Biology"}
+var techData = []struct {
+	abbr string
+	name string
+}{
+	{"MI", "Mining"},
+	{"MA", "Manufacturing"},
+	{"ML", "Military"},
+	{"GV", "Gravitics"},
+	{"LS", "Life Support"},
+	{"BI", "Biology"},
+}
