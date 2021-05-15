@@ -136,7 +136,7 @@ func GenerateStar(x, y, z, nSpecies int) (*StarData, error) {
 
 	// generate planets
 	var err error
-	star.Planets, err = GeneratePlanet(star.ID, star.NumPlanets)
+	star.Planets, err = GeneratePlanet(star.ID, star.Coords, star.NumPlanets)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (s *StarData) At(x, y, z int) bool {
 	return s != nil && s.Coords.X == x && s.Coords.Y == y && s.Coords.Z == z
 }
 
-// convert the system to a system with a home planet
+// ConvertToHomeSystem converts the system to a system with a home planet
 func (s *StarData) ConvertToHomeSystem(src []*PlanetData) {
 	s.HomeSystem = true
 

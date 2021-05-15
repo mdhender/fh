@@ -22,6 +22,7 @@ import "fmt"
 
 type PlanetData struct {
 	ID               string            `json:"id"`
+	Coords           Coords            `json:"coords"`
 	TemperatureClass int               `json:"temperature_class"` /* Temperature class, 1-30. */
 	PressureClass    int               `json:"pressure_class"`    /* Pressure class, 0-29. */
 	Special          PlanetSpecialType `json:"special"`
@@ -216,12 +217,15 @@ func GenerateEarthLikePlanet(starId string, num_planets int) []*PlanetData {
 	return planets
 }
 
-func GeneratePlanet(starId string, num_planets int) ([]*PlanetData, error) {
+func GeneratePlanet(starId string, coords Coords, num_planets int) ([]*PlanetData, error) {
 	var planets []*PlanetData
 
 	/* Main loop. Generate one planet at a time. */
 	for planet_number := 1; planet_number <= num_planets; planet_number++ {
-		planet := &PlanetData{ID: fmt.Sprintf("%s-%02d", starId, planet_number)}
+		planet := &PlanetData{
+			ID:     fmt.Sprintf("%s-%02d", starId, planet_number),
+			Coords: Coords{X: coords.X, Y: coords.Y, Z: coords.Z, Orbit: planet_number},
+		}
 		planets = append(planets, planet)
 
 		/* Start with diameters, temperature classes and pressure classes based on the planets in Earth's solar system. */
@@ -279,6 +283,7 @@ func (p *PlanetData) Clone() *PlanetData {
 		})
 	}
 	return &PlanetData{
+		Coords:           p.Coords,
 		TemperatureClass: p.TemperatureClass,
 		PressureClass:    p.PressureClass,
 		Special:          p.Special,
@@ -574,4 +579,28 @@ func LSN(current_planet, home_planet *PlanetData) int {
 	}
 
 	return ls_needed
+}
+
+// CheckPopulation will set the Populated, MiningColony, and ResortColony flags.
+// It will return true if the nampla is populated or false if not.
+// It will also check if a message associated with this planet should be logged.
+func (n *NamedPlanetData) CheckPopulation(l *Logger) bool {
+	was_already_populated := n.Status.Populated
+	total_pop := n.MIBase + n.MABase + n.IUsToInstall + n.AUsToInstall + n.ItemQuantity[PD] + n.ItemQuantity[CU] + n.PopUnits
+
+	n.Status.Populated = total_pop > 0
+	if total_pop == 0 {
+		n.Status.MiningColony = false
+		n.Status.ResortColony = false
+	}
+
+	if n.Status.Populated && !was_already_populated {
+		if n.Message != 0 {
+			// There is a message that must be logged whenever this planet becomes populated for the first time.
+			filename := fmt.Sprintf("message%ld.txt", n.Message)
+			l.Message(filename)
+		}
+	}
+
+	return n.Status.Populated
 }

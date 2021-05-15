@@ -60,8 +60,25 @@ type SpeciesData struct {
 	} `json:"translate"`
 }
 
-/* Get life support tech level needed. */
+func (s *SpeciesData) AddNamedPlanet(nampla *NamedPlanetData) {
+	for _, n := range s.NamedPlanets {
+		if nampla.Name == n.Name {
+			return
+		}
+	}
+	s.NamedPlanets = append(s.NamedPlanets, nampla)
+}
 
+func (s *SpeciesData) GetNamedPlanet(name string) *NamedPlanetData {
+	for _, n := range s.NamedPlanets {
+		if name == n.Name {
+			return n
+		}
+	}
+	return nil
+}
+
+/* Get life support tech level needed. */
 func (s *SpeciesData) LifeSupportNeeded(colony *PlanetData) int {
 	var ls_needed int
 

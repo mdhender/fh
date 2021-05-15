@@ -42,7 +42,6 @@ type GalaxyData struct {
 	NumberOfPlanets   int
 	TurnNumber        int
 	Stars             map[string]*StarData
-	NamedPlanets      map[string]*NamedPlanetData
 	Templates         struct {
 		Homes [10][]*PlanetData
 	}
@@ -66,13 +65,12 @@ type Player struct {
 
 func GenerateGalaxy(logFile io.Writer, setupData *SetupData) (*GalaxyData, error) {
 	galaxy := &GalaxyData{
-		ID:           setupData.Galaxy.Name,
-		Name:         setupData.Galaxy.Name,
-		Secret:       "your-private-key-belongs-here",
-		Players:      make(map[string]*Player),
-		Species:      make(map[string]*SpeciesData),
-		Stars:        make(map[string]*StarData),
-		NamedPlanets: make(map[string]*NamedPlanetData),
+		ID:      setupData.Galaxy.Name,
+		Name:    setupData.Galaxy.Name,
+		Secret:  "your-private-key-belongs-here",
+		Players: make(map[string]*Player),
+		Species: make(map[string]*SpeciesData),
+		Stars:   make(map[string]*StarData),
 	}
 	galaxy.Translate.EmailToID = make(map[string]string)
 	galaxy.Translate.SpeciesNameToID = make(map[string]string)
@@ -245,6 +243,191 @@ func GetGalaxy(name string) (*GalaxyData, error) {
 		return nil, err
 	}
 	return &galaxy, nil
+}
+
+func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *SetupData, player *PlayerData, s *SpeciesData) error {
+	home_nampla := &NamedPlanetData{ID: player.HomePlanetName}
+	home_nampla.Name = player.HomePlanetName
+	s.AddNamedPlanet(home_nampla)
+
+	s.HomeNampla = home_nampla.ID
+	s.GovtName = player.GovName
+	s.GovtType = player.GovType
+
+	// HomeSystemAuto step in setup_game.py
+	forbidNearbyWormholes := setupData.Galaxy.ForbidNearbyWormholes
+	minDistance := setupData.Galaxy.MinimumDistance
+	coords, err := g.GetFirstXYZ(minDistance, forbidNearbyWormholes)
+	if err != nil {
+		return err
+	}
+	// convert the system at those coordinates to a home system
+	star := g.GetStarAt(coords)
+	if star == nil {
+		return fmt.Errorf("There is no star at %s", coords)
+	}
+	// fetch the home system template and update the star with values from the template
+	star.ConvertToHomeSystem(g.Templates.Homes[star.NumPlanets])
+	pn := star.HomePlanetNumber()
+	_, _ = fmt.Fprintf(w, "Converted system %s, home planet %d\n", coords, pn)
+
+	// get pointer to home planet
+	s.Home.Planet = star.Planets[star.HomePlanetIndex()]
+
+	// AddSpecies step in setup_game.py
+	s.Home.Coords = Coords{coords.X, coords.Y, coords.Z, coords.Orbit}
+	home_nampla.Coords = Coords{coords.X, coords.Y, coords.Z, coords.Orbit}
+
+	_, _ = fmt.Fprintf(w, "Scan of star system:\n\n")
+	star.Scan(os.Stdout, nil)
+	_, _ = fmt.Fprintf(w, "\n")
+
+	/* Check tech levels. */
+	totalTechLevels := 0
+	totalTechLevels += player.BI
+	totalTechLevels += player.GV
+	totalTechLevels += player.LS
+	totalTechLevels += player.ML
+	if totalTechLevels != 15 {
+		_, _ = fmt.Fprintf(w, "\n\tERROR! ML + GV + LS + BI is not equal to 15!\n\n")
+		return fmt.Errorf("total tech levels must sum up to 15")
+	}
+	// set player-specified tech levels (mining and manufacturing are each 10)
+	s.TechLevel[BI] = player.BI
+	s.TechLevel[GV] = player.GV
+	s.TechLevel[LS] = player.LS
+	s.TechLevel[MA] = 10
+	s.TechLevel[MI] = 10
+	s.TechLevel[ML] = player.ML
+
+	// initialize other tech stuff
+	for i := MI; i <= BI; i++ {
+		j := s.TechLevel[i]
+		s.TechKnowledge[i] = j
+		s.InitTechLevel[i] = j
+		s.TechEps[i] = 0
+	}
+
+	// confirm that required gas is present
+	s.Gases.Required.Type = O2 // (we're biased towards oxygen breathers?)
+	for _, gas := range s.Home.Planet.Gases {
+		if gas.Type == s.Gases.Required.Type {
+			s.Gases.Required.Min = gas.Percentage / 2
+			if s.Gases.Required.Min < 1 {
+				s.Gases.Required.Min = 1
+			}
+			s.Gases.Required.Max = 2 * gas.Percentage
+			if s.Gases.Required.Max < 20 {
+				s.Gases.Required.Max += 20
+			} else if s.Gases.Required.Max > 100 {
+				// TODO: i prefer 99% for the max
+				s.Gases.Required.Max = 100
+			}
+		}
+	}
+	if s.Gases.Required.Max == 0 {
+		_, _ = fmt.Fprintf(w, "\n\tERROR! Planet does not have %s(%s)!\n", s.Gases.Required.Type.String(), s.Gases.Required.Type.Char())
+		return fmt.Errorf("planet does not have required gas %s", s.Gases.Required.Type.Char())
+	}
+
+	// all home planet gases are either required or neutral
+	num_neutral := len(s.Home.Planet.Gases)
+	var goodGas [14]bool
+	for _, gas := range s.Home.Planet.Gases {
+		goodGas[gas.Type] = true
+	}
+	if !goodGas[HE] {
+		// Helium must always be neutral since it is a noble gas.
+		goodGas[HE] = true
+		num_neutral++
+	}
+	if !goodGas[H2O] {
+		// This game is biased towards oxygen breathers, so make H2O neutral also.
+		goodGas[H2O] = true
+		num_neutral++
+	}
+	// Start with the good_gas array and add neutral gases until there are exactly seven of them.
+	// One of the seven gases will be the required gas.
+	for num_neutral < 7 {
+		if n := prng.Roll(13); !goodGas[n] {
+			goodGas[n] = true
+			num_neutral++
+		}
+	}
+
+	// add the neutral and poison gases
+	for n := 1; n <= 13; n++ {
+		t := GasType(n)
+		if !goodGas[n] {
+			s.Gases.Poison = append(s.Gases.Poison, t)
+		} else if t != s.Gases.Required.Type { // required gas isn't neutral!
+			s.Gases.Neutral = append(s.Gases.Neutral, t)
+		}
+	}
+
+	// Do mining and manufacturing bases of home planet.
+	// Initial mining and production capacity will be 25 times sum of MI and MA plus a small random amount.
+	// Mining and manufacturing base will be reverse-calculated from the capacity.
+	levels := s.TechLevel[MI] + s.TechLevel[MA]
+	n := (25 * levels) + prng.Roll(levels) + prng.Roll(levels) + prng.Roll(levels)
+	home_nampla.MIBase = (n * s.Home.Planet.MiningDifficulty) / (10 * s.TechLevel[MI])
+	home_nampla.MABase = (10 * n) / s.TechLevel[MA]
+
+	// initialize contact/ally/enemy masks
+	s.Contact = make([]bool, g.DNumSpecies+1, g.DNumSpecies+1)
+	s.Ally = make([]bool, g.DNumSpecies+1, g.DNumSpecies+1)
+	s.Enemy = make([]bool, g.DNumSpecies+1, g.DNumSpecies+1)
+
+	s.NumNamplas = 1 // just the home planet for now ("nampla" means "named planet")
+	home_nampla.Status.HomePlanet = true
+	home_nampla.Status.Populated = true
+	home_nampla.PopUnits = HP_AVAILABLE_POP
+	home_nampla.Shipyards = 1
+
+	/* Print summary. */
+	_, _ = fmt.Fprintf(w, "\n  Summary for species #%d:\n", s.Number)
+	_, _ = fmt.Fprintf(w, "\tName of species: %s\n", s.Name)
+	_, _ = fmt.Fprintf(w, "\tName of home planet: %s\n", home_nampla.Name)
+	_, _ = fmt.Fprintf(w, "\t\tCoordinates: %s #%d\n", s.Home.Coords, s.Home.Coords.Orbit)
+	_, _ = fmt.Fprintf(w, "\tName of government: %s\n", s.GovtName)
+	_, _ = fmt.Fprintf(w, "\tType of government: %s\n\n", s.GovtType)
+
+	_, _ = fmt.Fprintf(w, "\tTech levels: %s = %d,  %s = %d,  %s = %d\n", techData[MI].name, s.TechLevel[MI], techData[MA].name, s.TechLevel[MA], techData[ML].name, s.TechLevel[ML])
+	_, _ = fmt.Fprintf(w, "\t             %s = %d,  %s = %d,  %s = %d\n", techData[GV].name, s.TechLevel[GV], techData[LS].name, s.TechLevel[LS], techData[BI].name, s.TechLevel[BI])
+
+	_, _ = fmt.Fprintf(w, "\n\n\tFor this species, the required gas is %s (%d%%-%d%%).\n", s.Gases.Required.Type.Char(), s.Gases.Required.Min, s.Gases.Required.Max)
+
+	_, _ = fmt.Fprintf(w, "\tGases neutral to species:")
+	for _, gasType := range s.Gases.Neutral {
+		_, _ = fmt.Fprintf(w, " %s ", gasType.Char())
+	}
+
+	_, _ = fmt.Fprintf(w, "\n\tGases poisonous to species:")
+	for _, gasType := range s.Gases.Poison {
+		_, _ = fmt.Fprintf(w, " %s ", gasType.Char())
+	}
+
+	_, _ = fmt.Fprintf(w, "\n\n\tInitial mining base = %d.%d. Initial manufacturing base = %d.%d.\n", home_nampla.MIBase/10, home_nampla.MIBase%10, home_nampla.MABase/10, home_nampla.MABase%10)
+	_, _ = fmt.Fprintf(w, "\tIn the first turn, %d raw material units will be produced,\n", (10*s.TechLevel[MI]*home_nampla.MIBase)/s.Home.Planet.MiningDifficulty)
+	_, _ = fmt.Fprintf(w, "\tand the total production capacity will be %d.\n\n", (s.TechLevel[MA]*home_nampla.MABase)/10)
+
+	// set visited_by bit in star data
+	star.VisitedBy[s.ID] = true
+
+	/* Create log file for first turn. Write home star system data to it. */
+	logFile := path.Join(galaxyPath, fmt.Sprintf("sp%02d.log", s.Number))
+	wl, err := os.Create(logFile)
+	if err != nil {
+		return err
+	}
+
+	_, _ = fmt.Fprintf(w, "\nScan of home star system for SP %s:\n\n", s.Name)
+	_ = star.Scan(wl, s)
+	_, _ = fmt.Fprintf(w, "\n")
+
+	_, _ = fmt.Fprintf(w, "Created file %q\n", logFile)
+
+	return nil
 }
 
 func (g *GalaxyData) AddSpecies(s *SpeciesData) {
@@ -783,7 +966,10 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 				}
 
 				/* Get planet pointer. */
-				planet := nampla.PlanetIndex
+				planet := g.GetPlanet(nampla.Coords)
+				if planet == nil {
+					panic("assert(planet != nil)")
+				}
 
 				/* Clear any amount spent on ambush. */
 				nampla.UseOnAmbush = 0
@@ -857,7 +1043,7 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 					}
 				} else if nampla.Status.Populated {
 					/* Get life support tech level needed. */
-					ls_needed := life_support_needed(species, species.Home.Planet, planet)
+					ls_needed := species.LifeSupportNeeded(planet)
 
 					/* Basic percent increase is 10*(1 - ls_needed/ls_actual). */
 					ls_actual := species.TechLevel[LS]
@@ -981,7 +1167,7 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 					ab := nampla.MABase
 					old_base := ib + ab
 					increment := (growth_factor * old_base) / 1000
-					md := planet.MiningDificulty
+					md := planet.MiningDifficulty
 
 					denom := 100 + md
 					ab_increment := (100*(increment+ib) - (md * ab) + denom/2) / denom
@@ -999,7 +1185,7 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 					nampla.MABase += ab_increment
 				}
 
-				check_population(nampla)
+				nampla.CheckPopulation(l)
 
 				/* Update total economic base for colonies. */
 				if !nampla.Status.HomePlanet {
@@ -1079,6 +1265,19 @@ func (g *GalaxyData) GetFirstXYZ(d int, forbidWormHoles bool) (Coords, error) {
 		}
 	}
 	return Coords{}, fmt.Errorf("all suitable systems are within %d parsecs of each other", d)
+}
+
+func (g *GalaxyData) GetNamedPlanet(s *SpeciesData, name string) *NamedPlanetData {
+	return s.GetNamedPlanet(name)
+}
+
+func (g *GalaxyData) GetPlanet(coords Coords) *PlanetData {
+	for _, p := range g.AllPlanets() {
+		if coords.SamePlanet(p.Coords) {
+			return p
+		}
+	}
+	return nil
 }
 
 func (g *GalaxyData) GetSpeciesByID(id string) *SpeciesData {
@@ -1233,191 +1432,6 @@ func (g *GalaxyData) List(listPlanets, listWormholes bool) error {
 	if g.NumberOfPlanets != total_planets {
 		return fmt.Errorf("WARNING!  Program error!  Internal inconsistency!")
 	}
-
-	return nil
-}
-
-func (g *GalaxyData) AddHomePlanets(w io.Writer, galaxyPath string, setupData *SetupData, player *PlayerData, s *SpeciesData) error {
-	home_nampla := &NamedPlanetData{ID: player.HomePlanetName}
-	home_nampla.Name = player.HomePlanetName
-	g.NamedPlanets[home_nampla.ID] = home_nampla
-
-	s.HomeNampla = home_nampla.ID
-	s.GovtName = player.GovName
-	s.GovtType = player.GovType
-
-	// HomeSystemAuto step in setup_game.py
-	forbidNearbyWormholes := setupData.Galaxy.ForbidNearbyWormholes
-	minDistance := setupData.Galaxy.MinimumDistance
-	coords, err := g.GetFirstXYZ(minDistance, forbidNearbyWormholes)
-	if err != nil {
-		return err
-	}
-	// convert the system at those coordinates to a home system
-	star := g.GetStarAt(coords)
-	if star == nil {
-		return fmt.Errorf("There is no star at %s", coords)
-	}
-	// fetch the home system template and update the star with values from the template
-	star.ConvertToHomeSystem(g.Templates.Homes[star.NumPlanets])
-	pn := star.HomePlanetNumber()
-	_, _ = fmt.Fprintf(w, "Converted system %s, home planet %d\n", coords, pn)
-
-	// get pointer to home planet
-	s.Home.Planet = star.Planets[star.HomePlanetIndex()]
-
-	// AddSpecies step in setup_game.py
-	s.Home.Coords = Coords{coords.X, coords.Y, coords.Z, coords.Orbit}
-	home_nampla.Coords = Coords{coords.X, coords.Y, coords.Z, coords.Orbit}
-
-	_, _ = fmt.Fprintf(w, "Scan of star system:\n\n")
-	star.Scan(os.Stdout, nil)
-	_, _ = fmt.Fprintf(w, "\n")
-
-	/* Check tech levels. */
-	totalTechLevels := 0
-	totalTechLevels += player.BI
-	totalTechLevels += player.GV
-	totalTechLevels += player.LS
-	totalTechLevels += player.ML
-	if totalTechLevels != 15 {
-		_, _ = fmt.Fprintf(w, "\n\tERROR! ML + GV + LS + BI is not equal to 15!\n\n")
-		return fmt.Errorf("total tech levels must sum up to 15")
-	}
-	// set player-specified tech levels (mining and manufacturing are each 10)
-	s.TechLevel[BI] = player.BI
-	s.TechLevel[GV] = player.GV
-	s.TechLevel[LS] = player.LS
-	s.TechLevel[MA] = 10
-	s.TechLevel[MI] = 10
-	s.TechLevel[ML] = player.ML
-
-	// initialize other tech stuff
-	for i := MI; i <= BI; i++ {
-		j := s.TechLevel[i]
-		s.TechKnowledge[i] = j
-		s.InitTechLevel[i] = j
-		s.TechEps[i] = 0
-	}
-
-	// confirm that required gas is present
-	s.Gases.Required.Type = O2 // (we're biased towards oxygen breathers?)
-	for _, gas := range s.Home.Planet.Gases {
-		if gas.Type == s.Gases.Required.Type {
-			s.Gases.Required.Min = gas.Percentage / 2
-			if s.Gases.Required.Min < 1 {
-				s.Gases.Required.Min = 1
-			}
-			s.Gases.Required.Max = 2 * gas.Percentage
-			if s.Gases.Required.Max < 20 {
-				s.Gases.Required.Max += 20
-			} else if s.Gases.Required.Max > 100 {
-				// TODO: i prefer 99% for the max
-				s.Gases.Required.Max = 100
-			}
-		}
-	}
-	if s.Gases.Required.Max == 0 {
-		_, _ = fmt.Fprintf(w, "\n\tERROR! Planet does not have %s(%s)!\n", s.Gases.Required.Type.String(), s.Gases.Required.Type.Char())
-		return fmt.Errorf("planet does not have required gas %s", s.Gases.Required.Type.Char())
-	}
-
-	// all home planet gases are either required or neutral
-	num_neutral := len(s.Home.Planet.Gases)
-	var goodGas [14]bool
-	for _, gas := range s.Home.Planet.Gases {
-		goodGas[gas.Type] = true
-	}
-	if !goodGas[HE] {
-		// Helium must always be neutral since it is a noble gas.
-		goodGas[HE] = true
-		num_neutral++
-	}
-	if !goodGas[H2O] {
-		// This game is biased towards oxygen breathers, so make H2O neutral also.
-		goodGas[H2O] = true
-		num_neutral++
-	}
-	// Start with the good_gas array and add neutral gases until there are exactly seven of them.
-	// One of the seven gases will be the required gas.
-	for num_neutral < 7 {
-		if n := prng.Roll(13); !goodGas[n] {
-			goodGas[n] = true
-			num_neutral++
-		}
-	}
-
-	// add the neutral and poison gases
-	for n := 1; n <= 13; n++ {
-		t := GasType(n)
-		if !goodGas[n] {
-			s.Gases.Poison = append(s.Gases.Poison, t)
-		} else if t != s.Gases.Required.Type { // required gas isn't neutral!
-			s.Gases.Neutral = append(s.Gases.Neutral, t)
-		}
-	}
-
-	// Do mining and manufacturing bases of home planet.
-	// Initial mining and production capacity will be 25 times sum of MI and MA plus a small random amount.
-	// Mining and manufacturing base will be reverse-calculated from the capacity.
-	levels := s.TechLevel[MI] + s.TechLevel[MA]
-	n := (25 * levels) + prng.Roll(levels) + prng.Roll(levels) + prng.Roll(levels)
-	home_nampla.MIBase = (n * s.Home.Planet.MiningDifficulty) / (10 * s.TechLevel[MI])
-	home_nampla.MABase = (10 * n) / s.TechLevel[MA]
-
-	// initialize contact/ally/enemy masks
-	s.Contact = make([]bool, g.DNumSpecies+1, g.DNumSpecies+1)
-	s.Ally = make([]bool, g.DNumSpecies+1, g.DNumSpecies+1)
-	s.Enemy = make([]bool, g.DNumSpecies+1, g.DNumSpecies+1)
-
-	s.NumNamplas = 1 // just the home planet for now ("nampla" means "named planet")
-	home_nampla.Status.HomePlanet = true
-	home_nampla.Status.Populated = true
-	home_nampla.PopUnits = HP_AVAILABLE_POP
-	home_nampla.Shipyards = 1
-
-	/* Print summary. */
-	_, _ = fmt.Fprintf(w, "\n  Summary for species #%d:\n", s.Number)
-	_, _ = fmt.Fprintf(w, "\tName of species: %s\n", s.Name)
-	_, _ = fmt.Fprintf(w, "\tName of home planet: %s\n", home_nampla.Name)
-	_, _ = fmt.Fprintf(w, "\t\tCoordinates: %s #%d\n", s.Home.Coords, s.Home.Coords.Orbit)
-	_, _ = fmt.Fprintf(w, "\tName of government: %s\n", s.GovtName)
-	_, _ = fmt.Fprintf(w, "\tType of government: %s\n\n", s.GovtType)
-
-	_, _ = fmt.Fprintf(w, "\tTech levels: %s = %d,  %s = %d,  %s = %d\n", techData[MI].name, s.TechLevel[MI], techData[MA].name, s.TechLevel[MA], techData[ML].name, s.TechLevel[ML])
-	_, _ = fmt.Fprintf(w, "\t             %s = %d,  %s = %d,  %s = %d\n", techData[GV].name, s.TechLevel[GV], techData[LS].name, s.TechLevel[LS], techData[BI].name, s.TechLevel[BI])
-
-	_, _ = fmt.Fprintf(w, "\n\n\tFor this species, the required gas is %s (%d%%-%d%%).\n", s.Gases.Required.Type.Char(), s.Gases.Required.Min, s.Gases.Required.Max)
-
-	_, _ = fmt.Fprintf(w, "\tGases neutral to species:")
-	for _, gasType := range s.Gases.Neutral {
-		_, _ = fmt.Fprintf(w, " %s ", gasType.Char())
-	}
-
-	_, _ = fmt.Fprintf(w, "\n\tGases poisonous to species:")
-	for _, gasType := range s.Gases.Poison {
-		_, _ = fmt.Fprintf(w, " %s ", gasType.Char())
-	}
-
-	_, _ = fmt.Fprintf(w, "\n\n\tInitial mining base = %d.%d. Initial manufacturing base = %d.%d.\n", home_nampla.MIBase/10, home_nampla.MIBase%10, home_nampla.MABase/10, home_nampla.MABase%10)
-	_, _ = fmt.Fprintf(w, "\tIn the first turn, %d raw material units will be produced,\n", (10*s.TechLevel[MI]*home_nampla.MIBase)/s.Home.Planet.MiningDifficulty)
-	_, _ = fmt.Fprintf(w, "\tand the total production capacity will be %d.\n\n", (s.TechLevel[MA]*home_nampla.MABase)/10)
-
-	// set visited_by bit in star data
-	star.VisitedBy[s.ID] = true
-
-	/* Create log file for first turn. Write home star system data to it. */
-	logFile := path.Join(galaxyPath, fmt.Sprintf("sp%02d.log", s.Number))
-	wl, err := os.Create(logFile)
-	if err != nil {
-		return err
-	}
-
-	_, _ = fmt.Fprintf(w, "\nScan of home star system for SP %s:\n\n", s.Name)
-	_ = star.Scan(wl, s)
-	_, _ = fmt.Fprintf(w, "\n")
-
-	_, _ = fmt.Fprintf(w, "Created file %q\n", logFile)
 
 	return nil
 }
