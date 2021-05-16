@@ -18,6 +18,13 @@
 
 package fh
 
+import (
+	"fmt"
+	"io"
+	"io/ioutil"
+	"path"
+)
+
 type SpeciesData struct {
 	ID       string `json:"id"`
 	Number   int    `json:"number"`    // one-based index of species
@@ -120,4 +127,203 @@ func (s *SpeciesData) LifeSupportNeeded(colony *PlanetData) int {
 	}
 
 	return ls_needed
+}
+
+// Report does that
+func (s *SpeciesData) Report(w io.Writer, galaxyPath string, turnNumber int, getPlanet func(Coords) *PlanetData, allSpecies []*SpeciesData) error {
+	var otherSpecies []*SpeciesData
+	for _, alien := range allSpecies {
+		if s.Number != alien.Number {
+			otherSpecies = append(otherSpecies, alien)
+		}
+	}
+
+	// initialize flags
+	for _, ship := range s.Ships {
+		ship.alreadyListed = false
+	}
+
+	s.ReportIncludeLogFile(w, galaxyPath, turnNumber)
+
+	s.ReportHeader(w, turnNumber)
+	s.ReportTechLevels(w)
+	s.ReportGases(w)
+	s.ReportFleetMaintenance(w)
+
+	s.ReportContacts(w, otherSpecies)
+	s.ReportDeclaredAllies(w, otherSpecies)
+	s.ReportDeclaredEnemies(w, otherSpecies)
+
+	s.ReportEconomicUnits(w)
+	s.ReportProducingPlanets(w, getPlanet)
+
+	return nil
+}
+
+/* List declared allies that have been met */
+func (s *SpeciesData) ReportDeclaredAllies(w io.Writer, otherSpecies []*SpeciesData) {
+	l := &Logger{File: w} /* Use log utils for this. */
+	n := 0
+	for _, alien := range otherSpecies {
+		if !s.Contact[alien.Number] || !s.Ally[alien.Number] {
+			continue
+		}
+		if n == 0 {
+			l.String("\nAllies: ")
+		} else {
+			l.String(", ")
+		}
+		l.String("SP ")
+		l.String(alien.Name)
+		n++
+	}
+	if n > 0 {
+		l.Char('\n')
+	}
+}
+
+/* List fleet maintenance cost and its percentage of total production. */
+func (s *SpeciesData) ReportFleetMaintenance(w io.Writer) {
+	fleet_percent_cost := s.FleetPercentCost
+	fmt.Fprintf(w, "\nFleet maintenance cost = %ld (%d.%02d%% of total production)\n", s.FleetCost, fleet_percent_cost/100, fleet_percent_cost%100)
+	if fleet_percent_cost > 10000 {
+		fleet_percent_cost = 10000
+	}
+}
+
+/* List species that have been met. */
+func (s *SpeciesData) ReportContacts(w io.Writer, otherSpecies []*SpeciesData) {
+	l := &Logger{File: w} /* Use log utils for this. */
+	n := 0
+	for _, alien := range otherSpecies {
+		if !s.Contact[alien.Number] {
+			continue
+		}
+		if n == 0 {
+			l.String("\nSpecies met: ")
+		} else {
+			l.String(", ")
+		}
+		l.String("SP ")
+		l.String(alien.Name)
+		n++
+	}
+	if n > 0 {
+		l.Char('\n')
+	}
+}
+
+/* List declared enemies that have been met */
+func (s *SpeciesData) ReportDeclaredEnemies(w io.Writer, otherSpecies []*SpeciesData) {
+	l := &Logger{File: w} /* Use log utils for this. */
+	n := 0
+	for _, alien := range otherSpecies {
+		if !s.Contact[alien.Number] || !s.Enemy[alien.Number] {
+			continue
+		}
+		if n == 0 {
+			l.String("\nEnemies: ")
+		} else {
+			l.String(", ")
+		}
+		l.String("SP ")
+		l.String(alien.Name)
+		n++
+	}
+	if n > 0 {
+		l.Char('\n')
+	}
+}
+
+func (s *SpeciesData) ReportEconomicUnits(w io.Writer) {
+	fmt.Fprintf(w, "\nEconomic units = %ld\n", s.EconUnits)
+}
+
+func (s *SpeciesData) ReportGases(w io.Writer) {
+	fmt.Fprintf(w, "\n\n\nAtmospheric Requirement: %d%%-%d%% %s", s.Gases.Required.Min, s.Gases.Required.Max, s.Gases.Required.Type.Char())
+	fmt.Fprintf(w, "\nNeutral Gases:")
+	for i, gas := range s.Gases.Neutral {
+		if i != 0 {
+			fmt.Fprintf(w, ",")
+		}
+		fmt.Fprintf(w, " %s", gas.Char())
+	}
+	fmt.Fprintf(w, "\nPoisonous Gases:")
+	for i, gas := range s.Gases.Poison {
+		if i != 0 {
+			fmt.Fprintf(w, ",")
+		}
+		fmt.Fprintf(w, " %s", gas.Char())
+	}
+	fmt.Fprintf(w, "\n")
+}
+
+/* Print header for status report. */
+func (s *SpeciesData) ReportHeader(w io.Writer, turnNumber int) {
+	fmt.Fprintf(w, "\n\t\t\t SPECIES STATUS\n\n\t\t\tSTART OF TURN %d\n\n", turnNumber)
+	fmt.Fprintf(w, "Species name: %s\n", s.Name)
+	fmt.Fprintf(w, "Government name: %s\n", s.GovtName)
+	fmt.Fprintf(w, "Government type: %s\n", s.GovtType)
+}
+
+// ReportIncludeLogFile copies the log file for the prior turn into the current report
+func (s *SpeciesData) ReportIncludeLogFile(w io.Writer, galaxyPath string, turnNumber int) {
+	log_file, err := ioutil.ReadFile(path.Join(galaxyPath, fmt.Sprintf("sp%02d.log", s.Number)))
+	if err != nil {
+		return
+	}
+	priorTurnNumber := turnNumber - 1
+	if priorTurnNumber > 0 {
+		_, _ = fmt.Fprintf(w, "\n\n\t\t\tEVENT LOG FOR TURN %d\n", priorTurnNumber)
+	}
+	_, _ = w.Write(log_file)
+}
+
+// Print report for each producing planet
+func (s *SpeciesData) ReportProducingPlanets(w io.Writer, getPlanet func(Coords) *PlanetData) {
+	for _, nampla := range s.NamedPlanets {
+		if nampla.Coords.Orbit == 99 {
+			continue
+		}
+		if nampla.MIBase == 0 && nampla.MABase == 0 && !nampla.Status.HomePlanet {
+			continue
+		}
+
+		// g.do_planet_report(nampla, ship1_base, species)
+		nampla.Report(w, s, getPlanet(nampla.Coords), s.Ships)
+	}
+}
+
+func (s *SpeciesData) ReportTechLevels(w io.Writer) {
+	fmt.Fprintf(w, "\nTech Levels:\n")
+	fmt.Fprintf(w, "   %s = %d", techData[MI].name, s.TechLevel[MI])
+	if s.TechKnowledge[MI] > s.TechLevel[MI] {
+		fmt.Fprintf(w, "/%d", s.TechKnowledge[MI])
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "   %s = %d", techData[MA].name, s.TechLevel[MA])
+	if s.TechKnowledge[MA] > s.TechLevel[MA] {
+		fmt.Fprintf(w, "/%d", s.TechKnowledge[MA])
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "   %s = %d", techData[ML].name, s.TechLevel[ML])
+	if s.TechKnowledge[ML] > s.TechLevel[ML] {
+		fmt.Fprintf(w, "/%d", s.TechKnowledge[ML])
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "   %s = %d", techData[GV].name, s.TechLevel[GV])
+	if s.TechKnowledge[GV] > s.TechLevel[GV] {
+		fmt.Fprintf(w, "/%d", s.TechKnowledge[GV])
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "   %s = %d", techData[LS].name, s.TechLevel[LS])
+	if s.TechKnowledge[LS] > s.TechLevel[LS] {
+		fmt.Fprintf(w, "/%d", s.TechKnowledge[LS])
+	}
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "   %s = %d", techData[BI].name, s.TechLevel[BI])
+	if s.TechKnowledge[BI] > s.TechLevel[BI] {
+		fmt.Fprintf(w, "/%d", s.TechKnowledge[BI])
+	}
+	fmt.Fprintf(w, "\n")
 }

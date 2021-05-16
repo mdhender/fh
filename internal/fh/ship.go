@@ -18,6 +18,11 @@
 
 package fh
 
+import (
+	"fmt"
+	"io"
+)
+
 /* Ship classes. */
 type ShipClass int
 
@@ -78,6 +83,7 @@ type ShipData struct {
 	LoadingPoint       int            /* Nampla index for planet where ship was last loaded with CUs. Zero = none. Use 9999 for home planet. */
 	UnloadingPoint     int            /* Nampla index for planet that ship should be given orders to jump to where it will unload. Zero = none. Use 9999 for home planet. */
 	Special            int            /* Different for each application. */
+	alreadyListed      bool           // used for reporting
 }
 
 /* Ship status codes. */
@@ -140,3 +146,65 @@ var shipData = []struct {
 }
 
 var shipType = []string{"", "S", "S"}
+
+func (s *ShipData) Report(w io.Writer, printHeader, printingAlien bool) {
+	if printHeader {
+		fmt.Fprintf(w, "  Name                          ")
+		if printingAlien {
+			fmt.Fprintf(w, "                     Species\n")
+		} else {
+			fmt.Fprintf(w, "                 Cap. Cargo\n")
+		}
+		fmt.Fprintf(w, " ----------------------------------------------------------------------------\n")
+	}
+	ignore_field_distorters := !printingAlien
+	full_ship_id := ship_name(s)
+	fmt.Fprintf(w, "  %s", s.Name)
+	length := len(full_ship_id)
+	if printingAlien {
+		padding := 50 - length
+		for i := 0; i < padding; i++ {
+			fmt.Fprintf(w, " ")
+		}
+	} else {
+		padding := 46 - length
+		for i := 0; i < padding; i++ {
+			fmt.Fprintf(w, " ")
+		}
+	}
+	// TODO: capacity should be set when the ship is created
+	capacity := s.Tonnage
+	if s.Class == BA {
+		capacity = s.Tonnage * 10
+	} else if s.Class == TR {
+		capacity = s.Tonnage*10 + (s.Tonnage*s.Tonnage)/2
+	}
+	if printingAlien {
+		fmt.Fprintf(w, " ")
+	} else {
+		fmt.Fprintf(w, "%4d  ", capacity)
+		if s.Status.UnderConstruction {
+			fmt.Fprintf(w, "Left to pay = %d\n", s.RemainingCost)
+			return
+		}
+	}
+	if printingAlien {
+		if s.Status.OnSurface || s.ItemQuantity[FD] != s.Tonnage {
+			fmt.Fprintf(w, "SP %s", species.Name)
+		} else {
+			fmt.Fprintf(w, "SP %d", distorted(species.Number))
+		}
+	} else {
+		need_comma := FALSE
+		for i := 0; i < MAX_ITEMS; i++ {
+			if s.ItemQuantity[i] > 0 {
+				if need_comma {
+					fmt.Fprintf(w, ",")
+				}
+				fmt.Fprintf(w, "%d %s", s.ItemQuantity[i], itemData[i].abbr)
+				need_comma = TRUE
+			}
+		}
+	}
+	fmt.Fprintf(w, "\n")
+}

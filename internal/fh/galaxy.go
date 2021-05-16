@@ -26,6 +26,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strconv"
 )
 
 type GalaxyData struct {
@@ -1546,11 +1547,11 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 
 			// If cost is greater than production, take as much as possible from EUs in treasury.
 			// 	if (fleet_maintenance_cost > total_species_production) {
-			// 		if (fleet_maintenance_cost > species.econ_units) {
-			// 			fleet_maintenance_cost -= species.econ_units;
-			// 			species.econ_units = 0;
+			// 		if (fleet_maintenance_cost > species.EconUnits) {
+			// 			fleet_maintenance_cost -= species.EconUnits;
+			// 			species.EconUnits = 0;
 			// 		} else {
-			// 			species.econ_units -= fleet_maintenance_cost;
+			// 			species.EconUnits -= fleet_maintenance_cost;
 			// 			fleet_maintenance_cost = 0;
 			// 		}
 			// 	}
@@ -1777,6 +1778,930 @@ func (g *GalaxyData) MakeHomeTemplates(w io.Writer) error {
 		g.Templates.Homes[num_planets] = planets
 	}
 
+	return nil
+}
+
+func (g *GalaxyData) Report(argv []string, galaxyPath string, testMode, verboseMode bool) error {
+	test_mode, verbose_mode := testMode, verboseMode
+	turn_number := g.TurnNumber
+
+	/* Generate a report for each species. */
+	alien_number := 0 /* Pointers to alien data not yet assigned. */
+	for _, species := range g.AllSpecies() {
+		species_number := species.Number
+		/* Check if we are doing all species, or just one or more specified  ones. */
+		do_this_species := true
+		argc := len(argv)
+		if argc > 1 {
+			do_this_species = false
+			for _, arg := range argv {
+				if j, _ := strconv.Atoi(arg); j == species_number {
+					do_this_species = true
+					break
+				}
+			}
+		}
+
+		if !do_this_species {
+			continue
+		}
+
+		/* Print message for gamemaster. */
+		if verbose_mode {
+			fmt.Printf("Generating turn %d report for species #%d, SP %s...\n", turn_number, species_number, species.Name)
+		}
+
+		/* Open report file for writing. */
+		filename := path.Join(galaxyPath, fmt.Sprintf("sp%02d.rpt.t%d", species_number, turn_number))
+		report_file, err := os.Create(filename)
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			panic(fmt.Sprintf("\n\tCannot open '%s' for writing!\n\n", filename))
+		}
+
+		if err := species.Report(report_file, galaxyPath, g.TurnNumber, g.GetPlanet, g.AllSpecies()); err != nil {
+			return err
+		}
+
+		/* Check if this species is still in the game. */
+		// TODO: do we?
+
+		// hacked from here down
+
+		l := &Logger{File: report_file} /* Use log utils for this. */
+
+		/* Initialize flag. */
+		var ship_already_listed [len(species.Ships)]bool
+
+		/* Print report for each producing planet. */
+		for _, nampla := range species.NamedPlanets {
+			if nampla.Coords.Orbit == 99 {
+				continue
+			}
+			if nampla.MIBase == 0 && nampla.MABase == 0 && !nampla.Status.HomePlanet {
+				continue
+			}
+
+			planet := g.GetPlanet(nampla.Coords)
+			fmt.Fprintf(report_file, "\n\n* * * * * * * * * * * * * * * * * * * * * * * * *\n")
+			g.do_planet_report(nampla, ship1_base, species)
+		}
+
+		/* Give only a one-line listing for other planets. */
+		printing_alien := false
+		header_printed = false
+		for _, nampla := range species.NamedPlanets {
+			if nampla.Coords.Orbit == 99 {
+				continue
+			}
+			if nampla.MIBase > 0 || nampla.MABase > 0 || nampla.Status.HomePlanet {
+				continue
+			}
+
+			if !header_printed {
+				fmt.Fprintf(report_file, "\n\n* * * * * * * * * * * * * * * * * * * * * * * * *\n")
+				fmt.Fprintf(report_file, "\n\nOther planets and ships:\n\n")
+				header_printed = true
+			}
+			fmt.Fprintf(report_file, "%4d%3d%3d #%d\tPL %s", nampla.Coords.X, nampla.Coords.Y, nampla.Coords.Z, nampla.Coords.Orbit, nampla.Name)
+
+			for j := 0; j < MAX_ITEMS; j++ {
+				if nampla.ItemQuantity[j] > 0 {
+					fmt.Fprintf(report_file, ", %d %s", nampla.ItemQuantity[j], itemData[j].abbr)
+				}
+			}
+			fmt.Fprintf(report_file, "\n")
+
+			/* Print any ships at this planet. */
+			for ship_index, ship := range species.Ships {
+				if ship_already_listed[ship_index] {
+					continue
+				}
+
+				if ship.Coords.X != nampla.Coords.X {
+					continue
+				}
+				if ship.Coords.Y != nampla.Coords.Y {
+					continue
+				}
+				if ship.Coords.Z != nampla.Coords.Z {
+					continue
+				}
+				if ship.Coords.Orbit != nampla.Coords.Orbit {
+					continue
+				}
+
+				fmt.Fprintf(report_file, "\t\t%s", ship_name(ship))
+				for j := 0; j < MAX_ITEMS; j++ {
+					if ship.ItemQuantity[j] > 0 {
+						fmt.Fprintf(report_file, ", %d %s", ship.ItemQuantity[j], itemData[j].abbr)
+					}
+				}
+				fmt.Fprintf(report_file, "\n")
+
+				ship_already_listed[ship_index] = true
+			}
+		}
+
+		/* Report ships that are not associated with a planet. */
+		for ship_index, ship := range species.Ships {
+			ship.Special = 0
+
+			if ship_already_listed[ship_index] {
+				continue
+			}
+
+			ship_already_listed[ship_index] = true
+
+			if ship.Coords.Orbit == 99 {
+				continue
+			}
+
+			if !header_printed {
+				fmt.Fprintf(report_file, "\n\n* * * * * * * * * * * * * * * * * * * * * * * * *\n")
+				fmt.Fprintf(report_file, "\n\nOther planets and ships:\n\n")
+				header_printed = true
+			}
+
+			if ship.Status == JUMPED_IN_COMBAT || ship.Status == FORCED_JUMP {
+				fmt.Fprintf(report_file, "  ?? ?? ??\t%s", ship_name(ship))
+			} else if test_mode && ship.arrived_via_wormhole {
+				fmt.Fprintf(report_file, "  ?? ?? ??\t%s", ship_name(ship))
+			} else {
+				fmt.Fprintf(report_file, "%4d%3d%3d\t%s",
+					ship.Coords.C, ship.Coords.Y, ship.Coords.Z, ship_name(ship))
+			}
+
+			for i := 0; i < MAX_ITEMS; i++ {
+				if ship.ItemQuantity[i] > 0 {
+					fmt.Fprintf(report_file, ", %d %s", ship.ItemQuantity[i], itemData[i].abbr)
+				}
+			}
+			fmt.Fprintf(report_file, "\n")
+
+			if ship.Status == JUMPED_IN_COMBAT || ship.Status == FORCED_JUMP {
+				continue
+			}
+
+			if test_mode && ship.ArrivedViaWormhole {
+				continue
+			}
+
+			/* Print other ships at the same location. */
+			for i, ship2 := range species.Ships {
+				if i <= ship_index || ship_already_listed[i] {
+					continue
+				}
+				if ship2.Coords.Orbit == 99 {
+					continue
+				}
+				if ship2.Coords.X != ship.Coords.X {
+					continue
+				}
+				if ship2.Coords.Y != ship.Coords.Y {
+					continue
+				}
+				if ship2.Coords.Z != ship.Coords.Z {
+					continue
+				}
+
+				fmt.Fprintf(report_file, "\t\t%s", ship_name(ship2))
+				for j := 0; j < MAX_ITEMS; j++ {
+					if ship2.ItemQuantity[j] > 0 {
+						fmt.Fprintf(report_file, ", %d %s", ship2.ItemQuantity[j], itemData[j].abbr)
+					}
+				}
+				fmt.Fprintf(report_file, "\n")
+
+				ship_already_listed[i] = true
+			}
+		}
+
+		fmt.Fprintf(report_file, "\n\n* * * * * * * * * * * * * * * * * * * * * * * * *\n")
+
+		/* Report aliens at locations where current species has inhabited
+		 * planets or ships. */
+		printing_alien = true
+		locations := DoLocations(g)
+		for _, my_loc := range locations {
+			if my_loc.S != species_number {
+				continue
+			}
+
+			header_printed = false
+			for _, its_loc := range locations {
+				if its_loc.S == species_number {
+					continue
+				}
+				if my_loc.X != its_loc.X {
+					continue
+				}
+				if my_loc.Y != its_loc.Y {
+					continue
+				}
+				if my_loc.Z != its_loc.Z {
+					continue
+				}
+
+				/* There is an alien here. Check if pointers for data for this alien have been assigned yet. */
+				var alien *SpeciesData
+				var nampla2_base *NamedPlanetData
+				var ship2_base *ShipData
+				if its_loc.S != alien_number {
+					alien_number = its_loc.S
+					alien = g.GetSpeciesByNumber(alien_number)
+					nampla2_base = alien.NamedPlanets
+					ship2_base = alien.Ships
+				}
+
+				/* Check if we have a named planet in this system. If so, use it when you print the header. */
+				we_have_planet_here := false
+				var our_nampla *NamedPlanetData
+				for _, nampla := range species.NamedPlanets {
+					if nampla.Coords.X != my_loc.X {
+						continue
+					}
+					if nampla.Coords.Y != my_loc.Y {
+						continue
+					}
+					if nampla.Coords.Z != my_loc.Z {
+						continue
+					}
+					if nampla.Coords.Orbit == 99 {
+						continue
+					}
+
+					we_have_planet_here = true
+					our_nampla = nampla
+
+					break
+				}
+
+				/* Print all inhabited alien namplas at this location. */
+				alien_nampla = nampla2_base - 1
+				for _, alien_nampla := range alien.NamedPlanets {
+					if my_loc.X != alien_nampla.Coords.X {
+						continue
+					}
+					if my_loc.Y != alien_nampla.Coords.Y {
+						continue
+					}
+					if my_loc.Z != alien_nampla.Coords.Z {
+						continue
+					}
+					if !alien_nampla.Status.Populated {
+						continue
+					}
+
+					/* Check if current species has a colony on the same planet. */
+					we_have_colony_here := false
+					for _, nampla := range species.NamedPlanets {
+						if alien_nampla.Coords.X != nampla.Coords.X {
+							continue
+						}
+						if alien_nampla.Coords.Y != nampla.Coords.Y {
+							continue
+						}
+						if alien_nampla.Coords.Z != nampla.Coords.Z {
+							continue
+						}
+						if alien_nampla.Coords.Orbit != nampla.Coords.Orbit {
+							continue
+						}
+						if !nampla.Status.Populated {
+							continue
+						}
+
+						we_have_colony_here = true
+
+						break
+					}
+
+					if alien_nampla.Hidden && !we_have_colony_here {
+						continue
+					}
+
+					if !header_printed {
+						fmt.Fprintf(report_file, "\n\nAliens at x = %d, y = %d, z = %d", my_loc.X, my_loc.Y, my_loc.Z)
+
+						if we_have_planet_here {
+							fmt.Fprintf(report_file, " (PL %s star system)", our_nampla.Name)
+						}
+
+						fmt.Fprintf(report_file, ":\n")
+						header_printed = true
+					}
+
+					industry := alien_nampla.MIBase + alien_nampla.MABase
+
+					var temp1 string
+					if alien_nampla.Status & MINING_COLONY {
+						temp1 = fmt.Sprintf("%s", "Mining colony")
+					} else if alien_nampla.Status & RESORT_COLONY {
+						temp1 = fmt.Sprintf("%s", "Resort colony")
+					} else if alien_nampla.Status & HOME_PLANET {
+						temp1 = fmt.Sprintf("%s", "Home planet")
+					} else if industry > 0 {
+						temp1 = fmt.Sprintf("%s", "Colony planet")
+					} else {
+						temp1 = fmt.Sprintf("%s", "Uncolonized planet")
+					}
+
+					temp2 := fmt.Sprintf("  %s PL %s (pl #%d)", temp1, alien_nampla.Name, alien_nampla.Coords.Orbit)
+					n := 53 - len(temp2)
+					for j := 0; j < n; j++ {
+						temp2 += " "
+					}
+					fmt.Fprintf(report_file, "%sSP %s\n", temp2, alien.Name)
+
+					economicBase := industry != 0
+					if industry < 100 {
+						industry = (industry + 5) / 10
+					} else {
+						industry = ((industry + 50) / 100) * 10
+					}
+
+					if !economicBase {
+						fmt.Fprintf(report_file, "      (No economic base.)\n")
+					} else {
+						fmt.Fprintf(report_file, "      (Economic base is approximately %d.)\n", industry)
+					}
+
+					/* If current species has a colony on the same planet, report any PDs and any shipyards. */
+					if we_have_colony_here {
+						if alien_nampla.ItemQuantity[PD] == 1 {
+							fmt.Fprintf(report_file, "      (There is 1 %s on the planet.)\n", itemData[PD].name)
+						} else if alien_nampla.ItemQuantity[PD] > 1 {
+							fmt.Fprintf(report_file, "      (There are %ld %ss on the planet.)\n", alien_nampla.ItemQuantity[PD], itemData[PD].name)
+						}
+
+						if alien_nampla.Shipyards == 1 {
+							fmt.Fprintf(report_file, "      (There is 1 shipyard on the planet.)\n")
+						} else if alien_nampla.Shipyards > 1 {
+							fmt.Fprintf(report_file, "      (There are %d shipyards on the planet.)\n", alien_nampla.Shipyards)
+						}
+					}
+
+					/* Also report if alien colony is actively hiding. */
+					if alien_nampla.Hidden {
+						fmt.Fprintf(report_file, "      (Colony is actively hiding from alien observation.)\n")
+					}
+				}
+
+				/* Print all alien ships at this location. */
+				alien_ship = ship2_base - 1
+				for _, alien_ship := range alien.Ships {
+					if alien_ship.Coords.Orbit == 99 {
+						continue
+					}
+					if my_loc.X != alien_ship.Coords.X {
+						continue
+					}
+					if my_loc.Y != alien_ship.Coords.Y {
+						continue
+					}
+					if my_loc.Z != alien_ship.Coords.Z {
+						continue
+					}
+
+					/* An alien ship cannot hide if it lands on the surface of a planet populated by the current species. */
+					alien_can_hide := true
+					for _, nampla := range species.NamedPlanets {
+						if alien_ship.Coords.X != nampla.Coords.X {
+							continue
+						}
+						if alien_ship.Coords.Y != nampla.Coords.Y {
+							continue
+						}
+						if alien_ship.Coords.Z != nampla.Coords.Z {
+							continue
+						}
+						if alien_ship.Coords.Orbit != nampla.Coords.Orbit {
+							continue
+						}
+						if nampla.Status.Populated {
+							alien_can_hide = false
+							break
+						}
+					}
+
+					if alien_can_hide && alien_ship.Status == ON_SURFACE {
+						continue
+					}
+
+					if alien_can_hide && alien_ship.Status == UNDER_CONSTRUCTION {
+						continue
+					}
+
+					if !header_printed {
+						fmt.Fprintf(report_file, "\n\nAliens at x = %d, y = %d, z = %d", my_loc.X, my_loc.Y, my_loc.Z)
+
+						if we_have_planet_here {
+							fmt.Fprintf(report_file, " (PL %s star system)", our_nampla.Name)
+						}
+
+						fmt.Fprintf(report_file, ":\n")
+						header_printed = true
+					}
+
+					print_ship(alien_ship, alien, alien_number)
+				}
+			}
+		}
+
+		printing_alien = false
+
+		if test_mode {
+			goto done_report
+		}
+
+		/* Generate order section. */
+		truncate_name := true
+		temp_ignore_field_distorters := ignore_field_distorters
+		ignore_field_distorters = true
+
+		fmt.Fprintf(report_file, "\n\n* * * * * * * * * * * * * * * * * * * * * * * * *\n")
+
+		fmt.Fprintf(report_file, "\n\nORDER SECTION. Remove these two lines and everything above\n")
+		fmt.Fprintf(report_file, "  them, and submit only the orders below.\n\n")
+
+		fmt.Fprintf(report_file, "START COMBAT\n")
+		fmt.Fprintf(report_file, "; Place combat orders here.\n\n")
+		fmt.Fprintf(report_file, "END\n\n")
+
+		fmt.Fprintf(report_file, "START PRE-DEPARTURE\n")
+		fmt.Fprintf(report_file, "; Place pre-departure orders here.\n\n")
+
+		for _, nampla := range species.NamedPlanets {
+			if nampla.Coords.Orbit == 99 {
+				continue
+			}
+
+			/* Generate auto-installs for colonies that were loaded via the DEVELOP command. */
+			if nampla.AutoIUs {
+				fmt.Fprintf(report_file, "\tInstall\t%d IU\tPL %s\n", nampla.AutoIUs, nampla.Name)
+			}
+			if nampla.AutoAUs {
+				fmt.Fprintf(report_file, "\tInstall\t%d AU\tPL %s\n", nampla.AutoAUs, nampla.Name)
+			}
+			if nampla.AutoIUs != 0 || nampla.AutoAUs != 0 {
+				fmt.Fprintf(report_file, "\n")
+			}
+
+			if !species.AutoOrders {
+				continue
+			}
+
+			/* Generate auto UNLOAD orders for transports at this nampla. */
+			for _, ship := range species.Ships {
+				if ship.Coords.Orbit == 99 {
+					continue
+				}
+				if ship.Coords.X != nampla.Coords.X {
+					continue
+				}
+				if ship.Coords.Y != nampla.Coords.Y {
+					continue
+				}
+				if ship.Coords.Z != nampla.Coords.Z {
+					continue
+				}
+				if ship.Coords.Orbit != nampla.Coords.Orbit {
+					continue
+				}
+				if ship.Status == JUMPED_IN_COMBAT {
+					continue
+				}
+				if ship.Status == FORCED_JUMP {
+					continue
+				}
+				if ship.Class != TR {
+					continue
+				}
+				if ship.ItemQuantity[CU] < 1 {
+					continue
+				}
+
+				/* New colonies will never be started automatically unless ship was loaded via a DEVELOP order. */
+				if ship.LoadingPoint != 0 {
+					/* Check if transport is at specified unloading point. */
+					n = ship.UnloadingPoint
+					if n == nampla_index || (n == 9999 && nampla_index == 0) {
+						goto unload_ship
+					}
+				}
+
+				if !nampla.Status.Populated {
+					continue
+				}
+
+				if (nampla.MIBase + nampla.MABase) >= 2000 {
+					continue
+				}
+
+				if nampla.Coords.X == nampla_base.x && nampla.Coords.Y == nampla_base.y && nampla.Coords.Z == nampla_base.z {
+					continue /* Home sector. */
+				}
+
+			unload_ship:
+
+				n = ship.loading_point
+				if n == 9999 {
+					n = 0 /* Home planet. */
+				}
+				if n == nampla_index {
+					continue /* Ship was just loaded here. */
+				}
+				fmt.Fprintf(report_file, "\tUnload\tTR%d%s %s\n\n", ship.Tonnage, shipData[ship.Type].Type, ship.name)
+
+				ship.special = ship.loading_point
+				n = nampla - nampla_base
+				if n == 0 {
+					n = 9999
+				}
+				ship.unloading_point = n
+			}
+		}
+
+		fmt.Fprintf(report_file, "END\n\n")
+
+		fmt.Fprintf(report_file, "START JUMPS\n")
+		fmt.Fprintf(report_file, "; Place jump orders here.\n\n")
+
+		/* Generate auto-jumps for ships that were loaded via the DEVELOP command or which were UNLOADed because of the AUTO command. */
+		for _, ship := range species.Ships {
+			ship.just_jumped = false
+			if ship.pn == 99 {
+				continue
+			}
+			if ship.Status == JUMPED_IN_COMBAT {
+				continue
+			}
+			if ship.Status == FORCED_JUMP {
+				continue
+			}
+
+			j = ship.special
+			if j != 0 {
+				if j == 9999 {
+					j = 0 /* Home planet. */
+				}
+				temp_nampla = nampla_base + j
+				fmt.Fprintf(report_file, "\tJump\t%s, PL %s\t; Age %d, ", ship_name(ship), temp_nampla.Name, ship.age)
+				print_mishap_chance(ship, temp_nampla.x, temp_nampla.y, temp_nampla.z)
+				fmt.Fprintf(report_file, "\n\n")
+				ship.just_jumped = true
+				continue
+			}
+
+			n = ship.unloading_point
+			if n {
+				if n == 9999 {
+					n = 0 /* Home planet. */
+				}
+				temp_nampla = nampla_base + n
+				fmt.Fprintf(report_file, "\tJump\t%s, PL %s\t; ", ship_name(ship), temp_nampla.Name)
+				print_mishap_chance(ship, temp_nampla.x, temp_nampla.y, temp_nampla.z)
+				fmt.Fprintf(report_file, "\n\n")
+				ship.just_jumped = true
+			}
+		}
+
+		if !species.auto_orders {
+			goto jump_end
+		}
+
+		/* Generate JUMP orders for all ships that have not yet been given orders. */
+		for _, ship := range species.Ships {
+			ship = ship_base + i
+			if ship.pn == 99 {
+				continue
+			}
+			if ship.just_jumped {
+				continue
+			}
+			if ship.Status == UNDER_CONSTRUCTION {
+				continue
+			}
+			if ship.Status == JUMPED_IN_COMBAT {
+				continue
+			}
+			if ship.Status == FORCED_JUMP {
+				continue
+			}
+
+			if ship.Type == FTL {
+				fmt.Fprintf(report_file, "\tJump\t%s, ", ship_name(ship))
+				if ship.class == TR && ship.tonnage == 1 {
+					closest_unvisited_star(ship)
+					fmt.Fprintf(report_file, "\n\t\t\t; Age %d, now at %d %d %d, ", ship.age, ship.x, ship.y, ship.z)
+					if ship.Status == IN_ORBIT {
+						fmt.Fprintf(report_file, "O%d, ", ship.pn)
+					} else if ship.Status == ON_SURFACE {
+						fmt.Fprintf(report_file, "L%d, ", ship.pn)
+					} else {
+						fmt.Fprintf(report_file, "D, ")
+					}
+					print_mishap_chance(ship, x, y, z)
+				} else {
+					fmt.Fprintf(report_file, "???\t; Age %d, now at %d %d %d", ship.age, ship.x, ship.y, ship.z)
+					if ship.Status == IN_ORBIT {
+						fmt.Fprintf(report_file, ", O%d", ship.pn)
+					} else if ship.Status == ON_SURFACE {
+						fmt.Fprintf(report_file, ", L%d", ship.pn)
+					} else {
+						fmt.Fprintf(report_file, ", D")
+					}
+					x = 9999
+				}
+
+				fmt.Fprintf(report_file, "\n")
+
+				/* Save destination so that we can check later if it needs to be scanned. */
+				if x == 9999 {
+					ship.dest_x = -1
+				} else {
+					ship.dest_x = x
+					ship.dest_y = y
+					ship.dest_z = z
+				}
+			}
+		}
+
+	jump_end:
+		fmt.Fprintf(report_file, "END\n\n")
+		fmt.Fprintf(report_file, "START PRODUCTION\n\n")
+		fmt.Fprintf(report_file, ";   Economic units at start of turn = %ld\n\n", species.EconUnits)
+		/* Generate a PRODUCTION order for each planet that can produce. */
+		for nampla_index = species.num_namplas - 1; nampla_index >= 0; nampla_index-- {
+			nampla = nampla1_base + nampla_index
+			if nampla.Coords.Orbit == 99 {
+				continue
+			}
+			if nampla.MIBase == 0 && (nampla.Status&RESORT_COLONY) == 0 {
+				continue
+			}
+			if nampla.MABase == 0 && (nampla.Status&MINING_COLONY) == 0 {
+				continue
+			}
+			fmt.Fprintf(report_file, "    PRODUCTION PL %s\n", nampla.Name)
+			if nampla.Status.MiningColony {
+				fmt.Fprintf(report_file, "    ; The above PRODUCTION order is required for this mining colony, even\n")
+				fmt.Fprintf(report_file, "    ;  if no other production orders are given for it. This mining colony\n")
+				fmt.Fprintf(report_file, "    ;  will generate %ld economic units this turn.\n", nampla.use_on_ambush)
+			} else if nampla.Status.ResortColon {
+				fmt.Fprintf(report_file, "    ; The above PRODUCTION order is required for this resort colony, even\n")
+				fmt.Fprintf(report_file, "    ;  though no other production orders can be given for it.  This resort\n")
+				fmt.Fprintf(report_file, "    ;  colony will generate %ld economic units this turn.\n", nampla.use_on_ambush)
+			} else {
+				fmt.Fprintf(report_file, "    ; Place production orders here for planet %s", nampla.Name)
+				fmt.Fprintf(report_file, " (sector %d %d %d #%d).\n", nampla.x, nampla.y, nampla.z, nampla.Coords.Orbit)
+				fmt.Fprintf(report_file, "    ;  Avail pop = %ld, shipyards = %d, to spend = %ld", nampla.pop_units, nampla.shipyards, nampla.use_on_ambush)
+				n = nampla.use_on_ambush
+				if nampla.Status.HomePlanet {
+					if species.hp_original_base != 0 {
+						fmt.Fprintf(report_file, " (max = %ld)", 5*n)
+					} else {
+						fmt.Fprintf(report_file, " (max = no limit)")
+					}
+				} else {
+					fmt.Fprintf(report_file, " (max = %ld)", 2*n)
+				}
+				fmt.Fprintf(report_file, ".\n\n")
+			}
+
+			/* Build IUs and AUs for incoming ships with CUs. */
+			if nampla.IUs_needed {
+				fmt.Fprintf(report_file, "\tBuild\t%d IU\n", nampla.IUs_needed)
+			}
+			if nampla.AUs_needed {
+				fmt.Fprintf(report_file, "\tBuild\t%d AU\n", nampla.AUs_needed)
+			}
+			if nampla.IUs_needed || nampla.AUs_needed {
+				fmt.Fprintf(report_file, "\n")
+			}
+
+			if !species.auto_orders {
+				continue
+			}
+			if nampla.Status & MINING_COLONY {
+				continue
+			}
+			if nampla.Status & RESORT_COLONY {
+				continue
+			}
+
+			/* See if there are any RMs to recycle. */
+			n = nampla.special / 5
+			if n > 0 {
+				fmt.Fprintf(report_file, "\tRecycle\t%d RM\n\n", 5*n)
+			}
+
+			/* Generate DEVELOP commands for ships arriving here because of AUTO command. */
+			for _, ship := range species.Ships {
+				if ship.Coords.Orbit == 99 {
+					continue
+				}
+				k = ship.special
+				if k == 0 {
+					continue
+				}
+				if k == 9999 {
+					k = 0 /* Home planet. */
+				}
+				if nampla != nampla_base+k {
+					continue
+				}
+				k = ship.unloading_point
+				if k == 9999 {
+					k = 0
+				}
+				temp_nampla = nampla_base + k
+				fmt.Fprintf(report_file, "\tDevelop\tPL %s, TR%d%s %s\n\n", temp_nampla.Name, ship.tonnage, ship_type[ship.Type], ship.name)
+			}
+
+			/* Give orders to continue construction of unfinished ships and starbases. */
+			for _, ship := range species.Ships {
+				if ship.Coords.Orbit == 99 {
+					continue
+				}
+				if ship.x != nampla.x {
+					continue
+				}
+				if ship.y != nampla.y {
+					continue
+				}
+				if ship.z != nampla.z {
+					continue
+				}
+				if ship.Coords.Orbit != nampla.Coords.Orbit {
+					continue
+				}
+
+				if ship.Status == UNDER_CONSTRUCTION {
+					fmt.Fprintf(report_file, "\tContinue\t%s, %d\t; Left to pay = %d\n\n", ship_name(ship), ship.remaining_cost, ship.remaining_cost)
+					continue
+				}
+
+				if ship.Type != STARBASE {
+					continue
+				}
+
+				j = (species.TechLevel[MA] / 2) - ship.tonnage
+				if j < 1 {
+					continue
+				}
+
+				fmt.Fprintf(report_file, "\tContinue\tBAS %s, %d\t; Current tonnage = %s\n\n", ship.name, 100*j, commas(10000*ship.tonnage))
+			}
+
+			/* Generate DEVELOP command if this is a colony with an economic base less than 200. */
+			n = nampla.MIBase + nampla.MABase + nampla.IUs_needed + nampla.AUs_needed
+			nn = nampla.ItemQuantity[CU]
+			for _, ship := range species.Ships {
+				/* Get CUs on transports at planet. */
+				if ship.Coords.x != nampla.Coords.x {
+					continue
+				}
+				if ship.Coords.y != nampla.Coords.y {
+					continue
+				}
+				if ship.Coords.z != nampla.Coords.z {
+					continue
+				}
+				if ship.Coords.Orbit != nampla.Coords.Orbit {
+					continue
+				}
+				nn += ship.ItemQuantity[CU]
+			}
+			n += nn
+			if (nampla.Status & COLONY) && n < 2000 && nampla.pop_units > 0 {
+				if nampla.pop_units > (2000 - n) {
+					nn = 2000 - n
+				} else {
+					nn = nampla.pop_units
+				}
+				fmt.Fprintf(report_file, "\tDevelop\t%ld\n\n", 2*nn)
+				nampla.IUs_needed += nn
+			}
+
+			// For home planets and any colonies that have an economic base of at least 200, check if there are other colonized planets in the same sector that are not self-sufficient.
+			// If so, DEVELOP them.
+			if n >= 2000 || nampla.Status.HomePlanet {
+				/* Skip home planet. */
+				for i := 1; i < species.num_namplas; i++ {
+					if i == nampla_index {
+						continue
+					}
+					temp_nampla = nampla_base + i
+					if temp_nampla.Coords.Orbit == 99 {
+						continue
+					}
+					if temp_nampla.Coords.X != nampla.Coords.X {
+						continue
+					}
+					if temp_nampla.Coords.Y != nampla.Coords.Y {
+						continue
+					}
+					if temp_nampla.Coords.Z != nampla.Coords.Z {
+						continue
+					}
+
+					n = temp_nampla.MIBase + temp_nampla.MABase + temp_nampla.IUs_needed + temp_nampla.AUs_needed
+					if n == 0 {
+						continue
+					}
+
+					nn := temp_nampla.ItemQuantity[IU] + temp_nampla.ItemQuantity[AU]
+					if nn > temp_nampla.ItemQuantity[CU] {
+						nn = temp_nampla.ItemQuantity[CU]
+					}
+					n += nn
+					if n >= 2000 {
+						continue
+					}
+					nn = 2000 - n
+					if nn > nampla.pop_units {
+						nn = nampla.pop_units
+					}
+					fmt.Fprintf(report_file, "\tDevelop\t%ld\tPL %s\n\n", 2*nn, temp_nampla.Name)
+					temp_nampla.AUs_needed += nn
+				}
+			}
+		}
+
+		fmt.Fprintf(report_file, "END\n\n")
+
+		fmt.Fprintf(report_file, "START POST-ARRIVAL\n")
+		fmt.Fprintf(report_file, "; Place post-arrival orders here.\n\n")
+		if !species.auto_orders {
+			goto post_end
+		}
+		/* Generate an AUTO command. */
+		fmt.Fprintf(report_file, "\tAuto\n\n")
+
+		/* Generate SCAN orders for all TR1s that are jumping to sectors which current species does not inhabit. */
+		for i = 0; i < species.num_ships; i++ {
+			ship = ship_base + i
+			if ship.pn == 99 {
+				continue
+			}
+			if ship.Status == UNDER_CONSTRUCTION {
+				continue
+			}
+			if ship.class != TR {
+				continue
+			}
+			if ship.tonnage != 1 {
+				continue
+			}
+			if ship.Type != FTL {
+				continue
+			}
+			found = false
+			for j := 0; j < species.num_namplas; j++ {
+				if ship.dest_x == -1 {
+					break
+				}
+				nampla = nampla_base + j
+				if nampla.Coords.Orbit == 99 {
+					continue
+				}
+				if nampla.x != ship.dest_x {
+					continue
+				}
+				if nampla.y != ship.dest_y {
+					continue
+				}
+				if nampla.z != ship.dest_z {
+					continue
+				}
+				if nampla.Status & POPULATED {
+					found = true
+					break
+				}
+			}
+			if !found {
+				fmt.Fprintf(report_file, "\tScan\tTR1 %s\n", ship.name)
+			}
+		}
+
+	post_end:
+		fmt.Fprintf(report_file, "END\n\n")
+
+		fmt.Fprintf(report_file, "START STRIKES\n")
+		fmt.Fprintf(report_file, "; Place strike orders here.\n\n")
+		fmt.Fprintf(report_file, "END\n")
+
+		truncate_name = false
+		ignore_field_distorters = temp_ignore_field_distorters
+
+	done_report:
+
+		/* Clean up for this species. */
+		fclose(report_file)
+	}
+	/* Clean up and exit. */
 	return nil
 }
 
