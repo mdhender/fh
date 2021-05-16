@@ -147,6 +147,71 @@ var shipData = []struct {
 
 var shipType = []string{"", "S", "S"}
 
+func (s *ShipData) GetName(ignore_field_distorters, truncate_name bool) string {
+	ship_is_distorted := s.ItemQuantity[FD] == s.Tonnage
+	if s.Status.OnSurface {
+		ship_is_distorted = false
+	}
+	if ignore_field_distorters {
+		ship_is_distorted = false
+	}
+
+	var full_ship_id string
+	if ship_is_distorted {
+		if s.Class == TR {
+			full_ship_id = fmt.Sprintf("%s%d ???", shipData[s.Class].abbr, s.Tonnage)
+		} else if s.Class == BA {
+			full_ship_id = fmt.Sprintf("BAS ???")
+		} else {
+			full_ship_id = fmt.Sprintf("%s ???", shipData[s.Class].abbr)
+		}
+	} else if s.Class == TR {
+		full_ship_id = fmt.Sprintf("%s%d%s %s", shipData[s.Class].abbr, s.Tonnage, shipType[s.Type], s.Name)
+	} else {
+		full_ship_id = fmt.Sprintf("%s%s %s", shipData[s.Class].abbr, shipType[s.Type], s.Name)
+	}
+
+	if truncate_name {
+		return full_ship_id
+	}
+
+	full_ship_id += "("
+	effective_age := s.Age
+	if effective_age < 0 {
+		effective_age = 0
+	}
+
+	/* Do age. */
+	if !ship_is_distorted {
+		if !s.Status.UnderConstruction {
+			full_ship_id += fmt.Sprintf("A%d", effective_age)
+		}
+	}
+
+	if s.Status.UnderConstruction {
+		full_ship_id += "C"
+	} else if s.Status.InOrbit {
+		full_ship_id += "O"
+	} else if s.Status.OnSurface {
+		full_ship_id += "L"
+	} else if s.Status.InDeepSpace {
+		full_ship_id += "D"
+	} else if s.Status.ForcedJump {
+		full_ship_id += "FJ"
+	} else if s.Status.JumpedInCombat {
+		full_ship_id += "WD"
+	} else {
+		full_ship_id += "***???***"
+		fmt.Printf("\n\tWARNING!!!  Internal error in subroutine 'ship_name'\n\n")
+	}
+
+	if s.Type == STARBASE {
+		full_ship_id += fmt.Sprintf(",%ld tons", 10000*s.Tonnage)
+	}
+
+	return full_ship_id + ")"
+}
+
 func (s *ShipData) Report(w io.Writer, printHeader, printingAlien bool) {
 	if printHeader {
 		fmt.Fprintf(w, "  Name                          ")
@@ -157,8 +222,8 @@ func (s *ShipData) Report(w io.Writer, printHeader, printingAlien bool) {
 		}
 		fmt.Fprintf(w, " ----------------------------------------------------------------------------\n")
 	}
-	ignore_field_distorters := !printingAlien
-	full_ship_id := ship_name(s)
+	ignore_field_distorters, truncate_name := !printingAlien, false
+	full_ship_id := s.GetName(ignore_field_distorters, truncate_name)
 	fmt.Fprintf(w, "  %s", s.Name)
 	length := len(full_ship_id)
 	if printingAlien {
@@ -195,14 +260,11 @@ func (s *ShipData) Report(w io.Writer, printHeader, printingAlien bool) {
 			fmt.Fprintf(w, "SP %d", distorted(species.Number))
 		}
 	} else {
-		need_comma := FALSE
+		sepChar := ""
 		for i := 0; i < MAX_ITEMS; i++ {
 			if s.ItemQuantity[i] > 0 {
-				if need_comma {
-					fmt.Fprintf(w, ",")
-				}
-				fmt.Fprintf(w, "%d %s", s.ItemQuantity[i], itemData[i].abbr)
-				need_comma = TRUE
+				fmt.Fprintf(w, "%s%d %s", sepChar, s.ItemQuantity[i], itemData[i].abbr)
+				sepChar = ","
 			}
 		}
 	}
