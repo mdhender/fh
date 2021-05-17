@@ -148,15 +148,9 @@ var shipData = []struct {
 var shipType = []string{"", "S", "S"}
 
 func (s *ShipData) GetName(ignore_field_distorters, truncate_name bool) string {
-	ship_is_distorted := s.ItemQuantity[FD] == s.Tonnage
-	if s.Status.OnSurface {
-		ship_is_distorted = false
-	}
-	if ignore_field_distorters {
-		ship_is_distorted = false
-	}
-
 	var full_ship_id string
+
+	ship_is_distorted := !ignore_field_distorters && !s.Status.OnSurface && s.ItemQuantity[FD] == s.Tonnage
 	if ship_is_distorted {
 		if s.Class == TR {
 			full_ship_id = fmt.Sprintf("%s%d ???", shipData[s.Class].abbr, s.Tonnage)
@@ -202,17 +196,17 @@ func (s *ShipData) GetName(ignore_field_distorters, truncate_name bool) string {
 		full_ship_id += "WD"
 	} else {
 		full_ship_id += "***???***"
-		fmt.Printf("\n\tWARNING!!!  Internal error in subroutine 'ship_name'\n\n")
+		fmt.Printf("\n\tWARNING!!!  Internal error in subroutine 'GetName'\n\n")
 	}
 
 	if s.Type == STARBASE {
-		full_ship_id += fmt.Sprintf(",%ld tons", 10000*s.Tonnage)
+		full_ship_id += fmt.Sprintf(",%d tons", 10000*s.Tonnage)
 	}
 
 	return full_ship_id + ")"
 }
 
-func (s *ShipData) Report(w io.Writer, printHeader, printingAlien bool) {
+func (s *ShipData) Report(w io.Writer, printHeader, printingAlien bool, species *SpeciesData) {
 	if printHeader {
 		fmt.Fprintf(w, "  Name                          ")
 		if printingAlien {
@@ -226,16 +220,13 @@ func (s *ShipData) Report(w io.Writer, printHeader, printingAlien bool) {
 	full_ship_id := s.GetName(ignore_field_distorters, truncate_name)
 	fmt.Fprintf(w, "  %s", s.Name)
 	length := len(full_ship_id)
+	padding := 50 - length
 	if printingAlien {
-		padding := 50 - length
-		for i := 0; i < padding; i++ {
-			fmt.Fprintf(w, " ")
-		}
-	} else {
-		padding := 46 - length
-		for i := 0; i < padding; i++ {
-			fmt.Fprintf(w, " ")
-		}
+		// TODO: is this because we're printing %4d if the ship is under construction?
+		padding -= 4 // TODO: why?
+	}
+	for i := 0; i < padding; i++ {
+		fmt.Fprintf(w, " ")
 	}
 	// TODO: capacity should be set when the ship is created
 	capacity := s.Tonnage
@@ -257,7 +248,7 @@ func (s *ShipData) Report(w io.Writer, printHeader, printingAlien bool) {
 		if s.Status.OnSurface || s.ItemQuantity[FD] != s.Tonnage {
 			fmt.Fprintf(w, "SP %s", species.Name)
 		} else {
-			fmt.Fprintf(w, "SP %d", distorted(species.Number))
+			fmt.Fprintf(w, "SP %d", species.Distorted())
 		}
 	} else {
 		sepChar := ""
@@ -270,3 +261,4 @@ func (s *ShipData) Report(w io.Writer, printHeader, printingAlien bool) {
 	}
 	fmt.Fprintf(w, "\n")
 }
+
