@@ -14,15 +14,56 @@ v0.0.1, 2021-05-10
 :sectnums:
 
 == First Turn
+A big assumption is that you're unlikely to have opponents attacking your home world for the few turns because the game engine starts with home worlds spread out over the cluster.
+
+=== Colonizers
 Your first turn should concentrate on building a second shipyard, creating a colonial transport, and increasing your technology levels.
 
 1. Concentrate on building up Technology Levels at the beginning of the game because they're cheaper.
 2. Try to keep your Manufacturing and Mining tech levels as equal as possible.
 3. Spend a couple of turns building shipyards before raising your Manufacturing tech level (MA).
 4. Ignore Planetary Defense (PD) units.
-You're unlikely to have opponents attacking your home world for the few turns because the game engine starts with home worlds spread out over the cluster.
 
-If you're playing a militant species...
+=== Explorers
+Explorers aim to find worlds that are easy to colonize (the "life support needed" is low).
+They achieve this by building cheap scout ships and sending them out to scan nearby systems.
+
+Explorers want a high Gravitics (GV) tech level.
+That allows them to cross longer distances safely.
+
+==== Shipyards
+You should consider building a second shipyard on your first turn.
+The cost is 10 times your manufacturing level (ML), so it makes sense to double your capacity while it's cheap.
+
+==== Scouts
+You should build a scout your first turn.
+Your first decision should be building either a Picket Boat (PB) or a Transport (TR1).
+They both cost 100 economic units (EUs) to build.
+The PB costs 20EU a turn to maintain, while the TR1 costs only 4EU.
+That 16 points a turn will add up.
+
+Another advantage of the TR1 is that the server will generate a JUMP order that contains the coordinates of the nearest unvisited system every turn.
+That saves you from having to calculate distances every turn to select a new system to explore.
+
+==== TODO
+After you've found a system to colonize...
+
+=== Militants
+If you're playing a militant species, remember that warships are expensive to maintain.
+You will pay 20% of their initial cost each turn for maintenance.
+(That's 5 times more than Transports!)
+
+Militants want a high Military (ML) tech level.
+That makes them more effective at damaging opponents.
+It also helps reduce the maintenance cost.
+For example, an ML20 will reduce the cost by 10%.
+It's still expensive - after that discount, you're still paying 18% per turn for maintenance on your Warships.
+
+==== Shipyards
+You should consider building a second shipyard on your first turn.
+The cost is 10 times your manufacturing level (ML), so it makes sense to double your capacity while it's cheap.
+
+==== Warships
 
 === Sources
 https://groups.io/g/farhorizons/message/92[Dwayne's Post]
