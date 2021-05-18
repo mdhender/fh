@@ -565,7 +565,7 @@ func (g *GalaxyData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_m
 
 		// open log file
 		var err error
-		l.File, err = os.Create(path.Join(turnPath, fmt.Sprintf("sp%02d.log", species.Number)))
+		l.File, err = os.Create(path.Join(turnPath, fmt.Sprintf("sp%02d-finish.log", species.Number)))
 		if err != nil {
 			return err
 		}
@@ -1793,6 +1793,8 @@ func (g *GalaxyData) MakeHomeTemplates(w io.Writer) error {
 func (g *GalaxyData) Report(argv []string, galaxyPath string, testMode, verboseMode bool) error {
 	test_mode, verbose_mode := testMode, verboseMode
 	turn_number := g.TurnNumber
+	turnPath := path.Join(galaxyPath, fmt.Sprintf("t%06d", g.TurnNumber))
+	fmt.Printf("[report] all output will be created in %s\n", turnPath)
 
 	/* Check if we are doing all species, or just one or more specified  ones. */
 	list := make(map[int]*SpeciesData)
@@ -1819,16 +1821,17 @@ func (g *GalaxyData) Report(argv []string, galaxyPath string, testMode, verboseM
 	for _, species := range speciesFilter {
 		/* Print message for gamemaster. */
 		if verbose_mode {
-			fmt.Printf("Generating turn %d report for species #%d, SP %s...\n", turn_number, species.Number, species.Name)
+			fmt.Printf("[report] generating turn %d report for species #%d, SP %s...\n", turn_number, species.Number, species.Name)
 		}
 
 		/* Open report file for writing. */
-		filename := path.Join(galaxyPath, fmt.Sprintf("sp%02d.rpt.t%d", species.Number, turn_number))
+		filename := path.Join(turnPath, fmt.Sprintf("sp%02d.rpt", species.Number))
 		report_file, err := os.Create(filename)
 		if err != nil {
 			fmt.Printf("%+v\n", err)
 			panic(fmt.Sprintf("\n\tCannot open '%s' for writing!\n\n", filename))
 		}
+		fmt.Printf("[report] created turn %d report %s\n", turn_number, filename)
 
 		// TODO: track down ignore_field_distorters and truncate_name initialization
 		ignore_field_distorters, truncate_name := false, false

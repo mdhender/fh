@@ -45,7 +45,9 @@ var reportCmd = &cobra.Command{
 			return fmt.Errorf("you must specify a valid path to read and create galaxy data in")
 		}
 		testMode, _ := cmd.Flags().GetBool("test")
+		fmt.Printf("[report] test    %v\n", testMode)
 		verboseMode, _ := cmd.Flags().GetBool("verbose")
+		fmt.Printf("[report] verbose %v\n", verboseMode)
 
 		g, err := fh.GetGalaxy(path.Join(galaxyPath, "galaxy.json"))
 		if err != nil {

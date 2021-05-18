@@ -307,7 +307,7 @@ func (s *SpeciesData) ReportAliens(w io.Writer, locations []*SpeciesLocationData
 					if alien_nampla.ItemQuantity[PD] == 1 {
 						fmt.Fprintf(w, "      (There is 1 %s on the planet.)\n", itemData[PD].name)
 					} else if alien_nampla.ItemQuantity[PD] > 1 {
-						fmt.Fprintf(w, "      (There are %ld %ss on the planet.)\n", alien_nampla.ItemQuantity[PD], itemData[PD].name)
+						fmt.Fprintf(w, "      (There are %d %ss on the planet.)\n", alien_nampla.ItemQuantity[PD], itemData[PD].name)
 					}
 
 					if alien_nampla.Shipyards == 1 {
@@ -432,13 +432,13 @@ func (s *SpeciesData) ReportDeclaredEnemies(w io.Writer, otherSpecies []*Species
 }
 
 func (s *SpeciesData) ReportEconomicUnits(w io.Writer) {
-	fmt.Fprintf(w, "\nEconomic units = %ld\n", s.EconUnits)
+	fmt.Fprintf(w, "\nEconomic units = %d\n", s.EconUnits)
 }
 
 /* List fleet maintenance cost and its percentage of total production. */
 func (s *SpeciesData) ReportFleetMaintenance(w io.Writer) {
 	fleet_percent_cost := s.FleetPercentCost
-	fmt.Fprintf(w, "\nFleet maintenance cost = %ld (%d.%02d%% of total production)\n", s.FleetCost, fleet_percent_cost/100, fleet_percent_cost%100)
+	fmt.Fprintf(w, "\nFleet maintenance cost = %d (%d.%02d%% of total production)\n", s.FleetCost, fleet_percent_cost/100, fleet_percent_cost%100)
 	if fleet_percent_cost > 10000 {
 		fleet_percent_cost = 10000
 	}

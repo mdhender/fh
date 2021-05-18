@@ -276,7 +276,7 @@ func (s *StarData) Scan(w io.Writer, species *SpeciesData) error {
 	if s.Message != 0 {
 		/* There is a message that must be logged whenever this star system is scanned. */
 		// TODO:
-		//sprintf(filename, "message%ld.txt\0", star->message);
+		//sprintf(filename, "message%d.txt\0", star->message);
 		//log_message(filename);
 	}
 

@@ -240,7 +240,7 @@ func GeneratePreDepartureOrders(w io.Writer, s *SpeciesData) {
 /* Generate a PRODUCTION order for each planet that can produce. */
 func GenerateProductionOrders(w io.Writer, s *SpeciesData, ignore_field_distorters, truncate_name bool) {
 	fmt.Fprintf(w, "START PRODUCTION\n\n")
-	fmt.Fprintf(w, ";   Economic units at start of turn = %ld\n\n", s.EconUnits)
+	fmt.Fprintf(w, ";   Economic units at start of turn = %d\n\n", s.EconUnits)
 	// TODO: why do this in reverse order?
 	for _, nampla := range s.NamedPlanetsReversed() {
 		// TODO: what is so special about orbit 99?
@@ -367,7 +367,7 @@ func GenerateProductionOrders(w io.Writer, s *SpeciesData, ignore_field_distorte
 			} else {
 				nn = nampla.PopUnits
 			}
-			fmt.Fprintf(w, "\tDevelop\t%ld\n\n", 2*nn)
+			fmt.Fprintf(w, "\tDevelop\t%d\n\n", 2*nn)
 			nampla.IUsNeeded += nn
 		}
 
