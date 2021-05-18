@@ -34,8 +34,8 @@ func GenerateOrders(w io.Writer, g *GalaxyData, s *SpeciesData, ignore_field_dis
 
 	GenerateCombatOrders(w, s)
 	GeneratePreDepartureOrders(w, s)
-	GenerateJumpOrders(w, s, g.AllStars())
-	GenerateProductionOrders(w, s)
+	GenerateJumpOrders(w, s, g.AllStars(), ignore_field_distorters, truncate_name)
+	GenerateProductionOrders(w, s, ignore_field_distorters, truncate_name)
 	GeneratePostArrivalOrders(w, s)
 	GenerateStrikeOrders(w, s)
 
@@ -45,7 +45,7 @@ func GenerateOrders(w io.Writer, g *GalaxyData, s *SpeciesData, ignore_field_dis
 }
 
 /* Generate JUMP orders for all ships that have not yet been given orders. */
-func GenerateAutoJumpOrders(w io.Writer, s *SpeciesData, stars []*StarData) {
+func GenerateAutoJumpOrders(w io.Writer, s *SpeciesData, stars []*StarData, ignore_field_distorters, truncate_name bool) {
 	for _, ship := range s.Ships {
 		// TODO: what is so special about orbit 99?
 		if ship.Coords.Orbit == 99 || ship.JustJumped != DidNotJump || ship.Status.UnderConstruction || ship.Status.JumpedInCombat || ship.Status.ForcedJump {
@@ -57,9 +57,9 @@ func GenerateAutoJumpOrders(w io.Writer, s *SpeciesData, stars []*StarData) {
 			if ship.Class == TR && ship.Tonnage == 1 {
 				closestUnvisitedSystem := s.ClosestUnvisitedSystem(ship, stars)
 				if closestUnvisitedSystem == nil {
-					fmt.Fprintf(w, "???");
+					fmt.Fprintf(w, "???")
 				} else {
-					fmt.Fprintf(w, "%d %d %d", closestUnvisitedSystem.Coords.X, closestUnvisitedSystem.Coords.Y, closestUnvisitedSystem.Coords.Z);
+					fmt.Fprintf(w, "%d %d %d", closestUnvisitedSystem.Coords.X, closestUnvisitedSystem.Coords.Y, closestUnvisitedSystem.Coords.Z)
 					/* So that we don't send more than one ship to the same place. */
 					closestUnvisitedSystem.VisitedBy[s.Name] = true
 				}
@@ -83,7 +83,7 @@ func GenerateAutoJumpOrders(w io.Writer, s *SpeciesData, stars []*StarData) {
 					fmt.Fprintf(w, ", D")
 				}
 				/* Save destination so that we can check later if it needs to be scanned. */
-				ship.Dest = Coords{X:-1,Y:-1,Z:-1} // TODO: this is supposed to signal something?
+				ship.Dest = Coords{X: -1, Y: -1, Z: -1} // TODO: this is supposed to signal something?
 			}
 			fmt.Fprintf(w, "\n")
 		}
@@ -97,7 +97,7 @@ func GenerateCombatOrders(w io.Writer, s *SpeciesData) {
 }
 
 /* Generate auto-jumps for ships that were loaded via the DEVELOP command or which were UNLOADed because of the AUTO command. */
-func GenerateJumpOrders(w io.Writer, s *SpeciesData, stars []*StarData) {
+func GenerateJumpOrders(w io.Writer, s *SpeciesData, stars []*StarData, ignore_field_distorters, truncate_name bool) {
 	fmt.Fprintf(w, "START JUMPS\n")
 	fmt.Fprintf(w, "; Place jump orders here.\n\n")
 
@@ -113,34 +113,29 @@ func GenerateJumpOrders(w io.Writer, s *SpeciesData, stars []*StarData) {
 			continue
 		}
 
-		j := ship.Special
-		if j != 0 {
-			if j == 9999 {
-				j = 0 /* Home planet. */
-			}
-			temp_nampla = nampla_base + j
-			fmt.Fprintf(w, "\tJump\t%s, PL %s\t; Age %d, ", ship.GetName(ignore_field_distorters, truncate_name), temp_nampla.Name, ship.Age)
-			s.ReportMishapChance(w, ship, temp_nampla.Coords)
+		if ship.Special.AutoJumpTarget.IsSet() {
+			// TODO: removed the special logic for 9999 == HomePlanet
+			target := s.GetNamedPlanetAt(ship.Special.AutoJumpTarget)
+			fmt.Fprintf(w, "\tJump\t%s, PL %s\t; Age %d, ", ship.GetName(ignore_field_distorters, truncate_name), target.Name, ship.Age)
+			s.ReportMishapChance(w, ship, target.Coords)
 			fmt.Fprintf(w, "\n\n")
 			ship.JustJumped = JustJumped
 			continue
 		}
 
-		n := ship.UnloadingPoint
-		if n != 0 {
-			if n == 9999 {
-				n = 0 /* Home planet. */
-			}
-			temp_nampla = nampla_base + n
-			fmt.Fprintf(w, "\tJump\t%s, PL %s\t; ", ship.GetName(ignore_field_distorters, truncate_name), temp_nampla.Name)
-			s.ReportMishapChance(w, ship, temp_nampla.Coords)
+		fmt.Printf("TODO: was n := ship.UnloadingPoint\n")
+		if ship.UnloadingPoint.IsSet() {
+			// TODO: removed the special logic for 9999 == HomePlanet
+			target := s.GetNamedPlanetAt(ship.UnloadingPoint)
+			fmt.Fprintf(w, "\tJump\t%s, PL %s\t; ", ship.GetName(ignore_field_distorters, truncate_name), target.Name)
+			s.ReportMishapChance(w, ship, target.Coords)
 			fmt.Fprintf(w, "\n\n")
 			ship.JustJumped = JustJumped
 		}
 	}
 
 	if s.AutoOrders {
-		GenerateAutoJumpOrders(w, s, stars)
+		GenerateAutoJumpOrders(w, s, stars, ignore_field_distorters, truncate_name)
 	}
 
 	fmt.Fprintf(w, "END\n\n")
@@ -207,43 +202,34 @@ func GeneratePreDepartureOrders(w io.Writer, s *SpeciesData) {
 			}
 
 			/* New colonies will never be started automatically unless ship was loaded via a DEVELOP order. */
-			if ship.LoadingPoint != 0 {
+			if ship.LoadingPoint.IsSet() {
 				/* Check if transport is at specified unloading point. */
-				n := ship.UnloadingPoint
-				if n == nampla_index || (n == 9999 && nampla_index == 0) {
+				// TODO: is this right?
+				if nampla.Coords.SamePlanet(ship.LoadingPoint) {
 					goto unload_ship
 				}
 			}
 
 			if !nampla.Status.Populated {
 				continue
-			}
-
-			if (nampla.MIBase + nampla.MABase) >= 2000 {
+			} else if (nampla.MIBase + nampla.MABase) >= 2000 {
 				continue
-			}
-
-			if nampla.Coords.SameSystem(nampla_base.Coords) {
+			} else if nampla.Coords.SameSystem(s.Home.Planet.Coords) {
 				continue /* Home sector. */
 			}
 
 		unload_ship:
 
-			n := ship.LoadingPoint
-			if n == 9999 {
-				n = 0 /* Home planet. */
-			}
-			if n == nampla_index {
+			if ship.LoadingPoint.SamePlanet(nampla.Coords) {
+				// TODO: this is planet, not system, right?
 				continue /* Ship was just loaded here. */
 			}
 			fmt.Fprintf(w, "\tUnload\tTR%d%s %s\n\n", ship.Tonnage, shipType[ship.Type], ship.Name)
 
-			ship.Special = ship.LoadingPoint
-			n = nampla - nampla_base
-			if n == 0 {
-				n = 9999
-			}
-			ship.UnloadingPoint = n
+			// TODO: is this right?
+			ship.Special.LoadingPoint = ship.LoadingPoint
+			// TODO: is this right?
+			ship.UnloadingPoint = nampla.Coords
 		}
 	}
 
@@ -252,7 +238,7 @@ func GeneratePreDepartureOrders(w io.Writer, s *SpeciesData) {
 }
 
 /* Generate a PRODUCTION order for each planet that can produce. */
-func GenerateProductionOrders(w io.Writer, s *SpeciesData) {
+func GenerateProductionOrders(w io.Writer, s *SpeciesData, ignore_field_distorters, truncate_name bool) {
 	fmt.Fprintf(w, "START PRODUCTION\n\n")
 	fmt.Fprintf(w, ";   Economic units at start of turn = %ld\n\n", s.EconUnits)
 	// TODO: why do this in reverse order?
@@ -299,7 +285,7 @@ func GenerateProductionOrders(w io.Writer, s *SpeciesData) {
 		if nampla.AUsNeeded != 0 {
 			fmt.Fprintf(w, "\tBuild\t%d AU\n", nampla.AUsNeeded)
 		}
-		if nampla.IUsNeeded != 0  || nampla.AUsNeeded != 0  {
+		if nampla.IUsNeeded != 0 || nampla.AUsNeeded != 0 {
 			fmt.Fprintf(w, "\n")
 		}
 
@@ -320,22 +306,13 @@ func GenerateProductionOrders(w io.Writer, s *SpeciesData) {
 			if ship.Coords.Orbit == 99 {
 				continue
 			}
-			k := ship.Special
-			if k == 0 {
+			k := ship.Special.AutoJumpTarget
+			fmt.Println("TODO: should this be SamePlanet or SameSystem")
+			if !k.IsSet() || !nampla.Coords.SamePlanet(k) {
 				continue
 			}
-			if k == 9999 {
-				k = 0 /* Home planet. */
-			}
-			if nampla != nampla_base+k {
-				continue
-			}
-			k = ship.UnloadingPoint
-			if k == 9999 {
-				k = 0
-			}
-			temp_nampla = nampla_base + k
-			fmt.Fprintf(w, "\tDevelop\tPL %s, TR%d%s %s\n\n", temp_nampla.Name, ship.Tonnage, shipType[ship.Type], ship.Name)
+			planet := s.GetNamedPlanetAt(ship.UnloadingPoint)
+			fmt.Fprintf(w, "\tDevelop\tPL %s, TR%d%s %s\n\n", planet.Name, ship.Tonnage, shipType[ship.Type], ship.Name)
 		}
 
 		/* Give orders to continue construction of unfinished ships and starbases. */
@@ -404,7 +381,7 @@ func GenerateProductionOrders(w io.Writer, s *SpeciesData) {
 					continue
 				}
 				// TODO: what is so special about orbit 99
-				if temp_nampla.Coords.Orbit == 99 || !nampla.Coords.SameSystem(temp_nampla.Coords){
+				if temp_nampla.Coords.Orbit == 99 || !nampla.Coords.SameSystem(temp_nampla.Coords) {
 					continue
 				}
 

@@ -35,7 +35,7 @@ func Commas(value int) string {
 		digitsToCopy++
 	}
 	dst := make([]byte, digitsToCopy, digitsToCopy)
-	for i, j, digitsCopied := len(src)-1, len(dst)-1, 0; i >= 0; i, j = i-1,j-1 {
+	for i, j, digitsCopied := len(src)-1, len(dst)-1, 0; i >= 0; i, j = i-1, j-1 {
 		if digitsCopied == 3 {
 			dst[j] = ','
 			j, digitsCopied = j-1, 0

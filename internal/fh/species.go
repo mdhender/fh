@@ -103,6 +103,15 @@ func (s *SpeciesData) GetNamedPlanet(name string) *NamedPlanetData {
 	return nil
 }
 
+func (s *SpeciesData) GetNamedPlanetAt(c Coords) *NamedPlanetData {
+	for _, n := range s.NamedPlanets {
+		if n.Coords.SamePlanet(c) {
+			return n
+		}
+	}
+	return nil
+}
+
 /* Get life support tech level needed. */
 func (s *SpeciesData) LifeSupportNeeded(colony *PlanetData) int {
 	var ls_needed int
@@ -152,7 +161,7 @@ func (s *SpeciesData) NamedPlanetsReversed() []*NamedPlanetData {
 		return nil
 	}
 	list := make([]*NamedPlanetData, len(s.NamedPlanets), len(s.NamedPlanets))
-	for i, j := len(s.NamedPlanets) -1, 0; i >= 0; i, j = i-1,j+1 {
+	for i, j := len(s.NamedPlanets)-1, 0; i >= 0; i, j = i-1, j+1 {
 		list[j] = s.NamedPlanets[i]
 	}
 	return list
@@ -555,7 +564,7 @@ func (s *SpeciesData) ReportNonProducingPlanets(w io.Writer, headerPrinted, igno
 
 func (s *SpeciesData) ReportShipsNotOnPlanet(w io.Writer, testMode, headerPrinted, ignore_field_distorters, truncate_name bool) bool {
 	for _, ship := range s.Ships {
-		ship.Special = 0
+		ship.ClearSpecial()
 		if ship.alreadyListed {
 			continue
 		}

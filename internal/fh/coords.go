@@ -50,6 +50,10 @@ func (c Coords) ID() string {
 	return fmt.Sprintf("03%d.%03d.%03d/%02d", c.X, c.Y, c.Z, c.Orbit)
 }
 
+func (c Coords) IsSet() bool {
+	return c.X != -1 && c.Y != -1 && c.Z != -1 && c.Orbit != -1
+}
+
 func (c Coords) SamePlanet(t Coords) bool {
 	return c.X == t.X && c.Y == t.Y && c.Z == t.Z && c.Orbit == t.Orbit
 }

@@ -80,10 +80,16 @@ type ShipData struct {
 	ItemQuantity       [MAX_ITEMS]int /* Quantity of each item carried. */
 	Age                int            /* Ship age. */
 	RemainingCost      int            /* The cost needed to complete the ship if still under construction. */
-	LoadingPoint       int            /* Nampla index for planet where ship was last loaded with CUs. Zero = none. Use 9999 for home planet. */
-	UnloadingPoint     int            /* Nampla index for planet that ship should be given orders to jump to where it will unload. Zero = none. Use 9999 for home planet. */
-	Special            int            /* Different for each application. */
-	alreadyListed      bool           // used for reporting
+	// TODO: turn LoadingPoint into coordinates
+	LoadingPoint   Coords `json:"loading_point"`   /* Nampla index for planet where ship was last loaded with CUs. Zero = none. Use 9999 for home planet. */
+	UnloadingPoint Coords `json:"unloading_point"` /* Nampla index for planet that ship should be given orders to jump to where it will unload. Zero = none. Use 9999 for home planet. */
+	Special        struct {
+		// TODO: target planet name for auto-jumps. which makes no sense since this should be a system?
+		AutoJumpTarget Coords `json:"auto_jump_target_name,omitempty"`
+		LoadingPoint   Coords `json:"loading_point"`
+	} `json:"special"` /* Different for each application. */
+
+	alreadyListed bool // used for reporting
 }
 
 /* Ship status codes. */
@@ -146,6 +152,11 @@ var shipData = []struct {
 }
 
 var shipType = []string{"", "S", "S"}
+
+func (s *ShipData) ClearSpecial() {
+	s.Special.AutoJumpTarget = Coords{-1, -1, -1, -1}
+	s.Special.LoadingPoint = Coords{-1, -1, -1, -1}
+}
 
 func (s *ShipData) GetName(ignore_field_distorters, truncate_name bool) string {
 	var full_ship_id string
@@ -261,4 +272,3 @@ func (s *ShipData) Report(w io.Writer, printHeader, printingAlien bool, species 
 	}
 	fmt.Fprintf(w, "\n")
 }
-
