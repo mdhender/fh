@@ -118,6 +118,8 @@ configuration file, then creates a new galaxy file.`,
 			spec := &fh.SpeciesData{ID: fmt.Sprintf("%02d", i+1)}
 			spec.Number = i + 1
 			spec.Name = player.SpeciesName
+			spec.Government.Name = player.GovName
+			spec.Government.Type = player.GovType
 			g.AddSpecies(spec)
 			err = g.AddHomePlanets(logFile, galaxyPath, outputPath, setupData, &player, spec)
 			if err != nil {

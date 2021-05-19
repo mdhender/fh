@@ -117,7 +117,7 @@ func GenerateJumpOrders(w io.Writer, s *SpeciesData, stars []*StarData, ignore_f
 			// TODO: removed the special logic for 9999 == HomePlanet
 			target := s.GetNamedPlanetAt(ship.Special.AutoJumpTarget)
 			fmt.Fprintf(w, "\tJump\t%s, PL %s\t; Age %d, ", ship.GetName(ignore_field_distorters, truncate_name), target.Name, ship.Age)
-			s.ReportMishapChance(w, ship, target.Coords)
+			s.ReportMishapChance(w, ship, target.Planet.Coords)
 			fmt.Fprintf(w, "\n\n")
 			ship.JustJumped = JustJumped
 			continue
@@ -128,7 +128,7 @@ func GenerateJumpOrders(w io.Writer, s *SpeciesData, stars []*StarData, ignore_f
 			// TODO: removed the special logic for 9999 == HomePlanet
 			target := s.GetNamedPlanetAt(ship.UnloadingPoint)
 			fmt.Fprintf(w, "\tJump\t%s, PL %s\t; ", ship.GetName(ignore_field_distorters, truncate_name), target.Name)
-			s.ReportMishapChance(w, ship, target.Coords)
+			s.ReportMishapChance(w, ship, target.Planet.Coords)
 			fmt.Fprintf(w, "\n\n")
 			ship.JustJumped = JustJumped
 		}
@@ -152,7 +152,7 @@ func GeneratePreDepartureOrders(w io.Writer, s *SpeciesData) {
 	fmt.Fprintf(w, "START PRE-DEPARTURE\n")
 	fmt.Fprintf(w, "; Place pre-departure orders here.\n\n")
 	for _, nampla := range s.NamedPlanets {
-		if nampla.Coords.Orbit == 99 {
+		if nampla.Planet.Coords.Orbit == 99 {
 			continue
 		}
 
@@ -176,16 +176,16 @@ func GeneratePreDepartureOrders(w io.Writer, s *SpeciesData) {
 			if ship.Coords.Orbit == 99 {
 				continue
 			}
-			if ship.Coords.X != nampla.Coords.X {
+			if ship.Coords.X != nampla.Planet.Coords.X {
 				continue
 			}
-			if ship.Coords.Y != nampla.Coords.Y {
+			if ship.Coords.Y != nampla.Planet.Coords.Y {
 				continue
 			}
-			if ship.Coords.Z != nampla.Coords.Z {
+			if ship.Coords.Z != nampla.Planet.Coords.Z {
 				continue
 			}
-			if ship.Coords.Orbit != nampla.Coords.Orbit {
+			if ship.Coords.Orbit != nampla.Planet.Coords.Orbit {
 				continue
 			}
 			if ship.Status.JumpedInCombat {
@@ -205,7 +205,7 @@ func GeneratePreDepartureOrders(w io.Writer, s *SpeciesData) {
 			if ship.LoadingPoint.IsSet() {
 				/* Check if transport is at specified unloading point. */
 				// TODO: is this right?
-				if nampla.Coords.SamePlanet(ship.LoadingPoint) {
+				if nampla.Planet.Coords.SamePlanet(ship.LoadingPoint) {
 					goto unload_ship
 				}
 			}
@@ -214,13 +214,13 @@ func GeneratePreDepartureOrders(w io.Writer, s *SpeciesData) {
 				continue
 			} else if (nampla.MIBase + nampla.MABase) >= 2000 {
 				continue
-			} else if nampla.Coords.SameSystem(s.Home.Planet.Coords) {
+			} else if nampla.Planet.Coords.SameSystem(s.Home.World.Planet.Coords) {
 				continue /* Home sector. */
 			}
 
 		unload_ship:
 
-			if ship.LoadingPoint.SamePlanet(nampla.Coords) {
+			if ship.LoadingPoint.SamePlanet(nampla.Planet.Coords) {
 				// TODO: this is planet, not system, right?
 				continue /* Ship was just loaded here. */
 			}
@@ -229,7 +229,7 @@ func GeneratePreDepartureOrders(w io.Writer, s *SpeciesData) {
 			// TODO: is this right?
 			ship.Special.LoadingPoint = ship.LoadingPoint
 			// TODO: is this right?
-			ship.UnloadingPoint = nampla.Coords
+			ship.UnloadingPoint = nampla.Planet.Coords
 		}
 	}
 
@@ -244,7 +244,7 @@ func GenerateProductionOrders(w io.Writer, s *SpeciesData, ignore_field_distorte
 	// TODO: why do this in reverse order?
 	for _, nampla := range s.NamedPlanetsReversed() {
 		// TODO: what is so special about orbit 99?
-		if nampla.Coords.Orbit == 99 {
+		if nampla.Planet.Coords.Orbit == 99 {
 			continue
 		} else if nampla.MIBase == 0 && !nampla.Status.ResortColony {
 			continue
@@ -263,7 +263,7 @@ func GenerateProductionOrders(w io.Writer, s *SpeciesData, ignore_field_distorte
 			// TODO: is this really use_on_ambush?
 			fmt.Fprintf(w, "    ;  colony will generate %d economic units this turn.\n", nampla.UseOnAmbush)
 		} else {
-			fmt.Fprintf(w, "    ; Place production orders here for planet %s (sector %d %d %d #%d).\n", nampla.Name, nampla.Coords.X, nampla.Coords.Y, nampla.Coords.Z, nampla.Coords.Orbit)
+			fmt.Fprintf(w, "    ; Place production orders here for planet %s (sector %d %d %d #%d).\n", nampla.Name, nampla.Planet.Coords.X, nampla.Planet.Coords.Y, nampla.Planet.Coords.Z, nampla.Planet.Coords.Orbit)
 			fmt.Fprintf(w, "    ;  Avail pop = %d, shipyards = %d, to spend = %d", nampla.PopUnits, nampla.Shipyards, nampla.UseOnAmbush)
 			n := nampla.UseOnAmbush
 			if nampla.Status.HomePlanet {
@@ -308,7 +308,7 @@ func GenerateProductionOrders(w io.Writer, s *SpeciesData, ignore_field_distorte
 			}
 			k := ship.Special.AutoJumpTarget
 			fmt.Println("TODO: should this be SamePlanet or SameSystem")
-			if !k.IsSet() || !nampla.Coords.SamePlanet(k) {
+			if !k.IsSet() || !nampla.Planet.Coords.SamePlanet(k) {
 				continue
 			}
 			planet := s.GetNamedPlanetAt(ship.UnloadingPoint)
@@ -320,16 +320,16 @@ func GenerateProductionOrders(w io.Writer, s *SpeciesData, ignore_field_distorte
 			if ship.Coords.Orbit == 99 {
 				continue
 			}
-			if ship.Coords.X != nampla.Coords.X {
+			if ship.Coords.X != nampla.Planet.Coords.X {
 				continue
 			}
-			if ship.Coords.Y != nampla.Coords.Y {
+			if ship.Coords.Y != nampla.Planet.Coords.Y {
 				continue
 			}
-			if ship.Coords.Z != nampla.Coords.Z {
+			if ship.Coords.Z != nampla.Planet.Coords.Z {
 				continue
 			}
-			if ship.Coords.Orbit != nampla.Coords.Orbit {
+			if ship.Coords.Orbit != nampla.Planet.Coords.Orbit {
 				continue
 			}
 
@@ -355,7 +355,7 @@ func GenerateProductionOrders(w io.Writer, s *SpeciesData, ignore_field_distorte
 		nn := nampla.ItemQuantity[CU]
 		for _, ship := range s.Ships {
 			/* Get CUs on transports at planet. */
-			if !ship.Coords.SamePlanet(nampla.Coords) {
+			if !ship.Coords.SamePlanet(nampla.Planet.Coords) {
 				continue
 			}
 			nn += ship.ItemQuantity[CU]
@@ -381,7 +381,7 @@ func GenerateProductionOrders(w io.Writer, s *SpeciesData, ignore_field_distorte
 					continue
 				}
 				// TODO: what is so special about orbit 99
-				if temp_nampla.Coords.Orbit == 99 || !nampla.Coords.SameSystem(temp_nampla.Coords) {
+				if temp_nampla.Planet.Coords.Orbit == 99 || !nampla.Planet.Coords.SameSystem(temp_nampla.Planet.Coords) {
 					continue
 				}
 
@@ -439,16 +439,16 @@ func GenerateScanOrders(w io.Writer, s *SpeciesData) {
 			if ship.Dest.X == -1 {
 				break
 			}
-			if nampla.Coords.Orbit == 99 {
+			if nampla.Planet.Coords.Orbit == 99 {
 				continue
 			}
-			if nampla.Coords.X != ship.Dest.X {
+			if nampla.Planet.Coords.X != ship.Dest.X {
 				continue
 			}
-			if nampla.Coords.Y != ship.Dest.Y {
+			if nampla.Planet.Coords.Y != ship.Dest.Y {
 				continue
 			}
-			if nampla.Coords.Z != ship.Dest.Z {
+			if nampla.Planet.Coords.Z != ship.Dest.Z {
 				continue
 			}
 			if nampla.Status.Populated {

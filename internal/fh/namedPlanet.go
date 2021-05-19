@@ -34,11 +34,10 @@ const DISBANDED_COLONY = 64
 type NamedPlanetData struct {
 	ID           string            `json:"id"`
 	Name         string            /* Name of planet. */
-	Coords       Coords            `json:"coords"` // coordinates
+	Planet       *PlanetData       `json:"-"`
 	Status       NamedPlanetStatus `json:"status,omitempty"`
 	Hiding       bool              `json:"hide_order_give,omitempty"` /* HIDE order given. */
 	Hidden       bool              `json:"hidden,omitempty"`          /* Colony is hidden. */
-	PlanetIndex  int               /* Index (starting at zero) into the file "planets.dat" of this planet. */
 	SiegeEff     int               /* Siege effectiveness - a percentage between 0 and 99. */
 	Shipyards    int               /* Number of shipyards on planet. */
 	IUsNeeded    int               /* Incoming ship with only CUs on board. */
@@ -107,12 +106,12 @@ func (n *NamedPlanetData) Report(w io.Writer, s *SpeciesData, planet *PlanetData
 	}
 
 	fmt.Fprintf(w, ": PL %s", n.Name)
-	fmt.Fprintf(w, "\n   Coordinates: x = %d, y = %d, z = %d, planet number %d\n", n.Coords.X, n.Coords.Y, n.Coords.Z, n.Coords.Orbit)
+	fmt.Fprintf(w, "\n   Coordinates: x = %d, y = %d, z = %d, planet number %d\n", n.Planet.Coords.X, n.Planet.Coords.Y, n.Planet.Coords.Z, n.Planet.Coords.Orbit)
 
 	if n.Status.HomePlanet && n.MIBase+n.MABase < s.HPOriginalBase {
 		current_base := n.MIBase + n.MABase
 		cuNeeded := s.HPOriginalBase - current_base /* Number of CUs needed. */
-		md := s.Home.Planet.MiningDifficulty
+		md := s.Home.World.Planet.MiningDifficulty
 		denom := 100 + md
 		auNeeded := (100*(cuNeeded+n.MIBase) - (md * n.MABase) + denom/2) / denom
 		iuNeeded := cuNeeded - auNeeded
@@ -250,21 +249,21 @@ func (n *NamedPlanetData) Report(w io.Writer, s *SpeciesData, planet *PlanetData
 	var shipList []*ShipData
 	// Start with starbases
 	for _, ship := range ships {
-		if n.Coords.SamePlanet(ship.Coords) && ship.Class == BA {
+		if n.Planet.Coords.SamePlanet(ship.Coords) && ship.Class == BA {
 			shipList = append(shipList, ship)
 			ship.alreadyListed = true
 		}
 	}
 	// then transports
 	for _, ship := range ships {
-		if n.Coords.SamePlanet(ship.Coords) && ship.Class == TR {
+		if n.Planet.Coords.SamePlanet(ship.Coords) && ship.Class == TR {
 			shipList = append(shipList, ship)
 			ship.alreadyListed = true
 		}
 	}
 	// then everything else
 	for _, ship := range ships {
-		if n.Coords.SamePlanet(ship.Coords) && !ship.alreadyListed {
+		if n.Planet.Coords.SamePlanet(ship.Coords) && !ship.alreadyListed {
 			shipList = append(shipList, ship)
 			ship.alreadyListed = true
 		}

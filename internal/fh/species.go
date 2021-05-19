@@ -26,18 +26,21 @@ import (
 )
 
 type SpeciesData struct {
-	ID       string `json:"id"`
-	Number   int    `json:"number"`    // one-based index of species
-	Name     string `json:"name"`      // Name of species.
-	GovtName string `json:"govt_name"` // Name of government.
-	GovtType string `json:"govt_type"` // Type of government.
-	Home     struct {
-		Coords Coords      `json:"coords"`
-		System *StarData   `json:"-"`
-		Planet *PlanetData `json:"-"`
+	ID         string `json:"id"`
+	Number     int    `json:"number"` // one-based index of species
+	Name       string `json:"name"`   // Name of species.
+	Government struct {
+		Name string `json:"name"`
+		Type string `json:"type"`
+	} `json:"government"`
+	Home struct {
+		System *NamedSystem     `json:"system"`
+		World  *NamedPlanetData `json:"world"`
 	} `json:"home"`
-	HomeNampla string `json:"home_planet_id"`
-	Gases      struct {
+	NamedSystems []*NamedSystem     `json:"systems"`
+	NamedPlanets []*NamedPlanetData `json:"planets"`
+	Ships        []*ShipData        `json:"ships"`
+	Gases        struct {
 		Required struct {
 			Type GasType `json:"type"`
 			Min  int     `json:"min_pct"` // Minimum needed percentage.
@@ -46,25 +49,18 @@ type SpeciesData struct {
 		Neutral []GasType `json:"neutral"` // Gases neutral to species.
 		Poison  []GasType `json:"poison"`  // Gases poisonous to species.
 	} `json:"gases"`
-	AutoOrders       bool               // AUTO command was issued.
-	TechLevel        [6]int             // Actual tech levels.
-	InitTechLevel    [6]int             // Tech levels at start of turn.
-	TechKnowledge    [6]int             // Unapplied tech level knowledge.
-	NumNamplas       int                // Number of named planets, including home planet and colonies.
-	NamedPlanets     []*NamedPlanetData `json:"named_planets"`
-	Ships            []*ShipData        `json:"ships"`
-	NumShips         int                // Number of ships.
-	TechEps          [6]int             // Experience points for tech levels.
-	HPOriginalBase   int                // If non-zero, home planet was bombed either by bombardment or germ warfare and has not yet fully recovered. Value is total economic base before bombing.
-	EconUnits        int                // Number of economic units.
-	FleetCost        int                // Total fleet maintenance cost.
-	FleetPercentCost int                // Fleet maintenance cost as a percentage times one hundred.
-	Contact          []bool             // A bit is set if corresponding species has been met.
-	Ally             []bool             // A bit is set if corresponding species is considered an ally.
-	Enemy            []bool             // A bit is set if corresponding species is considered an enemy.
-	Translate        struct {
-		PlanetNameToID []string `json:"planet_name_to_id"`
-	} `json:"translate"`
+	AutoOrders       bool   // AUTO command was issued.
+	TechLevel        [6]int // Actual tech levels.
+	InitTechLevel    [6]int // Tech levels at start of turn.
+	TechKnowledge    [6]int // Unapplied tech level knowledge.
+	TechEps          [6]int // Experience points for tech levels.
+	HPOriginalBase   int    // If non-zero, home planet was bombed either by bombardment or germ warfare and has not yet fully recovered. Value is total economic base before bombing.
+	EconUnits        int    // Number of economic units.
+	FleetCost        int    // Total fleet maintenance cost.
+	FleetPercentCost int    // Fleet maintenance cost as a percentage times one hundred.
+	Contact          []bool // A bit is set if corresponding species has been met.
+	Ally             []bool // A bit is set if corresponding species is considered an ally.
+	Enemy            []bool // A bit is set if corresponding species is considered an enemy.
 }
 
 func (s *SpeciesData) AddNamedPlanet(nampla *NamedPlanetData) {
@@ -105,7 +101,10 @@ func (s *SpeciesData) GetNamedPlanet(name string) *NamedPlanetData {
 
 func (s *SpeciesData) GetNamedPlanetAt(c Coords) *NamedPlanetData {
 	for _, n := range s.NamedPlanets {
-		if n.Coords.SamePlanet(c) {
+		if n.Planet == nil {
+			panic(fmt.Sprintf("getNamedPlanetAt found nil nampla %q planet", n.Name))
+		}
+		if n.Planet.Coords.SamePlanet(c) {
 			return n
 		}
 	}
@@ -117,17 +116,17 @@ func (s *SpeciesData) LifeSupportNeeded(colony *PlanetData) int {
 	var ls_needed int
 
 	// temperature class
-	if colony.TemperatureClass < s.Home.Planet.TemperatureClass {
-		ls_needed += 3 * (s.Home.Planet.TemperatureClass - colony.TemperatureClass)
-	} else if colony.TemperatureClass > s.Home.Planet.TemperatureClass {
-		ls_needed += 3 * (colony.TemperatureClass - s.Home.Planet.TemperatureClass)
+	if colony.TemperatureClass < s.Home.World.Planet.TemperatureClass {
+		ls_needed += 3 * (s.Home.World.Planet.TemperatureClass - colony.TemperatureClass)
+	} else if colony.TemperatureClass > s.Home.World.Planet.TemperatureClass {
+		ls_needed += 3 * (colony.TemperatureClass - s.Home.World.Planet.TemperatureClass)
 	}
 
 	// pressure class
-	if colony.PressureClass < s.Home.Planet.PressureClass {
-		ls_needed += 3 * (s.Home.Planet.PressureClass - colony.PressureClass)
-	} else if colony.PressureClass > s.Home.Planet.PressureClass {
-		ls_needed += 3 * (colony.PressureClass - s.Home.Planet.PressureClass)
+	if colony.PressureClass < s.Home.World.Planet.PressureClass {
+		ls_needed += 3 * (s.Home.World.Planet.PressureClass - colony.PressureClass)
+	} else if colony.PressureClass > s.Home.World.Planet.PressureClass {
+		ls_needed += 3 * (colony.PressureClass - s.Home.World.Planet.PressureClass)
 	}
 
 	// check for required and poisonous gases on planet
@@ -193,7 +192,7 @@ func (s *SpeciesData) Report(w io.Writer, galaxyPath string, turnNumber int, tes
 	s.ReportDeclaredEnemies(w, otherSpecies)
 
 	s.ReportEconomicUnits(w)
-	s.ReportProducingPlanets(w, getPlanet)
+	s.ReportProducingPlanets(w)
 	headerPrinted := false
 	headerPrinted = s.ReportNonProducingPlanets(w, headerPrinted, ignore_field_distorters, truncate_name)
 	headerPrinted = s.ReportShipsNotOnPlanet(w, testMode, headerPrinted, ignore_field_distorters, truncate_name)
@@ -229,7 +228,7 @@ func (s *SpeciesData) ReportAliens(w io.Writer, locations []*SpeciesLocationData
 			var our_nampla *NamedPlanetData
 			for _, nampla := range s.NamedPlanets {
 				// TODO: what is so special about orbit 99?
-				if nampla.Coords.Orbit == 99 || !nampla.Coords.SameSystem(Coords{X: my_loc.X, Y: my_loc.Y, Z: my_loc.Z}) {
+				if nampla.Planet.Coords.Orbit == 99 || !nampla.Planet.Coords.SameSystem(Coords{X: my_loc.X, Y: my_loc.Y, Z: my_loc.Z}) {
 					continue
 				}
 				we_have_planet_here = true
@@ -239,7 +238,7 @@ func (s *SpeciesData) ReportAliens(w io.Writer, locations []*SpeciesLocationData
 
 			/* Print all inhabited alien namplas at this location. */
 			for _, alien_nampla := range alien.NamedPlanets {
-				if alien_nampla.Coords.Orbit == 99 || !alien_nampla.Coords.SameSystem(Coords{X: my_loc.X, Y: my_loc.Y, Z: my_loc.Z}) {
+				if alien_nampla.Planet.Coords.Orbit == 99 || !alien_nampla.Planet.Coords.SameSystem(Coords{X: my_loc.X, Y: my_loc.Y, Z: my_loc.Z}) {
 					continue
 				} else if !alien_nampla.Status.Populated {
 					continue
@@ -248,7 +247,7 @@ func (s *SpeciesData) ReportAliens(w io.Writer, locations []*SpeciesLocationData
 				/* Check if current species has a colony on the same planet. */
 				we_have_colony_here := false
 				for _, nampla := range s.NamedPlanets {
-					if !(nampla.Status.Populated && nampla.Coords.SamePlanet(alien_nampla.Coords)) {
+					if !(nampla.Status.Populated && nampla.Planet.Coords.SamePlanet(alien_nampla.Planet.Coords)) {
 						continue
 					}
 					we_have_colony_here = true
@@ -282,7 +281,7 @@ func (s *SpeciesData) ReportAliens(w io.Writer, locations []*SpeciesLocationData
 					temp1 = fmt.Sprintf("%s", "Uncolonized planet")
 				}
 
-				temp2 := fmt.Sprintf("  %s PL %s (pl #%d)", temp1, alien_nampla.Name, alien_nampla.Coords.Orbit)
+				temp2 := fmt.Sprintf("  %s PL %s (pl #%d)", temp1, alien_nampla.Name, alien_nampla.Planet.Coords.Orbit)
 				n := 53 - len(temp2)
 				for j := 0; j < n; j++ {
 					temp2 += " "
@@ -333,7 +332,7 @@ func (s *SpeciesData) ReportAliens(w io.Writer, locations []*SpeciesLocationData
 				/* An alien ship cannot hide if it lands on the surface of a planet populated by the current species. */
 				alien_can_hide := true
 				for _, nampla := range s.NamedPlanets {
-					if !nampla.Coords.SamePlanet(alien_ship.Coords) {
+					if !nampla.Planet.Coords.SamePlanet(alien_ship.Coords) {
 						continue
 					}
 					if nampla.Status.Populated {
@@ -486,8 +485,8 @@ func (s *SpeciesData) ReportGases(w io.Writer) {
 func (s *SpeciesData) ReportHeader(w io.Writer, turnNumber int) {
 	fmt.Fprintf(w, "\n\t\t\t SPECIES STATUS\n\n\t\t\tSTART OF TURN %d\n\n", turnNumber)
 	fmt.Fprintf(w, "Species name: %s\n", s.Name)
-	fmt.Fprintf(w, "Government name: %s\n", s.GovtName)
-	fmt.Fprintf(w, "Government type: %s\n", s.GovtType)
+	fmt.Fprintf(w, "Government name: %s\n", s.Government.Name)
+	fmt.Fprintf(w, "Government type: %s\n", s.Government.Type)
 }
 
 // ReportIncludeLogFile copies the log file for the prior turn into the current report
@@ -504,9 +503,9 @@ func (s *SpeciesData) ReportIncludeLogFile(w io.Writer, galaxyPath string, turnN
 }
 
 // Print report for each producing planet
-func (s *SpeciesData) ReportProducingPlanets(w io.Writer, getPlanet func(Coords) *PlanetData) {
+func (s *SpeciesData) ReportProducingPlanets(w io.Writer) {
 	for _, nampla := range s.NamedPlanets {
-		if nampla.Coords.Orbit == 99 {
+		if nampla.Planet.Coords.Orbit == 99 {
 			continue
 		}
 		if nampla.MIBase == 0 && nampla.MABase == 0 && !nampla.Status.HomePlanet {
@@ -514,11 +513,10 @@ func (s *SpeciesData) ReportProducingPlanets(w io.Writer, getPlanet func(Coords)
 		}
 
 		// g.do_planet_report(nampla, ship1_base, species)
-		planet := getPlanet(nampla.Coords)
-		if planet == nil {
-			fmt.Printf("error: nampla %q %v returned nil\n", nampla.Name, nampla.Coords)
+		if nampla.Planet == nil {
+			fmt.Printf("error: nampla %q planet is nil\n", nampla.Name)
 		}
-		nampla.Report(w, s, getPlanet(nampla.Coords), s.Ships)
+		nampla.Report(w, s, nampla.Planet, s.Ships)
 	}
 }
 
@@ -526,7 +524,7 @@ func (s *SpeciesData) ReportProducingPlanets(w io.Writer, getPlanet func(Coords)
 func (s *SpeciesData) ReportNonProducingPlanets(w io.Writer, headerPrinted, ignore_field_distorters, truncate_name bool) bool {
 	// printingAlien := false
 	for _, nampla := range s.NamedPlanets {
-		if nampla.Coords.Orbit == 99 {
+		if nampla.Planet.Coords.Orbit == 99 {
 			continue
 		}
 		if nampla.MIBase > 0 || nampla.MABase > 0 || nampla.Status.HomePlanet {
@@ -538,7 +536,7 @@ func (s *SpeciesData) ReportNonProducingPlanets(w io.Writer, headerPrinted, igno
 			fmt.Fprintf(w, "\n\nOther planets and ships:\n\n")
 			headerPrinted = true
 		}
-		fmt.Fprintf(w, "%4d%3d%3d #%d\tPL %s", nampla.Coords.X, nampla.Coords.Y, nampla.Coords.Z, nampla.Coords.Orbit, nampla.Name)
+		fmt.Fprintf(w, "%4d%3d%3d #%d\tPL %s", nampla.Planet.Coords.X, nampla.Planet.Coords.Y, nampla.Planet.Coords.Z, nampla.Planet.Coords.Orbit, nampla.Name)
 
 		for j := 0; j < MAX_ITEMS; j++ {
 			if nampla.ItemQuantity[j] > 0 {
@@ -549,7 +547,7 @@ func (s *SpeciesData) ReportNonProducingPlanets(w io.Writer, headerPrinted, igno
 
 		/* Print any ships at this planet. */
 		for _, ship := range s.Ships {
-			if ship.alreadyListed || !ship.Coords.SamePlanet(nampla.Coords) {
+			if ship.alreadyListed || !ship.Coords.SamePlanet(nampla.Planet.Coords) {
 				continue
 			}
 			fmt.Fprintf(w, "\t\t%s", ship.GetName(ignore_field_distorters, truncate_name))

@@ -52,7 +52,9 @@ on all subsequent turns.`,
 			return fmt.Errorf("you must specify a valid path to read and create galaxy data in")
 		}
 		testMode, _ := cmd.Flags().GetBool("test")
+		fmt.Printf("[finish] %-30s == %v\n", "TEST_MODE", testMode)
 		verboseMode, _ := cmd.Flags().GetBool("verbose")
+		fmt.Printf("[finish] %-30s == %v\n", "VERBOSE_MODE", verboseMode)
 
 		game, err := fh.GetGame(galaxyPath)
 		if err != nil {

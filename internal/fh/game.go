@@ -82,7 +82,7 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_
 	_, _ = fmt.Fprintf(w, "Loaded %d transactions\n", len(transaction))
 
 	// Total economic base includes all of the colonies on the planet, not just the one species.
-	total_econ_base := make([]int, len(g.AllPlanets()), len(g.AllPlanets()))
+	total_econ_base := make(map[string]int)
 
 	// add mining difficulty increases for each planet, use the increase calcuated on the prior turn
 	for _, planet := range g.AllPlanets() {
@@ -102,7 +102,7 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_
 			ordersReceived = true
 		} else {
 			orders, err := ioutil.ReadFile(filepath.Join(turnPath, fmt.Sprintf("sp%02d.ord", species.Number)))
-			if err != nil && !errors.Is(err, os.ErrExist) {
+			if err != nil && !errors.Is(err, os.ErrNotExist) {
 				return err
 			}
 			ordersReceived = err == nil && len(orders) != 0
@@ -195,7 +195,7 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_
 				/* Salvage ships on the surface and starbases in orbit. */
 				salvage_EUs := 0
 				for _, ship := range species.Ships {
-					if !nampla.Coords.SameSystem(ship.Coords) {
+					if !nampla.Planet.Coords.SameSystem(ship.Coords) {
 						continue
 					}
 					if ship.Status.InOrbit && ship.Type != STARBASE {
@@ -560,12 +560,12 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_
 		/* Loop through each nampla for this species. */
 		if check.loopNamedPlanets {
 			for _, nampla := range species.NamedPlanets {
-				if nampla.Coords.Orbit == 99 {
+				if nampla.Planet.Coords.Orbit == 99 {
 					continue
 				}
 
 				/* Get planet pointer. */
-				planet := g.GetPlanet(nampla.Coords)
+				planet := g.GetPlanet(nampla.Planet.Coords)
 				if planet == nil {
 					panic("assert(planet != nil)")
 				}
@@ -591,7 +591,7 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_
 				/* Check if another species on the same planet has become
 				 *  assimilated. */
 				for _, t := range transaction {
-					if !(t.Type == ASSIMILATION && t.Value == species.Number && nampla.Coords.SamePlanet(Coords{t.X, t.Y, t.Z, t.PN})) {
+					if !(t.Type == ASSIMILATION && t.Value == species.Number && nampla.Planet.Coords.SamePlanet(Coords{t.X, t.Y, t.Z, t.PN})) {
 						continue
 					}
 					if !header_printed {
@@ -687,7 +687,7 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_
 							change = 0
 						}
 
-						if nampla.MABase > 0 && nampla.MIBase == 0 && ls_needed <= 6 && planet.Gravity <= species.Home.Planet.Gravity {
+						if nampla.MABase > 0 && nampla.MIBase == 0 && ls_needed <= 6 && planet.Gravity <= species.Home.World.Planet.Gravity {
 							nampla.Status.ResortColony = true
 							change = 0
 						} else if nampla.Status.ResortColony {
@@ -788,7 +788,7 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_
 
 				/* Update total economic base for colonies. */
 				if !nampla.Status.HomePlanet {
-					total_econ_base[nampla.PlanetIndex] += nampla.MIBase + nampla.MABase
+					total_econ_base[nampla.Planet.Coords.String()] = total_econ_base[nampla.Planet.Coords.String()] + nampla.MIBase + nampla.MABase
 				}
 			}
 		}
@@ -946,13 +946,13 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_
 	}
 
 	// S10.9 - calculate economic efficiency for each planet
-	for i, planet := range g.AllPlanets() {
-		excess := total_econ_base[i] - 2000
+	for _, planet := range g.AllPlanets() {
+		excess := total_econ_base[planet.Coords.String()] - 2000
 		if excess <= 0 {
 			planet.EconEfficiency = 100
 			continue
 		}
-		planet.EconEfficiency = (100 * (excess/20 + 2000)) / total_econ_base[i]
+		planet.EconEfficiency = (100 * (excess/20 + 2000)) / total_econ_base[planet.Coords.String()]
 	}
 
 	/* Create new locations array. */
@@ -1054,7 +1054,7 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_
 			total_species_production := 0
 			for _, nampla := range species.NamedPlanets {
 
-				if nampla.Coords.Orbit == 99 {
+				if nampla.Planet.Coords.Orbit == 99 {
 					continue
 				}
 				if nampla.Status.DisbandedColony {
@@ -1062,7 +1062,7 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_
 				}
 
 				/* Get planet pointer. */
-				planet := g.GetPlanet(nampla.Coords)
+				planet := nampla.Planet
 				if planet == nil {
 					panic("assert(planet != nil)")
 				}

@@ -37,12 +37,12 @@ func DoLocations(g *GalaxyData) []*SpeciesLocationData {
 	for _, species := range g.AllSpecies() {
 		for _, nampla := range species.NamedPlanets {
 			// TODO: what is special about 99?
-			if nampla.Coords.Orbit == 99 {
+			if nampla.Planet.Coords.Orbit == 99 {
 				continue
 			}
 
 			if nampla.Status.Populated {
-				locations = AddLocation(locations, species.Number, nampla.Coords)
+				locations = AddLocation(locations, species.Number, nampla.Planet.Coords)
 			}
 		}
 
