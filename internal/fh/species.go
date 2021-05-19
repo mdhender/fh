@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"path"
+	"path/filepath"
 )
 
 type SpeciesData struct {
@@ -492,7 +492,7 @@ func (s *SpeciesData) ReportHeader(w io.Writer, turnNumber int) {
 
 // ReportIncludeLogFile copies the log file for the prior turn into the current report
 func (s *SpeciesData) ReportIncludeLogFile(w io.Writer, galaxyPath string, turnNumber int) {
-	log_file, err := ioutil.ReadFile(path.Join(galaxyPath, fmt.Sprintf("sp%02d.log", s.Number)))
+	log_file, err := ioutil.ReadFile(filepath.Join(galaxyPath, fmt.Sprintf("sp%02d.log", s.Number)))
 	if err != nil {
 		return
 	}
@@ -514,6 +514,10 @@ func (s *SpeciesData) ReportProducingPlanets(w io.Writer, getPlanet func(Coords)
 		}
 
 		// g.do_planet_report(nampla, ship1_base, species)
+		planet := getPlanet(nampla.Coords)
+		if planet == nil {
+			fmt.Printf("error: nampla %q %v returned nil\n", nampla.Name, nampla.Coords)
+		}
 		nampla.Report(w, s, getPlanet(nampla.Coords), s.Ships)
 	}
 }

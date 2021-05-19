@@ -40,8 +40,8 @@ type StarData struct {
 	Planets      []*PlanetData
 }
 
-func GenerateStar(x, y, z, nSpecies int) (*StarData, error) {
-	fmt.Printf("Generating star (%3d, %3d, %3d)\n", x, y, z)
+func GenerateStar(lg Loggy, x, y, z, nSpecies int) (*StarData, error) {
+	lg.Log("Generating star (%3d, %3d, %3d)\n", x, y, z)
 
 	/* Set coordinates. */
 	xyz := Coords{x, y, z, 0}
@@ -132,7 +132,7 @@ func GenerateStar(x, y, z, nSpecies int) (*StarData, error) {
 		star.NumPlanets -= rnd(3)
 	}
 
-	fmt.Printf("Generating star (%3d, %3d, %3d) (type %-13s) (planets %d)\n", x, y, z, star.Type, star.NumPlanets)
+	lg.Log("Generating star (%3d, %3d, %3d) (type %-13s) (planets %d)\n", x, y, z, star.Type, star.NumPlanets)
 
 	// generate planets
 	var err error

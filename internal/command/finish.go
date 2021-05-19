@@ -23,7 +23,7 @@ import (
 	"github.com/mdhender/fh/internal/fh"
 	"github.com/mdhender/fh/internal/prng"
 	"os"
-	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -54,30 +54,26 @@ on all subsequent turns.`,
 		testMode, _ := cmd.Flags().GetBool("test")
 		verboseMode, _ := cmd.Flags().GetBool("verbose")
 
-		g, err := fh.GetGalaxy(path.Join(galaxyPath, "galaxy.json"))
-		if err != nil {
-			return err
-		}
-		tn := g.TurnNumber
-
-		logFile, err := os.Create(path.Join(galaxyPath, fmt.Sprintf("t%06d-finish.log", g.TurnNumber)))
+		game, err := fh.GetGame(galaxyPath)
 		if err != nil {
 			return err
 		}
 
-		err = g.Finish(logFile, galaxyPath, verboseMode, testMode)
+		turnPath := filepath.Join(galaxyPath, game.TurnDir())
+		fmt.Printf("[finish] all output will be created in %s\n", turnPath)
+
+		logFile, err := os.Create(filepath.Join(turnPath, "finish.log"))
 		if err != nil {
 			return err
 		}
 
-		g.TurnNumber = tn
-		fmt.Printf("warning: forcing turn number back to %d\n", tn)
-		err = g.Write(path.Join(galaxyPath, "galaxy.json"))
+		err = game.Finish(logFile, galaxyPath, testMode, verboseMode)
 		if err != nil {
+			panic(err)
 			return err
 		}
 
-		fmt.Printf("Finished file %q in %v\n", path.Join(galaxyPath, "galaxy.json"), time.Now().Sub(started))
+		fmt.Printf("Finished file %q in %v\n", filepath.Join(galaxyPath, game.TurnDir(), "galaxy.json"), time.Now().Sub(started))
 		return nil
 	},
 }

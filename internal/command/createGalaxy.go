@@ -24,7 +24,8 @@ import (
 	"github.com/mdhender/fh/internal/prng"
 	"github.com/spf13/cobra"
 	"os"
-	"path"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -38,19 +39,57 @@ configuration file, then creates a new galaxy file.`,
 		started := time.Now()
 		prng.Seed(0x00C0FFEE) // seed random number generator
 
+		startupPath, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("unable to determine startup path: %w", err)
+		}
+		startupPath = filepath.Clean(startupPath)
+		fmt.Printf("[create] %-30s == %q\n", "STARTUP_PATH", startupPath)
+
+		setupFile, err := cmd.Flags().GetString("setup-file")
+		if err != nil {
+			return err
+		} else if setupFile == "" {
+			return fmt.Errorf("you must specify a valid setup file name")
+		}
+		fmt.Printf("[create] %-30s == %q\n", "SETUP_FILE", setupFile)
+		// try to use the location of the setup file to get a default path for the galaxy
+		setupPath, file := filepath.Split(setupFile)
+		if err = os.Chdir(setupPath); err != nil {
+			return fmt.Errorf("unable to set def to setup path: %w", err)
+		} else if setupPath, err = os.Getwd(); err != nil {
+			return fmt.Errorf("unable to determine setup path: %w", err)
+		}
+		setupPath = filepath.Clean(setupPath)
+		fmt.Printf("[create] %-30s == %q\n", "SETUP_PATH", setupPath)
+		setupFile = filepath.Join(setupPath, file)
+		fmt.Printf("[create] %-30s == %q\n", "SETUP_FILE", setupFile)
+
+		// return to the startup directory because???
+		if err = os.Chdir(startupPath); err != nil {
+			return fmt.Errorf("unable to set def to startup path: %w", err)
+		}
+
+		setupData, err := fh.GetSetup(setupPath, setupFile)
+		if err != nil {
+			return err
+		}
+
 		galaxyPath, err := cmd.Flags().GetString("galaxy-path")
 		if err != nil {
 			return err
+		} else if galaxyPath != strings.TrimSpace(galaxyPath) {
+			return fmt.Errorf("galaxy-path can't have leading or trailing spaces")
 		} else if galaxyPath == "" {
-			return fmt.Errorf("you must specify a valid path to read and create galaxy data in")
+			galaxyPath = setupData.Galaxy.Path
+		} else {
+			fmt.Printf("[create] %-30s == %q\n", "GALAXY_PATH", galaxyPath)
 		}
 
-		logFile, err := os.Create(path.Join(galaxyPath, "create-galaxy.log"))
-		if err != nil {
-			return err
-		}
+		game := &fh.GameData{}
+		outputPath := filepath.Join(galaxyPath, game.TurnDir())
 
-		setupData, err := fh.GetSetup(path.Join(galaxyPath, "setup.json"))
+		logFile, err := os.Create(filepath.Join(outputPath, "create.log"))
 		if err != nil {
 			return err
 		}
@@ -72,6 +111,7 @@ configuration file, then creates a new galaxy file.`,
 		}
 
 		// skip ListGalaxy step in setup_game.py
+		fmt.Printf("[create] skipping ListGalaxy step from setup_game.py\n")
 
 		// create home planets from the templates
 		for i, player := range setupData.Players {
@@ -79,24 +119,34 @@ configuration file, then creates a new galaxy file.`,
 			spec.Number = i + 1
 			spec.Name = player.SpeciesName
 			g.AddSpecies(spec)
-			err = g.AddHomePlanets(logFile, galaxyPath, setupData, &player, spec)
+			err = g.AddHomePlanets(logFile, galaxyPath, outputPath, setupData, &player, spec)
 			if err != nil {
 				return err
 			}
 		}
 
-		err = g.Write(path.Join(galaxyPath, "galaxy.json"))
+		gameFile := filepath.Join(galaxyPath, "game.json")
+		err = game.Write(gameFile)
 		if err != nil {
 			return err
 		}
+		_, _ = fmt.Fprintf(logFile, "Created file %q, turn number %d\n", gameFile, game.CurrentTurn)
 
-		_, _ = fmt.Fprintf(logFile, "Created file %q in %v\n", path.Join(galaxyPath, "galaxy.json"), time.Now().Sub(started))
+		galaxyFile := filepath.Join(outputPath, "galaxy.json")
+		err = g.Write(galaxyFile)
+		if err != nil {
+			return err
+		}
+		_, _ = fmt.Fprintf(logFile, "Created file %q in %v\n", galaxyFile, time.Now().Sub(started))
+
 		return nil
 	},
 }
 
 func init() {
 	createCmd.AddCommand(createGalaxyCmd)
-	createGalaxyCmd.Flags().StringP("galaxy-path", "g", "", "path to galaxy data")
-	_ = createGalaxyCmd.MarkFlagRequired("galaxy-path")
+	createGalaxyCmd.Flags().StringP("setup-file", "s", "", "configuration file name")
+	_ = createGalaxyCmd.MarkFlagRequired("setup-file")
+	createGalaxyCmd.Flags().StringP("galaxy-path", "g", "", "path to create galaxy in")
+	createGalaxyCmd.Flags().Int("initial-turn-number", 0, "initial turn number (for development use only)")
 }

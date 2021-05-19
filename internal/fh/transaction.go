@@ -23,7 +23,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 )
 
 /* Interspecies transactions. */
@@ -69,7 +69,7 @@ type TransactionData struct {
 
 func GetTransactionData(galaxyPath string) ([]*TransactionData, error) {
 	// read transactions from file
-	data, err := ioutil.ReadFile(path.Join(galaxyPath, "interspecies.json"))
+	data, err := ioutil.ReadFile(filepath.Join(galaxyPath, "interspecies.json"))
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return nil, nil

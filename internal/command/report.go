@@ -23,7 +23,7 @@ import (
 	"github.com/mdhender/fh/internal/fh"
 	"github.com/mdhender/fh/internal/prng"
 	"os"
-	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -44,29 +44,43 @@ var reportCmd = &cobra.Command{
 		} else if galaxyPath == "" {
 			return fmt.Errorf("you must specify a valid path to read and create galaxy data in")
 		}
+
+		currentTurn, _ := cmd.Flags().GetBool("current-turn")
 		testMode, _ := cmd.Flags().GetBool("test")
-		fmt.Printf("[report] test    %v\n", testMode)
+		fmt.Printf("[report] %-30s == %v\n", "TEST_MODE", testMode)
 		verboseMode, _ := cmd.Flags().GetBool("verbose")
-		fmt.Printf("[report] verbose %v\n", verboseMode)
+		fmt.Printf("[report] %-30s == %v\n", "VERBOSE_MODE", verboseMode)
 
-		g, err := fh.GetGalaxy(path.Join(galaxyPath, "galaxy.json"))
-		if err != nil {
-			return err
-		}
-		err = g.Report(os.Args, galaxyPath, testMode, verboseMode)
+		game, err := fh.GetGame(galaxyPath)
 		if err != nil {
 			return err
 		}
 
-		fmt.Printf("Finished report in %v\n", time.Now().Sub(started))
+		if !currentTurn {
+			game.CurrentTurn--
+		}
+
+		turnPath := filepath.Join(galaxyPath, game.TurnDir())
+		fmt.Printf("[report] %-30s == %q\n", "TURN_PATH", turnPath)
+		outputPath := turnPath
+		fmt.Printf("[report] %-30s == %q\n", "OUTPUT_PATH", outputPath)
+
+		err = game.Report(os.Args, galaxyPath, testMode, verboseMode)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("[report] Finished report in %v\n", time.Now().Sub(started))
 		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(reportCmd)
-	reportCmd.Flags().BoolP("test", "t", false, "enable test mode")
-	reportCmd.Flags().BoolP("verbose", "v", false, "enable verbose mode")
 	reportCmd.Flags().StringP("galaxy-path", "g", "", "path to galaxy data")
 	_ = reportCmd.MarkFlagRequired("galaxy-path")
+	reportCmd.Flags().Bool("current-turn", false, "report on current turn (default is prior turn)")
+	reportCmd.Flags().Int("turn", 0, "report on specified turn")
+	reportCmd.Flags().BoolP("test", "t", false, "enable test mode")
+	reportCmd.Flags().BoolP("verbose", "v", false, "enable verbose mode")
 }

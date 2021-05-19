@@ -23,7 +23,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"path"
+	"path/filepath"
 )
 
 type Logger struct {
@@ -63,7 +63,7 @@ func (l *Logger) Char(ch byte) {
 		l.Puts(front)
 
 		// copy overflow word to beginning of next line
-		l.Line = rest
+		copy(l.Line, rest)
 		l.Position = l.Indentation + 2 // why do we add 2 here?
 		for i := 0; i < l.Position; i++ {
 			l.Line[i] = ' '
@@ -161,7 +161,7 @@ func (l *Logger) String(s string) {
 }
 
 func GetMessage(galaxyPath string, n int) (string, error) {
-	name := path.Join(galaxyPath, fmt.Sprintf("m%06d.msg", n))
+	name := filepath.Join(galaxyPath, fmt.Sprintf("m%06d.msg", n))
 	// open message file
 	data, err := ioutil.ReadFile(name)
 	if err != nil {

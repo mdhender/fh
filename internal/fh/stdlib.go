@@ -18,7 +18,11 @@
 
 package fh
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+	"unicode"
+)
 
 /* This routine is intended to take a long argument and return a pointer to a string that has embedded commas to make the string more readable. */
 func Commas(value int) string {
@@ -47,4 +51,22 @@ func Commas(value int) string {
 		dst[0] = '-'
 	}
 	return string(dst)
+}
+
+func IsValidName(name string) error {
+	if name != strings.TrimSpace(name) {
+		return fmt.Errorf("name can't have leading or trailing spaces")
+	} else if name == "" {
+		return fmt.Errorf("name can't be blank")
+	}
+	for _, ch := range name {
+		if !(unicode.IsLetter(ch) || unicode.IsDigit(ch) || unicode.IsSpace(ch) || ch == '.' || ch == '\'' || ch == '-') {
+			return fmt.Errorf("invalid character %q in name", string(ch))
+		}
+	}
+	return nil
+}
+
+type Loggy interface {
+	Log(format string, a ...interface{})
 }
