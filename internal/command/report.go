@@ -38,20 +38,15 @@ var reportCmd = &cobra.Command{
 		started := time.Now()
 		prng.Seed(0x00C0FFEE) // seed random number generator
 
-		galaxyPath, err := cmd.Flags().GetString("galaxy-path")
-		if err != nil {
-			return err
-		} else if galaxyPath == "" {
-			return fmt.Errorf("you must specify a valid path to read and create galaxy data in")
+		currentTurn, _ := cmd.Flags().GetBool("current-turn")
+		turn, _ := cmd.Flags().GetInt("turn")
+		if verbose {
+			fmt.Printf("[report] %-30s == %v\n", "CURRENT_TURN", currentTurn)
+			fmt.Printf("[report] %-30s == %d\n", "TURN", turn)
+			fmt.Printf("[report] %-30s == %v\n", "VERBOSE_MODE", verbose)
 		}
 
-		currentTurn, _ := cmd.Flags().GetBool("current-turn")
-		testMode, _ := cmd.Flags().GetBool("test")
-		fmt.Printf("[report] %-30s == %v\n", "TEST_MODE", testMode)
-		verboseMode, _ := cmd.Flags().GetBool("verbose")
-		fmt.Printf("[report] %-30s == %v\n", "VERBOSE_MODE", verboseMode)
-
-		game, err := fh.GetGame(galaxyPath)
+		game, err := fh.GetGame(galaxyPath, verbose)
 		if err != nil {
 			return err
 		}
@@ -65,7 +60,7 @@ var reportCmd = &cobra.Command{
 		outputPath := turnPath
 		fmt.Printf("[report] %-30s == %q\n", "OUTPUT_PATH", outputPath)
 
-		err = game.Report(os.Args, galaxyPath, testMode, verboseMode)
+		err = game.Report(os.Args, galaxyPath, testMode, verbose)
 		if err != nil {
 			return err
 		}
@@ -77,10 +72,6 @@ var reportCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(reportCmd)
-	reportCmd.Flags().StringP("galaxy-path", "g", "", "path to galaxy data")
-	_ = reportCmd.MarkFlagRequired("galaxy-path")
 	reportCmd.Flags().Bool("current-turn", false, "report on current turn (default is prior turn)")
 	reportCmd.Flags().Int("turn", 0, "report on specified turn")
-	reportCmd.Flags().BoolP("test", "t", false, "enable test mode")
-	reportCmd.Flags().BoolP("verbose", "v", false, "enable verbose mode")
 }

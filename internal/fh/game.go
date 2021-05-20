@@ -27,15 +27,23 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 type GameData struct {
 	CurrentTurn int `json:"current_turn"`
 }
 
-func GetGame(galaxyPath string) (*GameData, error) {
+func GetGame(galaxyPath string, verbose bool) (*GameData, error) {
+	if galaxyPath == "" {
+		return nil, fmt.Errorf("galaxy-path can't be empty")
+	} else if galaxyPath != strings.TrimSpace(galaxyPath) {
+		return nil, fmt.Errorf("galaxy-path can't have leading or trailing spaces")
+	}
 	file := filepath.Join(galaxyPath, "game.json")
-	fmt.Printf("[game] loading game data from %q\n", file)
+	if verbose {
+		fmt.Printf("[game] loading game data from %q\n", file)
+	}
 
 	data, err := ioutil.ReadFile(file)
 	if err != nil {

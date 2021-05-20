@@ -28,6 +28,9 @@ import (
 )
 
 var cfgFile string
+var galaxyPath string
+var testMode bool
+var verbose bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -50,10 +53,13 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here, will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.fh.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "~/.fh.yaml", "config file")
+	rootCmd.PersistentFlags().StringVarP(&galaxyPath, "galaxy-path", "g", ".", "path containing game.json file")
+	rootCmd.PersistentFlags().BoolVarP(&testMode, "test", "t", false, "test command")
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 
-	// Cobra also supports local flags, which will only run when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	//// Cobra also supports local flags, which will only run when this action is called directly.
+	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.

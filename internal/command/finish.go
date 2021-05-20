@@ -45,31 +45,27 @@ on all subsequent turns.`,
 		started := time.Now()
 		prng.Seed(0x00C0FFEE) // seed random number generator
 
-		galaxyPath, err := cmd.Flags().GetString("galaxy-path")
-		if err != nil {
-			return err
-		} else if galaxyPath == "" {
-			return fmt.Errorf("you must specify a valid path to read and create galaxy data in")
+		if verbose {
+			fmt.Printf("[finish] %-30s == %v\n", "TEST_MODE", testMode)
+			fmt.Printf("[finish] %-30s == %v\n", "VERBOSE_MODE", verbose)
 		}
-		testMode, _ := cmd.Flags().GetBool("test")
-		fmt.Printf("[finish] %-30s == %v\n", "TEST_MODE", testMode)
-		verboseMode, _ := cmd.Flags().GetBool("verbose")
-		fmt.Printf("[finish] %-30s == %v\n", "VERBOSE_MODE", verboseMode)
 
-		game, err := fh.GetGame(galaxyPath)
+		game, err := fh.GetGame(galaxyPath, verbose)
 		if err != nil {
 			return err
 		}
 
 		turnPath := filepath.Join(galaxyPath, game.TurnDir())
-		fmt.Printf("[finish] all output will be created in %s\n", turnPath)
+		if verbose {
+			fmt.Printf("[finish] all output will be created in %s\n", turnPath)
+		}
 
 		logFile, err := os.Create(filepath.Join(turnPath, "finish.log"))
 		if err != nil {
 			return err
 		}
 
-		err = game.Finish(logFile, galaxyPath, testMode, verboseMode)
+		err = game.Finish(logFile, galaxyPath, testMode, verbose)
 		if err != nil {
 			panic(err)
 			return err
@@ -82,8 +78,4 @@ on all subsequent turns.`,
 
 func init() {
 	rootCmd.AddCommand(finishCmd)
-	finishCmd.Flags().BoolP("test", "t", false, "enable test mode")
-	finishCmd.Flags().BoolP("verbose", "v", false, "enable verbose mode")
-	finishCmd.Flags().StringP("galaxy-path", "g", "", "path to galaxy data")
-	_ = finishCmd.MarkFlagRequired("galaxy-path")
 }
