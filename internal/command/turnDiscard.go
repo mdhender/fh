@@ -29,13 +29,13 @@ import (
 var turnDiscardCmd = &cobra.Command{
 	Use:   "discard",
 	Short: "Discard the current turn",
-	Long: `This commands discards the current turn by decrementing
+	Long: `This command discards the current turn by decrementing
 the turn number in the game.json file. It does not delete
 any data files. If the current turn is less than 1, then
 it is set to 0, which is the setup turn.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if verbose {
-			fmt.Printf("[turn] GALAXY_PATH == %q\n", galaxyPath)
+			fmt.Printf("[turn] %-30s == %q\n", "GALAXY_PATH", galaxyPath)
 		}
 		game, err := fh.GetGame(galaxyPath, verbose)
 		if err != nil {

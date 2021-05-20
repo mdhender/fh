@@ -45,6 +45,13 @@ var reportCmd = &cobra.Command{
 			fmt.Printf("[report] %-30s == %d\n", "TURN", turn)
 			fmt.Printf("[report] %-30s == %v\n", "VERBOSE_MODE", verbose)
 		}
+		if currentTurn && turn != 0 {
+			return fmt.Errorf("you must not specify both --current-turn and --turn")
+		} else if turn != 0 {
+			if turn < 1 || turn > 999999 {
+				return fmt.Errorf("turn must be between 1 and 999999")
+			}
+		}
 
 		game, err := fh.GetGame(galaxyPath, verbose)
 		if err != nil {
@@ -53,19 +60,29 @@ var reportCmd = &cobra.Command{
 
 		if !currentTurn {
 			game.CurrentTurn--
+		} else if turn != 0 {
+			game.CurrentTurn = turn
+		}
+		if game.CurrentTurn < 0 {
+			game.CurrentTurn = 0
+		}
+		if verbose {
+			fmt.Printf("[report] %-30s == %q\n", "REPORT_TURN", game.CurrentTurn)
 		}
 
 		turnPath := filepath.Join(galaxyPath, game.TurnDir())
-		fmt.Printf("[report] %-30s == %q\n", "TURN_PATH", turnPath)
 		outputPath := turnPath
-		fmt.Printf("[report] %-30s == %q\n", "OUTPUT_PATH", outputPath)
+		if verbose {
+			fmt.Printf("[report] %-30s == %q\n", "TURN_PATH", turnPath)
+			fmt.Printf("[report] %-30s == %q\n", "OUTPUT_PATH", outputPath)
+		}
 
 		err = game.Report(os.Args, galaxyPath, testMode, verbose)
 		if err != nil {
 			return err
 		}
 
-		fmt.Printf("[report] Finished report in %v\n", time.Now().Sub(started))
+		fmt.Printf("Finished report in %v\n", time.Now().Sub(started))
 		return nil
 	},
 }
