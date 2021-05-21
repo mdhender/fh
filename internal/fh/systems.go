@@ -55,13 +55,13 @@ func GetSystems(inputPath string, isVerbose bool) (map[string]*StarData, error) 
 	stars := make(map[string]*StarData)
 	for _, system := range systems {
 		star := &StarData{
-			ID: system.ID,
-			Coords: system.Coords,
-			Type: system.Type,
-			Color: system.Color,
-			Size: system.Size,
+			ID:       system.ID,
+			Coords:   system.Coords,
+			Type:     system.Type,
+			Color:    system.Color,
+			Size:     system.Size,
 			WormHere: system.Wormhole != nil,
-			Message: system.Message,
+			Message:  system.Message,
 		}
 		if star.WormHere {
 			star.WormCoords = Coords{X: system.Coords.X, Y: system.Coords.Y, Z: system.Coords.Z}

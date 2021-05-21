@@ -26,6 +26,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 )
 
 type GalaxyData struct {
@@ -745,11 +746,117 @@ func (g *GalaxyData) Scan(w io.Writer, c Coords) error {
 }
 
 func (g *GalaxyData) Write(outputPath string, isVerbose bool) error {
+	type Ship struct {
+		Species string `json:"species"`
+		Name    string `json:"name"`
+	}
+	type Planet struct {
+		Orbit                    int               `json:"orbit"`
+		Density                  int               `json:"density"`
+		Diameter                 int               `json:"diameter"`
+		EconomicEfficiency       int               `json:"economic_efficiency"`
+		Gases                    []*GasData        `json:"atmosphere,omitempty"`
+		Gravity                  int               `json:"gravity"`
+		Message                  int               `json:"message_id,omitempty"`
+		MiningDifficulty         int               `json:"mining_difficulty"`
+		MiningDifficultyIncrease int               `json:"mining_difficulty_increase,omitempty"`
+		PressureClass            int               `json:"pressure_class"`
+		Special                  PlanetSpecialType `json:"special,omitempty"`
+		TemperatureClass         int               `json:"temperature_class"`
+		Ships                    []*Ship           `json:"ships,omitempty"`
+	}
+	type System struct {
+		key                 int
+		Coords              string    `json:"coords"`
+		Message             int       `json:"message_id,omitempty"`
+		PotentialHomeSystem bool      `json:"potential_home_system,omitempty"`
+		Planets             []*Planet `json:"planets,omitempty"`
+		VisitedBy []string `json:"visited_by,omitempty"`
+	}
+	type Wormhole struct {
+		key    int
+		Coords string `json:"coords"`
+		Exit   string `json:"exit"`
+	}
+	var galaxy struct {
+		ID        string      `json:"id"`
+		Name      string      `json:"name"`
+		Radius    int         `json:"radius"`
+		Species   []string    `json:"species"`
+		Systems   []*System   `json:"systems"`
+		Wormholes []*Wormhole `json:"wormholes"`
+	}
+	galaxy.ID = g.ID
+	galaxy.Name = g.Name
+	galaxy.Radius = g.Radius
+
+	// assume that AllSpecies returns a sorted list
+	for _, s := range g.AllSpecies() {
+		galaxy.Species = append(galaxy.Species, s.Name)
+	}
+
+	for _, star := range g.AllStars() {
+		system := &System{key: star.Coords.SystemID(), Coords: star.Coords.String()}
+		if star.WormHere {
+			if star.WormCoords.X == 0 && star.WormCoords.Y == 0 && star.WormCoords.Z == 0 {
+				fmt.Printf("internal error: star %q has invalid WormHere\n", star.ID)
+			}
+			galaxy.Wormholes = append(galaxy.Wormholes, &Wormhole{
+				key:    star.Coords.SystemID(),
+				Coords: star.Coords.String(),
+				Exit:   star.WormCoords.String(),
+			})
+		}
+		for i, p := range star.Planets {
+			planet := &Planet{
+				Orbit:                    p.Coords.Orbit,
+				Density:                  p.Density,
+				Diameter:                 p.Diameter,
+				EconomicEfficiency:       p.EconEfficiency,
+				Gases:                    p.Gases,
+				Gravity:                  p.Gravity,
+				Message:                  p.Message,
+				MiningDifficulty:         p.MiningDifficulty,
+				MiningDifficultyIncrease: p.MDIncrease,
+				PressureClass:            p.PressureClass,
+				Special:                  p.Special,
+				TemperatureClass:         p.TemperatureClass,
+			}
+			if planet.Orbit != i+1 {
+				fmt.Printf("internal error: planet %q has invalid orbit: expected %d: got %d\n", p.ID, i+1, p.Coords.Orbit)
+				planet.Orbit = i + 1
+			}
+			system.PotentialHomeSystem = system.PotentialHomeSystem || p.Special == IDEAL_HOME_PLANET || p.Special == IDEAL_COLONY_PLANET
+			system.Planets = append(system.Planets, planet)
+		}
+		for species, ok := range star.VisitedBy {
+			if ok {
+				system.VisitedBy = append(system.VisitedBy, species)
+			}
+		}
+		sort.Strings(system.VisitedBy)
+		galaxy.Systems = append(galaxy.Systems, system)
+	}
+	for i := 0; i < len(galaxy.Systems); i++ {
+		for j := i + 1; j < len(galaxy.Systems); j++ {
+			if galaxy.Systems[i].key > galaxy.Systems[j].key {
+				galaxy.Systems[i], galaxy.Systems[j] = galaxy.Systems[j], galaxy.Systems[i]
+			}
+		}
+	}
+	for i := 0; i < len(galaxy.Wormholes); i++ {
+		for j := i + 1; j < len(galaxy.Wormholes); j++ {
+			if galaxy.Wormholes[i].key > galaxy.Wormholes[j].key {
+				galaxy.Wormholes[i], galaxy.Wormholes[j] = galaxy.Wormholes[j], galaxy.Wormholes[i]
+			}
+		}
+	}
+
 	galaxyFile := filepath.Join(outputPath, "galaxy.json")
 	if isVerbose {
 		fmt.Printf("[galaxy] %-30s == %q\n", "GALAXY_FILE", galaxyFile)
 	}
-	if b, err := json.MarshalIndent(g, "  ", "  "); err != nil {
+	if b, err := json.MarshalIndent(galaxy, "  ", "  "); err != nil {
 		return err
 	} else if err := ioutil.WriteFile(galaxyFile, b, 0644); err != nil {
 		return err
