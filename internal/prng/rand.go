@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// Package rand implements a PRNG to return a random int between 1 and max, inclusive.
+// Package prng implements a PRNG to return a random int between 1 and max, inclusive.
 // It uses the so-called "Algorithm M" method, which is a combination of the congruential and shift-register methods.
 package prng
 
@@ -26,7 +26,7 @@ type PRNG struct {
 	seed uint64
 }
 
-var defaultPRNG = &PRNG{seed: 0x00C0FFEE}
+var defaultPRNG = &PRNG{seed: 0xBADC0FFEE}
 
 func New(seed uint64) *PRNG {
 	return &PRNG{seed: seed}
@@ -58,7 +58,7 @@ func (p *PRNG) Seed(seed uint64) {
 	}
 }
 
-// SeedFromTime
+// SeedFromTime seeds the generator from the system clock.
 func (p *PRNG) SeedFromTime() {
 	p.Seed(uint64(time.Now().UnixNano()))
 }
@@ -69,11 +69,20 @@ func Roll(max int) int {
 }
 
 // Seed random number generator
-func Seed(seed uint64) {
-	defaultPRNG.Seed(seed)
+func Seed(seed string) {
+	var hash uint64
+	if seed == "0xBADC0FFEE" || seed == "0" || len(seed) == 0 {
+		hash = 0xBADC0FFEE
+	} else {
+		hash = 5381
+		for _, ch := range []byte(seed) {
+			hash = (hash * 33) ^ uint64(ch)
+		}
+	}
+	defaultPRNG.Seed(hash)
 }
 
-// SeedFromTime
+// SeedFromTime seeds the generator from the system clock.
 func SeedFromTime() {
 	defaultPRNG.SeedFromTime()
 }

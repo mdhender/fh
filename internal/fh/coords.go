@@ -24,7 +24,7 @@ type Coords struct {
 	X     int `json:"x"`
 	Y     int `json:"y"`
 	Z     int `json:"z"`
-	Orbit int `json:"orbit"` // zero means the star, non-zero is planet number
+	Orbit int `json:"orbit,omitempty"` // zero means the star, non-zero is planet number
 }
 
 func (c Coords) DeltaXYZ(t Coords) (int, int, int) {
@@ -47,7 +47,7 @@ func (c Coords) DistanceSquaredTo(t Coords) int {
 }
 
 func (c Coords) ID() string {
-	return fmt.Sprintf("03%d.%03d.%03d/%02d", c.X, c.Y, c.Z, c.Orbit)
+	return fmt.Sprintf("%03d.%03d.%03d/%02d", c.X, c.Y, c.Z, c.Orbit)
 }
 
 func (c Coords) IsSet() bool {
@@ -64,4 +64,8 @@ func (c Coords) SameSystem(t Coords) bool {
 
 func (c Coords) String() string {
 	return fmt.Sprintf("%d %d %d", c.X, c.Y, c.Z)
+}
+
+func (c Coords) SystemID() int {
+	return (c.X*1_000+c.Y)*1_000 + c.Z
 }

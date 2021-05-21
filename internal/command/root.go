@@ -29,8 +29,9 @@ import (
 
 var cfgFile string
 var galaxyPath string
-var testMode bool
-var verbose bool
+var isTest bool
+var isVerbose bool
+var randomSeed string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -50,13 +51,12 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here, will be global for your application.
-
+	// These persistent flags are global to commands in this package.
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "~/.fh.yaml", "config file")
 	rootCmd.PersistentFlags().StringVarP(&galaxyPath, "galaxy-path", "g", ".", "path containing game.json file")
-	rootCmd.PersistentFlags().BoolVarP(&testMode, "test", "t", false, "test command")
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
+	rootCmd.PersistentFlags().StringVar(&randomSeed, "seed", "0x00C0FFEE", "seed for random number generator")
+	rootCmd.PersistentFlags().BoolVarP(&isTest, "test", "t", false, "test command")
+	rootCmd.PersistentFlags().BoolVarP(&isVerbose, "verbose", "v", false, "verbose output")
 
 	//// Cobra also supports local flags, which will only run when this action is called directly.
 	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
@@ -81,6 +81,6 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		_, _ = fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
 	}
 }

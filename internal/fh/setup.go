@@ -39,23 +39,12 @@ type SetupData struct {
 		ForbidNearbyWormholes bool `json:"forbid_nearby_wormholes"`
 		MinimumDistance       int  `json:"minimum_distance"`
 	} `json:"galaxy"`
-	Players []PlayerData `json:"players"`
 }
 
-type PlayerData struct {
-	Email          string `json:"email"`
-	SpeciesName    string `json:"species_name"`
-	HomePlanetName string `json:"home_planet_name"`
-	GovName        string `json:"government_name"`
-	GovType        string `json:"government_type"`
-	ML             int    `json:"military_level"`
-	GV             int    `json:"gravitics_level"`
-	LS             int    `json:"life_support_level"`
-	BI             int    `json:"biology_level"`
-}
-
-func GetSetup(dir, file string) (*SetupData, error) {
-	fmt.Printf("[setup] loading configuration from %q\n", file)
+func GetSetup(dir, file string, isVerbose bool) (*SetupData, error) {
+	if isVerbose {
+		fmt.Printf("[setup] loading configuration from %q\n", file)
+	}
 
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -69,8 +58,11 @@ func GetSetup(dir, file string) (*SetupData, error) {
 	if err = IsValidName(setup.Galaxy.Name); err != nil {
 		return nil, fmt.Errorf("galaxy: %w", err)
 	}
-	fmt.Printf("[setup] %-30s == %q\n", "GALAXY_NAME", setup.Galaxy.Name)
+	if isVerbose {
+		fmt.Printf("[setup] %-30s == %q\n", "GALAXY_NAME", setup.Galaxy.Name)
+	}
 
+	// try to use the location of the setup file to get a default path for the galaxy
 	if setup.Galaxy.Path != strings.TrimSpace(setup.Galaxy.Path) {
 		return nil, fmt.Errorf("galaxy.path can't have leading or trailing spaces")
 	} else if setup.Galaxy.Path == "" || setup.Galaxy.Path == "." || setup.Galaxy.Path == "*" {
@@ -78,7 +70,9 @@ func GetSetup(dir, file string) (*SetupData, error) {
 	} else if galaxyPath := filepath.Clean(setup.Galaxy.Path); galaxyPath != setup.Galaxy.Path {
 		return nil, fmt.Errorf("galaxy.path %q cleaned to %q", setup.Galaxy.Path, galaxyPath)
 	}
-	fmt.Printf("[setup] %-30s == %q\n", "GALAXY_PATH", setup.Galaxy.Path)
+	if isVerbose {
+		fmt.Printf("[setup] %-30s == %q\n", "GALAXY_PATH", setup.Galaxy.Path)
+	}
 
 	if setup.Galaxy.MinimumDistance < 1 {
 		return nil, fmt.Errorf("minimum distance must be at least 1")
@@ -86,68 +80,5 @@ func GetSetup(dir, file string) (*SetupData, error) {
 		return nil, fmt.Errorf("minimum distance must be less than %d", MAX_RADIUS)
 	}
 
-	emails := make(map[string]bool)
-	homePlanetName := make(map[string]bool)
-	speciesNames := make(map[string]bool)
-	for i, player := range setup.Players {
-		if player.Email != strings.TrimSpace(player.Email) {
-			return nil, fmt.Errorf("player %d: email address must not have leading or trailing spaces", i+1)
-		} else if exists := emails[player.Email]; exists {
-			return nil, fmt.Errorf("player %d: duplicate email address %q", i+1, player.Email)
-		}
-		emails[player.Email] = true
-
-		if err = IsValidName(player.SpeciesName); err != nil {
-			return nil, fmt.Errorf("player %d: species name: %w", i+1, err)
-		} else if len(player.SpeciesName) < 5 {
-			return nil, fmt.Errorf("player %d: species name %q too short (min 5 chars required)", i+1, player.SpeciesName)
-		} else if len(player.SpeciesName) > 31 {
-			return nil, fmt.Errorf("player %d: species name %q too long (max 31 chars required)", i+1, player.SpeciesName)
-		} else if err = IsValidName(player.SpeciesName); err != nil {
-			return nil, fmt.Errorf("player %d: species name: %w", i+1, err)
-		} else if i := strings.IndexAny(player.SpeciesName, "$!`\"{}\\"); i != -1 {
-			return nil, fmt.Errorf("player %d: invalid character %q in species name", i+1, player.SpeciesName[i])
-		} else if exists := speciesNames[player.SpeciesName]; exists {
-			return nil, fmt.Errorf("player %d: duplicate species name %q", i+1, player.SpeciesName)
-		}
-		speciesNames[player.Email] = true
-
-		if err = IsValidName(player.SpeciesName); err != nil {
-			return nil, fmt.Errorf("player %d: home planet name: %w", i+1, err)
-		} else if len(player.HomePlanetName) > 31 {
-			return nil, fmt.Errorf("player %d: home planet name %q too long (max 31 chars required)", i+1, player.HomePlanetName)
-		} else if err = IsValidName(player.HomePlanetName); err != nil {
-			return nil, fmt.Errorf("player %d: home planet name: %w", i+1, err)
-		} else if i := strings.IndexAny(player.HomePlanetName, "$!`\"{}\\"); i != -1 {
-			return nil, fmt.Errorf("player %d: invalid character %q in home planet name", i+1, player.HomePlanetName[i])
-		} else if exists := homePlanetName[player.HomePlanetName]; exists {
-			return nil, fmt.Errorf("player %d: duplicate home planet name %q", i+1, player.HomePlanetName)
-		}
-		homePlanetName[player.HomePlanetName] = true
-
-		if err = IsValidName(player.SpeciesName); err != nil {
-			return nil, fmt.Errorf("player %d: government name: %w", i+1, err)
-		} else if len(player.GovName) > 31 {
-			return nil, fmt.Errorf("player %d: government name %q too long (max 31 chars required)", i+1, player.GovName)
-		} else if err = IsValidName(player.GovName); err != nil {
-			return nil, fmt.Errorf("player %d: government name: %w", i+1, err)
-		} else if i := strings.IndexAny(player.GovName, "$!`\"{}\\"); i != -1 {
-			return nil, fmt.Errorf("player %d: invalid character %q in home planet name", i+1, player.GovName[i])
-		}
-
-		if err = IsValidName(player.SpeciesName); err != nil {
-			return nil, fmt.Errorf("player %d: government type: %w", i+1, err)
-		} else if len(player.GovType) > 31 {
-			return nil, fmt.Errorf("player %d: government type %q too long (max 31 chars required)", i+1, player.GovType)
-		} else if err = IsValidName(player.GovName); err != nil {
-			return nil, fmt.Errorf("player %d: government type: %w", i+1, err)
-		} else if i := strings.IndexAny(player.GovType, "$!`\"{}\\"); i != -1 {
-			return nil, fmt.Errorf("player %d: invalid character %q in government type", i+1, player.GovType[i])
-		}
-
-		if player.BI+player.GV+player.LS+player.ML != 15 {
-			return nil, fmt.Errorf("player %d: the tech levels must sum to 15", i+1)
-		}
-	}
 	return &setup, nil
 }

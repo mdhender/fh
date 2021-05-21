@@ -21,7 +21,6 @@ package command
 import (
 	"fmt"
 	"github.com/mdhender/fh/internal/fh"
-	"github.com/mdhender/fh/internal/prng"
 	"os"
 	"path/filepath"
 	"time"
@@ -36,14 +35,13 @@ var reportCmd = &cobra.Command{
 	Long:  `TODO: Command for reports.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		started := time.Now()
-		prng.Seed(0x00C0FFEE) // seed random number generator
 
 		currentTurn, _ := cmd.Flags().GetBool("current-turn")
 		turn, _ := cmd.Flags().GetInt("turn")
-		if verbose {
+		if isVerbose {
 			fmt.Printf("[report] %-30s == %v\n", "CURRENT_TURN", currentTurn)
 			fmt.Printf("[report] %-30s == %d\n", "TURN", turn)
-			fmt.Printf("[report] %-30s == %v\n", "VERBOSE_MODE", verbose)
+			fmt.Printf("[report] %-30s == %v\n", "VERBOSE_MODE", isVerbose)
 		}
 		if currentTurn && turn != 0 {
 			return fmt.Errorf("you must not specify both --current-turn and --turn")
@@ -53,7 +51,7 @@ var reportCmd = &cobra.Command{
 			}
 		}
 
-		game, err := fh.GetGame(galaxyPath, verbose)
+		game, err := fh.GetGame(galaxyPath, isVerbose)
 		if err != nil {
 			return err
 		}
@@ -66,18 +64,24 @@ var reportCmd = &cobra.Command{
 		if game.CurrentTurn < 0 {
 			game.CurrentTurn = 0
 		}
-		if verbose {
+		if isVerbose {
 			fmt.Printf("[report] %-30s == %q\n", "REPORT_TURN", game.CurrentTurn)
 		}
 
 		turnPath := filepath.Join(galaxyPath, game.TurnDir())
-		outputPath := turnPath
-		if verbose {
+		if isVerbose {
 			fmt.Printf("[report] %-30s == %q\n", "TURN_PATH", turnPath)
-			fmt.Printf("[report] %-30s == %q\n", "OUTPUT_PATH", outputPath)
+		}
+		g, err := fh.GetGalaxy(turnPath)
+		if err != nil {
+			return err
 		}
 
-		err = game.Report(os.Args, galaxyPath, testMode, verbose)
+		outputPath := filepath.Join(galaxyPath, game.TurnDir())
+		if isVerbose {
+			fmt.Printf("[report] %-30s == %q\n", "OUTPUT_PATH", outputPath)
+		}
+		err = game.Report(g, os.Args, galaxyPath, outputPath, isTest, isVerbose)
 		if err != nil {
 			return err
 		}

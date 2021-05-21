@@ -63,7 +63,7 @@ type Player struct {
 	Species      string `json:"species"`
 }
 
-func GenerateGalaxy(logFile io.Writer, setupData *SetupData) (*GalaxyData, error) {
+func GenerateGalaxy(logFile io.Writer, setupData *SetupData, players []*PlayerData) (*GalaxyData, error) {
 	g := &GalaxyData{
 		ID:      setupData.Galaxy.Name,
 		Name:    setupData.Galaxy.Name,
@@ -78,7 +78,7 @@ func GenerateGalaxy(logFile io.Writer, setupData *SetupData) (*GalaxyData, error
 	g.Translate.XYZToID = make(map[string]string)
 
 	// initialize from some player data
-	for _, player := range setupData.Players {
+	for _, player := range players {
 		id := player.Email
 		g.Players[id] = &Player{
 			ID:           id,
@@ -89,7 +89,7 @@ func GenerateGalaxy(logFile io.Writer, setupData *SetupData) (*GalaxyData, error
 	}
 
 	// init?
-	d_num_species := len(setupData.Players)
+	d_num_species := len(players)
 	if d_num_species < MIN_SPECIES || MAX_SPECIES < d_num_species {
 		return nil, fmt.Errorf("number of species must be between %d and %d, inclusive", MIN_SPECIES, MAX_SPECIES)
 	}
@@ -744,12 +744,16 @@ func (g *GalaxyData) Scan(w io.Writer, c Coords) error {
 	return star.Scan(w, nil)
 }
 
-func (g *GalaxyData) Write(galaxyPath string) error {
-	filename := filepath.Join(galaxyPath, "galaxy.json")
+func (g *GalaxyData) Write(outputPath string, isVerbose bool) error {
+	galaxyFile := filepath.Join(outputPath, "galaxy.json")
+	if isVerbose {
+		fmt.Printf("[galaxy] %-30s == %q\n", "GALAXY_FILE", galaxyFile)
+	}
 	if b, err := json.MarshalIndent(g, "  ", "  "); err != nil {
 		return err
-	} else if err := ioutil.WriteFile(filename, b, 0644); err != nil {
+	} else if err := ioutil.WriteFile(galaxyFile, b, 0644); err != nil {
 		return err
 	}
+
 	return nil
 }

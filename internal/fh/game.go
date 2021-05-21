@@ -60,8 +60,8 @@ func GetGame(galaxyPath string, verbose bool) (*GameData, error) {
 }
 
 // Finish completes a turn
-func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_mode bool) error {
-	if verbose_mode {
+func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, isVerbose bool) error {
+	if isVerbose {
 		_, _ = fmt.Fprintf(w, "\nFinishing up for all species...\n")
 	}
 
@@ -100,7 +100,7 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_
 
 	/* Main loop. For each species, take appropriate action. */
 	for _, species := range g.AllSpecies() {
-		if verbose_mode {
+		if isVerbose {
 		}
 
 		// check if player submitted orders for this turn.
@@ -115,7 +115,7 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_
 			}
 			ordersReceived = err == nil && len(orders) != 0
 		}
-		if verbose_mode {
+		if isVerbose {
 			_, _ = fmt.Fprintf(w, "  Now doing SP %s...", species.Name)
 			if !ordersReceived {
 				_, _ = fmt.Fprintf(w, " WARNING: player did not submit orders this turn!")
@@ -968,7 +968,7 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_
 
 	/* Go through all species one more time to update alien contact masks, report tech transfer results to donors, and calculate fleet maintenance costs. */
 	if !game.IsSetupTurn() {
-		if verbose_mode {
+		if isVerbose {
 			_, _ = fmt.Fprintf(w, "\nNow updating contact masks et al.\n")
 		}
 		for _, species := range g.AllSpecies() {
@@ -1132,11 +1132,11 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, verbose_
 	game.CurrentTurn++
 
 	// save the results
-	err = g.Write(filepath.Join(galaxyPath, game.TurnDir()))
+	err = g.Write(galaxyPath, isVerbose)
 	if err != nil {
 		return err
 	}
-	err = game.Write(filepath.Join(galaxyPath, "game.json"))
+	err = game.Write(galaxyPath, isVerbose)
 	if err != nil {
 		return err
 	}
@@ -1149,19 +1149,7 @@ func (game *GameData) IsSetupTurn() bool {
 	return game.CurrentTurn == 0
 }
 
-func (game *GameData) Report(argv []string, galaxyPath string, testMode, verboseMode bool) error {
-	turnPath := filepath.Join(galaxyPath, game.TurnDir())
-	fmt.Printf("[report] %-30s == %q\n", "TURN_PATH", turnPath)
-	outputPath := turnPath
-	fmt.Printf("[report] %-30s == %q\n", "OUTPUT_PATH", outputPath)
-
-	g, err := GetGalaxy(turnPath)
-	if err != nil {
-		return err
-	}
-
-	test_mode, verbose_mode := testMode, verboseMode
-
+func (game *GameData) Report(g *GalaxyData, argv []string, galaxyPath, outputPath string, isTest, isVerbose bool) error {
 	/* Check if we are doing all species, or just one or more specified  ones. */
 	list := make(map[int]*SpeciesData)
 	for _, arg := range argv {
@@ -1186,7 +1174,7 @@ func (game *GameData) Report(argv []string, galaxyPath string, testMode, verbose
 	/* Generate a report for each species in the filter */
 	for _, species := range speciesFilter {
 		/* Print message for gamemaster. */
-		if verbose_mode {
+		if isVerbose {
 			fmt.Printf("[report] generating turn %d report for species #%d, SP %s...\n", game.CurrentTurn, species.Number, species.Name)
 		}
 
@@ -1202,11 +1190,11 @@ func (game *GameData) Report(argv []string, galaxyPath string, testMode, verbose
 		// TODO: track down ignore_field_distorters and truncate_name initialization
 		ignore_field_distorters, truncate_name := false, false
 
-		if err := species.Report(report_file, galaxyPath, game.CurrentTurn, testMode, ignore_field_distorters, truncate_name, DoLocations(g), g.GetPlanet, g.GetSpeciesByNumber, g.AllSpecies()); err != nil {
+		if err := species.Report(report_file, galaxyPath, game.CurrentTurn, isTest, ignore_field_distorters, truncate_name, DoLocations(g), g.GetPlanet, g.GetSpeciesByNumber, g.AllSpecies()); err != nil {
 			return err
 		}
 
-		if !test_mode {
+		if !isTest {
 			/* Generate order section. */
 			GenerateOrders(report_file, g, species, ignore_field_distorters, truncate_name)
 		}
@@ -1221,10 +1209,14 @@ func (game *GameData) TurnDir() string {
 	return fmt.Sprintf("t%06d", game.CurrentTurn)
 }
 
-func (game *GameData) Write(filename string) error {
+func (game *GameData) Write(outputPath string, isVerbose bool) error {
+	gameFile := filepath.Join(outputPath, "game.json")
+	if isVerbose {
+		fmt.Printf("[game] %-30s == %q\n", "GAME_FILE", gameFile)
+	}
 	if b, err := json.MarshalIndent(game, "  ", "  "); err != nil {
 		return err
-	} else if err := ioutil.WriteFile(filename, b, 0644); err != nil {
+	} else if err := ioutil.WriteFile(gameFile, b, 0644); err != nil {
 		return err
 	}
 	return nil

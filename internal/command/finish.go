@@ -43,20 +43,20 @@ in the very first turn, or immediately after running PostArrival
 on all subsequent turns.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		started := time.Now()
-		prng.Seed(0x00C0FFEE) // seed random number generator
+		prng.Seed(randomSeed) // seed random number generator
 
-		if verbose {
-			fmt.Printf("[finish] %-30s == %v\n", "TEST_MODE", testMode)
-			fmt.Printf("[finish] %-30s == %v\n", "VERBOSE_MODE", verbose)
+		if isVerbose {
+			fmt.Printf("[finish] %-30s == %v\n", "TEST_MODE", isTest)
+			fmt.Printf("[finish] %-30s == %v\n", "VERBOSE_MODE", isVerbose)
 		}
 
-		game, err := fh.GetGame(galaxyPath, verbose)
+		game, err := fh.GetGame(galaxyPath, isVerbose)
 		if err != nil {
 			return err
 		}
 
 		turnPath := filepath.Join(galaxyPath, game.TurnDir())
-		if verbose {
+		if isVerbose {
 			fmt.Printf("[finish] all output will be created in %s\n", turnPath)
 		}
 
@@ -65,7 +65,7 @@ on all subsequent turns.`,
 			return err
 		}
 
-		err = game.Finish(logFile, galaxyPath, testMode, verbose)
+		err = game.Finish(logFile, galaxyPath, isTest, isVerbose)
 		if err != nil {
 			panic(err)
 			return err
