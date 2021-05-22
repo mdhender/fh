@@ -53,6 +53,17 @@ func Commas(value int) string {
 	return string(dst)
 }
 
+// EstimateNumberOfSystems returns a good guess at how many systems to generate.
+// The number is based on the number of players. If the game-master specifies the
+// low-density flag, then we bump that number by 50%. That, in turn, causes the
+// calculated galactic radius to increase to keep the density about the same.
+func EstimateNumberOfSystems(numberOfSpecies int, lowDensity bool) int {
+	if lowDensity {
+		return (3 * numberOfSpecies * STANDARD_NUMBER_OF_STAR_SYSTEMS) / (2 * STANDARD_NUMBER_OF_SPECIES)
+	}
+	return (numberOfSpecies * STANDARD_NUMBER_OF_STAR_SYSTEMS) / STANDARD_NUMBER_OF_SPECIES
+}
+
 func IsValidName(name string) error {
 	if name != strings.TrimSpace(name) {
 		return fmt.Errorf("name can't have leading or trailing spaces")
@@ -69,4 +80,11 @@ func IsValidName(name string) error {
 
 type Loggy interface {
 	Log(format string, a ...interface{})
+}
+
+func ValidateNumberOfPlayers(n int) error {
+	if !(MIN_SPECIES <= n && n <= MAX_SPECIES) {
+		return fmt.Errorf("number of players must be between %d and %d, inclusive", MIN_SPECIES, MAX_SPECIES)
+	}
+	return nil
 }

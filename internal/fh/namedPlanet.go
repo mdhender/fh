@@ -20,7 +20,6 @@ package fh
 
 import (
 	"fmt"
-	"io"
 )
 
 /* Status codes for named planets. These are logically ORed together. */
@@ -89,24 +88,24 @@ func (n *NamedPlanetData) CheckPopulation(l *Logger) bool {
 }
 
 /* Print type of planet, name and coordinates. */
-func (n *NamedPlanetData) Report(w io.Writer, s *SpeciesData, planet *PlanetData, ships []*ShipData) {
-	fmt.Fprintf(w, "\n\n* * * * * * * * * * * * * * * * * * * * * * * * *\n")
-	fmt.Fprintf(w, "\n\n")
+func (n *NamedPlanetData) Report(l *Logger, s *SpeciesData, planet *PlanetData, ships []*ShipData) {
+	l.Printf("\n\n* * * * * * * * * * * * * * * * * * * * * * * * *\n")
+	l.Printf("\n\n")
 
 	if n.Status.HomePlanet {
-		fmt.Fprintf(w, "HOME PLANET")
+		l.Printf("HOME PLANET")
 	} else if n.Status.MiningColony {
-		fmt.Fprintf(w, "MINING COLONY")
+		l.Printf("MINING COLONY")
 	} else if n.Status.ResortColony {
-		fmt.Fprintf(w, "RESORT COLONY")
+		l.Printf("RESORT COLONY")
 	} else if n.Status.Populated {
-		fmt.Fprintf(w, "COLONY PLANET")
+		l.Printf("COLONY PLANET")
 	} else {
-		fmt.Fprintf(w, "PLANET")
+		l.Printf("PLANET")
 	}
 
-	fmt.Fprintf(w, ": PL %s", n.Name)
-	fmt.Fprintf(w, "\n   Coordinates: x = %d, y = %d, z = %d, planet number %d\n", n.Planet.Coords.X, n.Planet.Coords.Y, n.Planet.Coords.Z, n.Planet.Coords.Orbit)
+	l.Printf(": PL %s", n.Name)
+	l.Printf("\n   Coordinates: x = %d, y = %d, z = %d, planet number %d\n", n.Planet.Coords.X, n.Planet.Coords.Y, n.Planet.Coords.Z, n.Planet.Coords.Orbit)
 
 	if n.Status.HomePlanet && n.MIBase+n.MABase < s.HPOriginalBase {
 		current_base := n.MIBase + n.MABase
@@ -122,24 +121,24 @@ func (n *NamedPlanetData) Report(w io.Writer, s *SpeciesData, planet *PlanetData
 			iuNeeded, auNeeded = cuNeeded, 0
 		}
 
-		fmt.Fprintf(w, "\nWARNING! Home planet has not yet completely recovered from bombardment!\n")
-		fmt.Fprintf(w, "         %d IUs and %d AUs will have to be installed for complete recovery.\n", iuNeeded, auNeeded)
+		l.Printf("\nWARNING! Home planet has not yet completely recovered from bombardment!\n")
+		l.Printf("         %d IUs and %d AUs will have to be installed for complete recovery.\n", iuNeeded, auNeeded)
 	}
 
 	if n.Status.Populated {
 		/* Print available population. */
 		if !(n.Status.MiningColony || n.Status.ResortColony) {
-			fmt.Fprintf(w, "\nAvailable population units = %d\n", n.PopUnits)
+			l.Printf("\nAvailable population units = %d\n", n.PopUnits)
 		}
 		if n.SiegeEff != 0 {
-			fmt.Fprintf(w, "\nWARNING!  This planet is currently under siege and will remain\n")
-			fmt.Fprintf(w, "  under siege until the combat phase of the next turn!\n")
+			l.Printf("\nWARNING!  This planet is currently under siege and will remain\n")
+			l.Printf("  under siege until the combat phase of the next turn!\n")
 		}
 		if n.UseOnAmbush > 0 {
-			fmt.Fprintf(w, "\nIMPORTANT!  This planet has made preparations for an ambush!\n")
+			l.Printf("\nIMPORTANT!  This planet has made preparations for an ambush!\n")
 		}
 		if n.Hidden {
-			fmt.Fprintf(w, "\nIMPORTANT!  This planet is actively hiding from alien observation!\n")
+			l.Printf("\nIMPORTANT!  This planet is actively hiding from alien observation!\n")
 		}
 
 		/* Print what will be produced this turn. */
@@ -150,9 +149,9 @@ func (n *NamedPlanetData) Report(w io.Writer, s *SpeciesData, planet *PlanetData
 		if ls_needed != 0 {
 			production_penalty = (100 * ls_needed) / s.TechLevel[LS]
 		}
-		fmt.Fprintf(w, "\nProduction penalty = %d%% (LSN = %d)\n", production_penalty, ls_needed)
+		l.Printf("\nProduction penalty = %d%% (LSN = %d)\n", production_penalty, ls_needed)
 
-		fmt.Fprintf(w, "\nEconomic efficiency = %d%%\n", planet.EconEfficiency)
+		l.Printf("\nEconomic efficiency = %d%%\n", planet.EconEfficiency)
 
 		raw_material_units -= (production_penalty * raw_material_units) / 100
 		raw_material_units = ((planet.EconEfficiency * raw_material_units) + 50) / 100
@@ -166,44 +165,44 @@ func (n *NamedPlanetData) Report(w io.Writer, s *SpeciesData, planet *PlanetData
 		}
 
 		if n.MIBase > 0 {
-			fmt.Fprintf(w, "\nMining base = %d.%d", n.MIBase/10, n.MIBase%10)
-			fmt.Fprintf(w, " (MI = %d, MD = %d.%02d)\n", s.TechLevel[MI], planet.MiningDifficulty/100, planet.MiningDifficulty%100)
+			l.Printf("\nMining base = %d.%d", n.MIBase/10, n.MIBase%10)
+			l.Printf(" (MI = %d, MD = %d.%02d)\n", s.TechLevel[MI], planet.MiningDifficulty/100, planet.MiningDifficulty%100)
 
 			/* For mining colonies, print economic units that will be produced. */
 			if n.Status.MiningColony {
 				n1 := (2 * raw_material_units) / 3
 				n2 := ((fleet_percent_cost * n1) + 5000) / 10000
 				n3 := n1 - n2
-				fmt.Fprintf(w, "   This mining colony will generate %d - %d = %d economic units this turn.\n", n1, n2, n3)
+				l.Printf("   This mining colony will generate %d - %d = %d economic units this turn.\n", n1, n2, n3)
 				fmt.Printf("argh: MIBase hiding n3 in use_on_ambush slot! /* Temporary use only. */\n")
 				n.UseOnAmbush = n3 /* Temporary use only. */
 			} else {
-				fmt.Fprintf(w, "   %d raw material units will be produced this turn.\n", raw_material_units)
+				l.Printf("   %d raw material units will be produced this turn.\n", raw_material_units)
 			}
 		}
 
 		if n.MABase > 0 {
 			if n.Status.ResortColony {
-				fmt.Fprintf(w, "\n")
+				l.Printf("\n")
 			}
-			fmt.Fprintf(w, "Manufacturing base = %d.%d", n.MABase/10, n.MABase%10)
-			fmt.Fprintf(w, " (MA = %d)\n", s.TechLevel[MA])
+			l.Printf("Manufacturing base = %d.%d", n.MABase/10, n.MABase%10)
+			l.Printf(" (MA = %d)\n", s.TechLevel[MA])
 
 			/* For resort colonies, print economic units that will be produced. */
 			if n.Status.ResortColony {
 				n1 := (2 * production_capacity) / 3
 				n2 := ((fleet_percent_cost * n1) + 5000) / 10000
 				n3 := n1 - n2
-				fmt.Fprintf(w, "   This resort colony will generate %d - %d = %d economic units this turn.\n", n1, n2, n3)
+				l.Printf("   This resort colony will generate %d - %d = %d economic units this turn.\n", n1, n2, n3)
 				fmt.Printf("argh: MABase hiding n3 in use_on_ambush slot! /* Temporary use only. */\n")
 				n.UseOnAmbush = n3 /* Temporary use only. */
 			} else {
-				fmt.Fprintf(w, "   Production capacity this turn will be %d.\n", production_capacity)
+				l.Printf("   Production capacity this turn will be %d.\n", production_capacity)
 			}
 		}
 
 		if n.ItemQuantity[RM] > 0 {
-			fmt.Fprintf(w, "\n%ss (%s,C%d) carried over from last turn = %d\n", itemData[RM].name, itemData[RM].abbr, itemData[RM].carryCapacity, n.ItemQuantity[RM])
+			l.Printf("\n%ss (%s,C%d) carried over from last turn = %d\n", itemData[RM].name, itemData[RM].abbr, itemData[RM].carryCapacity, n.ItemQuantity[RM])
 		}
 
 		/* Print what can be spent this turn. */
@@ -223,10 +222,10 @@ func (n *NamedPlanetData) Report(w io.Writer, s *SpeciesData, planet *PlanetData
 		n2 := ((fleet_percent_cost * n1) + 5000) / 10000
 		n3 := n1 - n2
 		if !(n.Status.MiningColony || n.Status.ResortColony) {
-			fmt.Fprintf(w, "\nTotal available for spending this turn = %d - %d = %d\n", n1, n2, n3)
+			l.Printf("\nTotal available for spending this turn = %d - %d = %d\n", n1, n2, n3)
 			fmt.Printf("argh: totalAvailable hiding n3 in use_on_ambush slot! /* Temporary use only. */\n")
 			n.UseOnAmbush = n3 /* Temporary use only. */
-			fmt.Fprintf(w, "\nShipyard capacity = %d\n", n.Shipyards)
+			l.Printf("\nShipyard capacity = %d\n", n.Shipyards)
 		}
 	}
 
@@ -234,14 +233,14 @@ func (n *NamedPlanetData) Report(w io.Writer, s *SpeciesData, planet *PlanetData
 	for i := 0; i < MAX_ITEMS; i++ {
 		if n.ItemQuantity[i] > 0 && i != RM {
 			if !header_printed {
-				fmt.Fprintf(w, "\nPlanetary inventory:\n")
+				l.Printf("\nPlanetary inventory:\n")
 				header_printed = true
 			}
-			fmt.Fprintf(w, "   %ss (%s,C%d) = %d", itemData[i].name, itemData[i].abbr, itemData[i].carryCapacity, n.ItemQuantity[i])
+			l.Printf("   %ss (%s,C%d) = %d", itemData[i].name, itemData[i].abbr, itemData[i].carryCapacity, n.ItemQuantity[i])
 			if i == PD {
-				fmt.Fprintf(w, " (warship equivalence = %d tons)", 50*n.ItemQuantity[PD])
+				l.Printf(" (warship equivalence = %d tons)", 50*n.ItemQuantity[PD])
 			}
-			fmt.Fprintf(w, "\n")
+			l.Printf("\n")
 		}
 	}
 
@@ -271,10 +270,10 @@ func (n *NamedPlanetData) Report(w io.Writer, s *SpeciesData, planet *PlanetData
 	// and now report on the "sorted" list of ships
 	printing_alien := false
 	if len(shipList) != 0 {
-		fmt.Fprintf(w, "\nShips at PL %s:\n", n.Name)
+		l.Printf("\nShips at PL %s:\n", n.Name)
 		printHeader := true
 		for _, ship := range shipList[1:] {
-			ship.Report(w, printHeader, printing_alien, s)
+			ship.Report(l, printHeader, printing_alien, s)
 			printHeader = false
 		}
 	}

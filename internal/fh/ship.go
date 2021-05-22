@@ -20,7 +20,6 @@ package fh
 
 import (
 	"fmt"
-	"io"
 )
 
 /* Ship classes. */
@@ -217,19 +216,19 @@ func (s *ShipData) GetName(ignore_field_distorters, truncate_name bool) string {
 	return full_ship_id + ")"
 }
 
-func (s *ShipData) Report(w io.Writer, printHeader, printingAlien bool, species *SpeciesData) {
+func (s *ShipData) Report(l *Logger, printHeader, printingAlien bool, species *SpeciesData) {
 	if printHeader {
-		fmt.Fprintf(w, "  Name                          ")
+		l.Printf("  Name                          ")
 		if printingAlien {
-			fmt.Fprintf(w, "                     Species\n")
+			l.Printf("                     Species\n")
 		} else {
-			fmt.Fprintf(w, "                 Cap. Cargo\n")
+			l.Printf("                 Cap. Cargo\n")
 		}
-		fmt.Fprintf(w, " ----------------------------------------------------------------------------\n")
+		l.Printf(" ----------------------------------------------------------------------------\n")
 	}
 	ignore_field_distorters, truncate_name := !printingAlien, false
 	full_ship_id := s.GetName(ignore_field_distorters, truncate_name)
-	fmt.Fprintf(w, "  %s", s.Name)
+	l.Printf("  %s", s.Name)
 	length := len(full_ship_id)
 	padding := 50 - length
 	if printingAlien {
@@ -237,7 +236,7 @@ func (s *ShipData) Report(w io.Writer, printHeader, printingAlien bool, species 
 		padding -= 4 // TODO: why?
 	}
 	for i := 0; i < padding; i++ {
-		fmt.Fprintf(w, " ")
+		l.Printf(" ")
 	}
 	// TODO: capacity should be set when the ship is created
 	capacity := s.Tonnage
@@ -247,28 +246,28 @@ func (s *ShipData) Report(w io.Writer, printHeader, printingAlien bool, species 
 		capacity = s.Tonnage*10 + (s.Tonnage*s.Tonnage)/2
 	}
 	if printingAlien {
-		fmt.Fprintf(w, " ")
+		l.Printf(" ")
 	} else {
-		fmt.Fprintf(w, "%4d  ", capacity)
+		l.Printf("%4d  ", capacity)
 		if s.Status.UnderConstruction {
-			fmt.Fprintf(w, "Left to pay = %d\n", s.RemainingCost)
+			l.Printf("Left to pay = %d\n", s.RemainingCost)
 			return
 		}
 	}
 	if printingAlien {
 		if s.Status.OnSurface || s.ItemQuantity[FD] != s.Tonnage {
-			fmt.Fprintf(w, "SP %s", species.Name)
+			l.Printf("SP %s", species.Name)
 		} else {
-			fmt.Fprintf(w, "SP %d", species.Distorted())
+			l.Printf("SP %d", species.Distorted())
 		}
 	} else {
 		sepChar := ""
 		for i := 0; i < MAX_ITEMS; i++ {
 			if s.ItemQuantity[i] > 0 {
-				fmt.Fprintf(w, "%s%d %s", sepChar, s.ItemQuantity[i], itemData[i].abbr)
+				l.Printf("%s%d %s", sepChar, s.ItemQuantity[i], itemData[i].abbr)
 				sepChar = ","
 			}
 		}
 	}
-	fmt.Fprintf(w, "\n")
+	l.Printf("\n")
 }

@@ -20,7 +20,6 @@ package fh
 
 import (
 	"fmt"
-	"io"
 )
 
 type StarData struct {
@@ -32,22 +31,82 @@ type StarData struct {
 	Size         int             /* Star size, from 0 thru 9 inclusive. */
 	NumPlanets   int             /* Number of usable planets in star system. */
 	HomeSystem   bool            /* TRUE if this is a good potential home system. */
-	WormHere     bool            /* TRUE if wormhole entry/exit. */
-	WormCoords   Coords          `json:"worm_xyz"` /* Coordinates. */
+	Wormhole     *StarData       // set only if the system contains a natural wormhole
 	Message      int             /* Message associated with this star system, if any. */
 	VisitedBy    map[string]bool `json:"visited_by"` // map of species id, true if corresponding species has been here.
 	PlanetIndex  int             /* Index (starting at zero) into the file "planets.dat" of the first planet in the star system. */
 	Planets      []*PlanetData
 }
 
-func GenerateStar(lg Loggy, x, y, z, nSpecies int) (*StarData, error) {
-	lg.Log("Generating star (%3d, %3d, %3d)\n", x, y, z)
+func NewStar(l *Logger) (*StarData, error) {
+	star := &StarData{
+		Size:      rnd(10) - 1, // size is totally random
+		VisitedBy: make(map[string]bool),
+	}
+
+	// determine type of star, favoring MAIN_SEQUENCE stars.
+	// the type of the star will influence the number of dice we roll
+	// when generating the planets.
+	var numberOfDice int
+	switch rnd(GIANT + 6) {
+	case 1:
+		star.Type, numberOfDice = DWARF, 1
+	case 2:
+		star.Type, numberOfDice = DEGENERATE, 2
+	case 3:
+		star.Type, numberOfDice = GIANT, 3
+	default:
+		star.Type, numberOfDice = MAIN_SEQUENCE, 2
+	}
+
+	// color of star is totally random, but the color impacts the number
+	// of dice that we roll later when generating the planets.
+	var sizeOfDie int
+	switch c := rnd(RED); c {
+	case BLUE:
+		star.Color, sizeOfDie = StarColor(c), 8
+	case BLUE_WHITE:
+		star.Color, sizeOfDie = StarColor(c), 7
+	case WHITE:
+		star.Color, sizeOfDie = StarColor(c), 6
+	case YELLOW_WHITE:
+		star.Color, sizeOfDie = StarColor(c), 5
+	case YELLOW:
+		star.Color, sizeOfDie = StarColor(c), 4
+	case ORANGE:
+		star.Color, sizeOfDie = StarColor(c), 3
+	case RED:
+		star.Color, sizeOfDie = StarColor(c), 2
+	default:
+		return nil, fmt.Errorf("assert(StarColor != %d)", c)
+	}
+
+	// initialize the planet generator to bias it towards fewer planets
+	numPlanets := -2
+	for i := 0; i < numberOfDice; i++ {
+		numPlanets += rnd(sizeOfDie)
+	}
+	// then adjust if too few or too many planets
+	for numPlanets < 1 {
+		numPlanets += rnd(2)
+	}
+	for numPlanets > 9 {
+		numPlanets -= rnd(3)
+	}
+	star.Planets = make([]*PlanetData, numPlanets, numPlanets)
+
+	l.Printf("Generated star (type %-13s) (planets %d)\n", star.Type, len(star.Planets))
+
+	return star, nil
+}
+
+func GenerateStar(lg Loggy, at Coords, nSpecies int) (*StarData, error) {
+	lg.Log("Generating star (%3d, %3d, %3d)\n", at.X, at.Y, at.Z)
 
 	/* Set coordinates. */
-	xyz := Coords{x, y, z, 0}
 	star := &StarData{
-		ID:          xyz.String(),
-		Coords:      xyz,
+		ID:          at.String(),
+		Coords:      at,
 		NumPlanets:  -2, // default value to initialize the planet generator
 		PlanetIndex: -1,
 		VisitedBy:   make(map[string]bool),
@@ -132,7 +191,7 @@ func GenerateStar(lg Loggy, x, y, z, nSpecies int) (*StarData, error) {
 		star.NumPlanets -= rnd(3)
 	}
 
-	lg.Log("Generating star (%3d, %3d, %3d) (type %-13s) (planets %d)\n", x, y, z, star.Type, star.NumPlanets)
+	lg.Log("Generating star (%3d, %3d, %3d) (type %-13s) (planets %d)\n", at.X, at.Y, at.Z, star.Type, star.NumPlanets)
 
 	// generate planets
 	var err error
@@ -150,6 +209,7 @@ func (s *StarData) At(x, y, z int) bool {
 
 // ConvertToHomeSystem converts the system to a system with a home planet
 func (s *StarData) ConvertToHomeSystem(src []*PlanetData) {
+	fmt.Printf("[convert] %s planets %d %d\n", s.Coords.XYZ(), len(s.Planets), len(src))
 	s.HomeSystem = true
 
 	// update the star with values from the source template
@@ -222,26 +282,30 @@ func (s *StarData) HomePlanetNumber() int {
 	return 0
 }
 
-func (s *StarData) Scan(w io.Writer, species *SpeciesData) error {
+func (s *StarData) Scan(l *Logger, species *SpeciesData) error {
 	/* Print data for star, */
-	fmt.Fprintf(w, "Coordinates:\tx = %d\ty = %d\tz = %d", s.Coords.X, s.Coords.Y, s.Coords.Z)
-	fmt.Fprintf(w, "\tstellar type = %s%s%d", s.Type.Char(), s.Color.Char(), s.Size)
+	l.Printf("Coordinates:\tx = %d\ty = %d\tz = %d", s.Coords.X, s.Coords.Y, s.Coords.Z)
+	l.Printf("\tstellar type = %s%s%d", s.Type.Char(), s.Color.Char(), s.Size)
 
-	fmt.Fprintf(w, "   %d planets.\n\n", s.NumPlanets)
+	l.Printf("   %d planets.\n\n", s.NumPlanets)
 
-	if s.WormHere {
-		fmt.Fprintf(w, "This star system is the terminus of a natural wormhole.\n\n")
+	if s.Wormhole != nil {
+		l.Printf("This star system is the terminus of a natural wormhole.\n\n")
 	}
 
 	/* Print header. */
-	fmt.Fprintf(w, "               Temp  Press Mining\n")
-	fmt.Fprintf(w, "  #  Dia  Grav Class Class  Diff  LSN  Atmosphere\n")
-	fmt.Fprintf(w, " ---------------------------------------------------------------------\n")
+	l.Printf("               Temp  Press Mining\n")
+	l.Printf("  #  Dia  Grav Class Class  Diff  LSN  Atmosphere\n")
+	l.Printf(" ---------------------------------------------------------------------\n")
 
 	/* Check for nova. */
-	if s.NumPlanets == 0 {
-		fmt.Fprintf(w, "\n\tThis star is a nova remnant. Any planets it may have once\n")
-		fmt.Fprintf(w, "\thad have been blown away.\n\n")
+	isNova := s.NumPlanets == 0
+	for i := 0; !isNova && i < len(s.Planets); i++ {
+		isNova = s.Planets[i] == nil
+	}
+	if isNova {
+		l.Printf("\n\tThis star is a nova remnant. Any planets it may have once\n")
+		l.Printf("\thad have been blown away.\n\n")
 		return nil
 	}
 
@@ -253,7 +317,7 @@ func (s *StarData) Scan(w io.Writer, species *SpeciesData) error {
 			ls_needed = species.LifeSupportNeeded(planet)
 		}
 
-		fmt.Fprintf(w, "  %d  %3d  %d.%02d  %2d    %2d    %d.%02d %4d  ",
+		l.Printf("  %d  %3d  %d.%02d  %2d    %2d    %d.%02d %4d  ",
 			i+1, planet.Diameter,
 			planet.Gravity/100, planet.Gravity%100,
 			planet.TemperatureClass, planet.PressureClass,
@@ -261,21 +325,21 @@ func (s *StarData) Scan(w io.Writer, species *SpeciesData) error {
 			ls_needed)
 
 		if len(planet.Gases) == 0 {
-			fmt.Fprintf(w, "No atmosphere")
+			l.Printf("No atmosphere")
 		} else {
 			for n, gas := range planet.Gases {
 				if n > 0 {
-					fmt.Fprintf(w, ",")
+					l.Printf(",")
 				}
-				fmt.Fprintf(w, "%s(%d%%)", gas.Type.Char(), gas.Percentage)
+				l.Printf("%s(%d%%)", gas.Type.Char(), gas.Percentage)
 			}
 		}
 
-		fmt.Fprintf(w, "\n")
+		l.Printf("\n")
 	}
 	if s.Message != 0 {
-		/* There is a message that must be logged whenever this star system is scanned. */
-		// TODO:
+		// TODO: there is a message that must be logged whenever this star system is scanned.
+		l.Printf("TODO: there is a message that must be logged whenever this star system is scanned.\n")
 		//sprintf(filename, "message%d.txt\0", star->message);
 		//log_message(filename);
 	}

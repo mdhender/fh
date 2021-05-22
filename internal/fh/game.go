@@ -76,6 +76,7 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, isVerbos
 	}
 
 	l := &Logger{Stdout: os.Stdout}
+	defer l.Close()
 
 	var header_printed bool
 	print_header := func() {
@@ -1004,9 +1005,8 @@ func (game *GameData) Finish(w io.Writer, galaxyPath string, test_mode, isVerbos
 					panic(fmt.Sprintf("\n\tCannot open '%s' for appending!\n\n", filename))
 
 				}
-				l := &Logger{
-					File: fd,
-				}
+				l := &Logger{File: fd}
+				defer l.Close()
 
 				l.String("  ")
 				l.String(techData[t.Value].name)
@@ -1186,17 +1186,19 @@ func (game *GameData) Report(g *GalaxyData, argv []string, galaxyPath, outputPat
 			panic(fmt.Sprintf("\n\tCannot open '%s' for writing!\n\n", filename))
 		}
 		fmt.Printf("[report] created turn %d report %s\n", game.CurrentTurn, filename)
+		lrpt := &Logger{Stdout: report_file}
+		defer lrpt.Close()
 
 		// TODO: track down ignore_field_distorters and truncate_name initialization
 		ignore_field_distorters, truncate_name := false, false
 
-		if err := species.Report(report_file, galaxyPath, game.CurrentTurn, isTest, ignore_field_distorters, truncate_name, DoLocations(g), g.GetPlanet, g.GetSpeciesByNumber, g.AllSpecies()); err != nil {
+		if err := species.Report(lrpt, galaxyPath, game.CurrentTurn, isTest, ignore_field_distorters, truncate_name, DoLocations(g), g.GetPlanet, g.GetSpeciesByNumber, g.AllSpecies()); err != nil {
 			return err
 		}
 
 		if !isTest {
 			/* Generate order section. */
-			GenerateOrders(report_file, g, species, ignore_field_distorters, truncate_name)
+			GenerateOrders(lrpt, g, species, ignore_field_distorters, truncate_name)
 		}
 
 		/* Clean up for this species. */

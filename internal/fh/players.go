@@ -28,6 +28,7 @@ import (
 type PlayerData struct {
 	Email          string `json:"email"`
 	SpeciesName    string `json:"species_name"`
+	HomeSystemName string `json:"home_system_name"`
 	HomePlanetName string `json:"home_planet_name"`
 	GovName        string `json:"government_name"`
 	GovType        string `json:"government_type"`
@@ -54,6 +55,7 @@ func GetPlayers(file string, isVerbose bool) ([]*PlayerData, error) {
 
 	emails := make(map[string]bool)
 	homePlanetName := make(map[string]bool)
+	homeSystemName := make(map[string]bool)
 	speciesNames := make(map[string]bool)
 
 	var errors []error
@@ -78,6 +80,20 @@ func GetPlayers(file string, isVerbose bool) ([]*PlayerData, error) {
 			errors = append(errors, fmt.Errorf("player %d: duplicate species name %q", i+1, player.SpeciesName))
 		} else {
 			speciesNames[player.Email] = true
+		}
+
+		if err = IsValidName(player.HomeSystemName); err != nil {
+			errors = append(errors, fmt.Errorf("player %d: home system name: %w", i+1, err))
+		} else if len(player.HomeSystemName) > 31 {
+			errors = append(errors, fmt.Errorf("player %d: home system name %q too long (max 31 chars allowed)", i+1, player.HomeSystemName))
+		} else if err = IsValidName(player.HomeSystemName); err != nil {
+			errors = append(errors, fmt.Errorf("player %d: home system name: %w", i+1, err))
+		} else if i := strings.IndexAny(player.HomeSystemName, "$!`\"{}\\"); i != -1 {
+			errors = append(errors, fmt.Errorf("player %d: invalid character %q in home system name", i+1, player.HomeSystemName[i]))
+		} else if exists := homePlanetName[player.HomeSystemName]; exists {
+			errors = append(errors, fmt.Errorf("player %d: duplicate home system name %q", i+1, player.HomeSystemName))
+		} else {
+			homeSystemName[player.HomeSystemName] = true
 		}
 
 		if err = IsValidName(player.HomePlanetName); err != nil {

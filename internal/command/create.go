@@ -103,82 +103,55 @@ files, then creates a new galaxy file.`,
 		}
 
 		galaxyPath = setupData.Galaxy.Path
+		outputPath := galaxyPath
 		if isVerbose {
 			fmt.Printf("[create] %-30s == %q\n", "GALAXY_PATH", galaxyPath)
+			fmt.Printf("[create] %-30s == %q\n", "OUTPUT_PATH", outputPath)
 		}
 
-		players, err := fh.GetPlayers(filepath.Join(galaxyPath, "players.json"), isVerbose)
+		logFileName := filepath.Join(outputPath, "create.log")
+		if isVerbose {
+			fmt.Printf("[create] %-30s == %q\n", "LOG_FILE", logFileName)
+		}
+		logFile, err := os.Create(logFileName)
+		if err != nil {
+			return err
+		}
+		l := &fh.Logger{Stdout: logFile}
+
+		playersFileName := filepath.Join(galaxyPath, "players.json")
+		if isVerbose {
+			fmt.Printf("[create] %-30s == %q\n", "PLAYERS_FILE", playersFileName)
+		}
+		players, err := fh.GetPlayers(playersFileName, isVerbose)
 		if err != nil {
 			return err
 		}
 
 		game := &fh.GameData{}
-		outputPath := galaxyPath
-		if isVerbose {
-			fmt.Printf("[create] %-30s == %q\n", "OUTPUT_PATH", outputPath)
-		}
-
-		logFile, err := os.Create(filepath.Join(outputPath, "create.log"))
-		if err != nil {
+		if err = fh.ValidateNumberOfPlayers(len(players)); err != nil {
 			return err
 		}
 
 		// NewGalaxy step in setup_game.py
-		g, err := fh.GenerateGalaxy(logFile, setupData, players)
+		g, err := fh.GenerateGalaxy(l, setupData, galaxyPath, players)
 		if err != nil {
 			return err
-		}
-
-		if setupData.Galaxy.MinimumDistance < 1 || setupData.Galaxy.MinimumDistance > g.Radius*2 {
-			return fmt.Errorf("minimum-distance must be between 1 and %d", g.Radius*2)
-		}
-
-		// MakeHomes step in setup_game.py
-		err = g.MakeHomeTemplates(logFile)
-		if err != nil {
-			return err
-		}
-
-		// skip ListGalaxy step in setup_game.py
-		fmt.Printf("[create] skipping ListGalaxy step from setup_game.py\n")
-
-		// create home planets from the templates
-		for i, player := range players {
-			spec := &fh.SpeciesData{ID: fmt.Sprintf("%02d", i+1)}
-			spec.Number = i + 1
-			spec.Name = player.SpeciesName
-			spec.Government.Name = player.GovName
-			spec.Government.Type = player.GovType
-			g.AddSpecies(spec)
-			err = g.AddHomePlanets(logFile, galaxyPath, outputPath, setupData, player, spec)
-			if err != nil {
-				return err
-			}
 		}
 
 		err = game.Write(galaxyPath, isVerbose)
 		if err != nil {
 			return err
 		}
-		_, _ = fmt.Fprintf(logFile, "Created game file, turn number %d\n", game.CurrentTurn)
+		fmt.Printf("Created game file, turn number %d\n", game.CurrentTurn)
 
 		err = g.Write(galaxyPath, isVerbose)
 		if err != nil {
 			return err
 		}
-		_, _ = fmt.Fprintf(logFile, "Created galaxy file\n")
+		fmt.Printf("Created galaxy file\n")
 
-		systems := &fh.Systems{}
-		for _, star := range g.Stars {
-			systems.Data = append(systems.Data, star)
-		}
-		err = systems.Write(galaxyPath, isVerbose)
-		if err != nil {
-			return err
-		}
-		_, _ = fmt.Fprintf(logFile, "Created systems file\n")
-
-		_, _ = fmt.Fprintf(logFile, "Created galaxy in %v\n", time.Now().Sub(started))
+		fmt.Printf("Created galaxy in %v\n", time.Now().Sub(started))
 
 		return nil
 	},

@@ -69,3 +69,7 @@ func (c Coords) String() string {
 func (c Coords) SystemID() int {
 	return (c.X*1_000+c.Y)*1_000 + c.Z
 }
+
+func (c Coords) XYZ() string {
+	return fmt.Sprintf("%d %d %d", c.X, c.Y, c.Z)
+}

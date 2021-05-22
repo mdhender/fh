@@ -20,7 +20,6 @@ package fh
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"path/filepath"
 )
@@ -167,7 +166,7 @@ func (s *SpeciesData) NamedPlanetsReversed() []*NamedPlanetData {
 }
 
 // Report does that
-func (s *SpeciesData) Report(w io.Writer, galaxyPath string, turnNumber int, testMode, ignore_field_distorters, truncate_name bool, locations []*SpeciesLocationData, getPlanet func(Coords) *PlanetData, getSpecies func(id int) *SpeciesData, allSpecies []*SpeciesData) error {
+func (s *SpeciesData) Report(l *Logger, galaxyPath string, turnNumber int, testMode, ignore_field_distorters, truncate_name bool, locations []*SpeciesLocationData, getPlanet func(Coords) *PlanetData, getSpecies func(id int) *SpeciesData, allSpecies []*SpeciesData) error {
 	var otherSpecies []*SpeciesData
 	for _, alien := range allSpecies {
 		if s.Number != alien.Number {
@@ -180,33 +179,33 @@ func (s *SpeciesData) Report(w io.Writer, galaxyPath string, turnNumber int, tes
 		ship.alreadyListed = false
 	}
 
-	s.ReportIncludeLogFile(w, galaxyPath, turnNumber)
+	s.ReportIncludeLogFile(l, galaxyPath, turnNumber)
 
-	s.ReportHeader(w, turnNumber)
-	s.ReportTechLevels(w)
-	s.ReportGases(w)
-	s.ReportFleetMaintenance(w)
+	s.ReportHeader(l, turnNumber)
+	s.ReportTechLevels(l)
+	s.ReportGases(l)
+	s.ReportFleetMaintenance(l)
 
-	s.ReportContacts(w, otherSpecies)
-	s.ReportDeclaredAllies(w, otherSpecies)
-	s.ReportDeclaredEnemies(w, otherSpecies)
+	s.ReportContacts(l, otherSpecies)
+	s.ReportDeclaredAllies(l, otherSpecies)
+	s.ReportDeclaredEnemies(l, otherSpecies)
 
-	s.ReportEconomicUnits(w)
-	s.ReportProducingPlanets(w)
+	s.ReportEconomicUnits(l)
+	s.ReportProducingPlanets(l)
 	headerPrinted := false
-	headerPrinted = s.ReportNonProducingPlanets(w, headerPrinted, ignore_field_distorters, truncate_name)
-	headerPrinted = s.ReportShipsNotOnPlanet(w, testMode, headerPrinted, ignore_field_distorters, truncate_name)
+	headerPrinted = s.ReportNonProducingPlanets(l, headerPrinted, ignore_field_distorters, truncate_name)
+	headerPrinted = s.ReportShipsNotOnPlanet(l, testMode, headerPrinted, ignore_field_distorters, truncate_name)
 
-	fmt.Fprintf(w, "\n\n* * * * * * * * * * * * * * * * * * * * * * * * *\n")
+	l.Printf("\n\n* * * * * * * * * * * * * * * * * * * * * * * * *\n")
 
 	printingAlien := true
-	s.ReportAliens(w, locations, printingAlien, getSpecies)
+	s.ReportAliens(l, locations, printingAlien, getSpecies)
 
 	return nil
 }
 
 // Report aliens at locations where current species has inhabited planets or ships
-func (s *SpeciesData) ReportAliens(w io.Writer, locations []*SpeciesLocationData, printingAlien bool, getSpecies func(id int) *SpeciesData) {
+func (s *SpeciesData) ReportAliens(l *Logger, locations []*SpeciesLocationData, printingAlien bool, getSpecies func(id int) *SpeciesData) {
 	for _, my_loc := range locations {
 		if my_loc.S != s.Number {
 			continue
@@ -258,11 +257,11 @@ func (s *SpeciesData) ReportAliens(w io.Writer, locations []*SpeciesLocationData
 				}
 
 				if !header_printed {
-					fmt.Fprintf(w, "\n\nAliens at x = %d, y = %d, z = %d", my_loc.X, my_loc.Y, my_loc.Z)
+					l.Printf("\n\nAliens at x = %d, y = %d, z = %d", my_loc.X, my_loc.Y, my_loc.Z)
 					if we_have_planet_here {
-						fmt.Fprintf(w, " (PL %s star system)", our_nampla.Name)
+						l.Printf(" (PL %s star system)", our_nampla.Name)
 					}
-					fmt.Fprintf(w, ":\n")
+					l.Printf(":\n")
 					header_printed = true
 				}
 
@@ -286,7 +285,7 @@ func (s *SpeciesData) ReportAliens(w io.Writer, locations []*SpeciesLocationData
 				for j := 0; j < n; j++ {
 					temp2 += " "
 				}
-				fmt.Fprintf(w, "%sSP %s\n", temp2, alien.Name)
+				l.Printf("%sSP %s\n", temp2, alien.Name)
 
 				economicBase := industry != 0
 				if industry < 100 {
@@ -296,29 +295,29 @@ func (s *SpeciesData) ReportAliens(w io.Writer, locations []*SpeciesLocationData
 				}
 
 				if !economicBase {
-					fmt.Fprintf(w, "      (No economic base.)\n")
+					l.Printf("      (No economic base.)\n")
 				} else {
-					fmt.Fprintf(w, "      (Economic base is approximately %d.)\n", industry)
+					l.Printf("      (Economic base is approximately %d.)\n", industry)
 				}
 
 				/* If current species has a colony on the same planet, report any PDs and any shipyards. */
 				if we_have_colony_here {
 					if alien_nampla.ItemQuantity[PD] == 1 {
-						fmt.Fprintf(w, "      (There is 1 %s on the planet.)\n", itemData[PD].name)
+						l.Printf("      (There is 1 %s on the planet.)\n", itemData[PD].name)
 					} else if alien_nampla.ItemQuantity[PD] > 1 {
-						fmt.Fprintf(w, "      (There are %d %ss on the planet.)\n", alien_nampla.ItemQuantity[PD], itemData[PD].name)
+						l.Printf("      (There are %d %ss on the planet.)\n", alien_nampla.ItemQuantity[PD], itemData[PD].name)
 					}
 
 					if alien_nampla.Shipyards == 1 {
-						fmt.Fprintf(w, "      (There is 1 shipyard on the planet.)\n")
+						l.Printf("      (There is 1 shipyard on the planet.)\n")
 					} else if alien_nampla.Shipyards > 1 {
-						fmt.Fprintf(w, "      (There are %d shipyards on the planet.)\n", alien_nampla.Shipyards)
+						l.Printf("      (There are %d shipyards on the planet.)\n", alien_nampla.Shipyards)
 					}
 				}
 
 				/* Also report if alien colony is actively hiding. */
 				if alien_nampla.Hidden {
-					fmt.Fprintf(w, "      (Colony is actively hiding from alien observation.)\n")
+					l.Printf("      (Colony is actively hiding from alien observation.)\n")
 				}
 			}
 
@@ -348,25 +347,24 @@ func (s *SpeciesData) ReportAliens(w io.Writer, locations []*SpeciesLocationData
 				}
 
 				if !header_printed {
-					fmt.Fprintf(w, "\n\nAliens at x = %d, y = %d, z = %d", my_loc.X, my_loc.Y, my_loc.Z)
+					l.Printf("\n\nAliens at x = %d, y = %d, z = %d", my_loc.X, my_loc.Y, my_loc.Z)
 
 					if we_have_planet_here {
-						fmt.Fprintf(w, " (PL %s star system)", our_nampla.Name)
+						l.Printf(" (PL %s star system)", our_nampla.Name)
 					}
 
-					fmt.Fprintf(w, ":\n")
+					l.Printf(":\n")
 					header_printed = true
 				}
 
-				alien_ship.Report(w, !header_printed, printingAlien, alien)
+				alien_ship.Report(l, !header_printed, printingAlien, alien)
 			}
 		}
 	}
 }
 
 /* List species that have been met. */
-func (s *SpeciesData) ReportContacts(w io.Writer, otherSpecies []*SpeciesData) {
-	l := &Logger{File: w} /* Use log utils for this. */
+func (s *SpeciesData) ReportContacts(l *Logger, otherSpecies []*SpeciesData) {
 	n := 0
 	for _, alien := range otherSpecies {
 		if !s.Contact[alien.Number] {
@@ -387,8 +385,7 @@ func (s *SpeciesData) ReportContacts(w io.Writer, otherSpecies []*SpeciesData) {
 }
 
 /* List declared allies that have been met */
-func (s *SpeciesData) ReportDeclaredAllies(w io.Writer, otherSpecies []*SpeciesData) {
-	l := &Logger{File: w} /* Use log utils for this. */
+func (s *SpeciesData) ReportDeclaredAllies(l *Logger, otherSpecies []*SpeciesData) {
 	n := 0
 	for _, alien := range otherSpecies {
 		if !s.Contact[alien.Number] || !s.Ally[alien.Number] {
@@ -409,8 +406,7 @@ func (s *SpeciesData) ReportDeclaredAllies(w io.Writer, otherSpecies []*SpeciesD
 }
 
 /* List declared enemies that have been met */
-func (s *SpeciesData) ReportDeclaredEnemies(w io.Writer, otherSpecies []*SpeciesData) {
-	l := &Logger{File: w} /* Use log utils for this. */
+func (s *SpeciesData) ReportDeclaredEnemies(l *Logger, otherSpecies []*SpeciesData) {
 	n := 0
 	for _, alien := range otherSpecies {
 		if !s.Contact[alien.Number] || !s.Enemy[alien.Number] {
@@ -430,22 +426,22 @@ func (s *SpeciesData) ReportDeclaredEnemies(w io.Writer, otherSpecies []*Species
 	}
 }
 
-func (s *SpeciesData) ReportEconomicUnits(w io.Writer) {
-	fmt.Fprintf(w, "\nEconomic units = %d\n", s.EconUnits)
+func (s *SpeciesData) ReportEconomicUnits(l *Logger) {
+	l.Printf("\nEconomic units = %d\n", s.EconUnits)
 }
 
 /* List fleet maintenance cost and its percentage of total production. */
-func (s *SpeciesData) ReportFleetMaintenance(w io.Writer) {
+func (s *SpeciesData) ReportFleetMaintenance(l *Logger) {
 	fleet_percent_cost := s.FleetPercentCost
-	fmt.Fprintf(w, "\nFleet maintenance cost = %d (%d.%02d%% of total production)\n", s.FleetCost, fleet_percent_cost/100, fleet_percent_cost%100)
+	l.Printf("\nFleet maintenance cost = %d (%d.%02d%% of total production)\n", s.FleetCost, fleet_percent_cost/100, fleet_percent_cost%100)
 	if fleet_percent_cost > 10000 {
 		fleet_percent_cost = 10000
 	}
 }
 
-func (s *SpeciesData) ReportMishapChance(w io.Writer, ship *ShipData, dest Coords) {
+func (s *SpeciesData) ReportMishapChance(l *Logger, ship *ShipData, dest Coords) {
 	if dest.X == 9999 {
-		fmt.Fprintf(w, "Mishap chance = ???")
+		l.Printf("Mishap chance = ???")
 		return
 	}
 
@@ -459,51 +455,51 @@ func (s *SpeciesData) ReportMishapChance(w io.Writer, ship *ShipData, dest Coord
 		mishap_chance = 10000
 	}
 
-	fmt.Fprintf(w, "mishap chance = %d.%02d%%", mishap_chance/100, mishap_chance%100)
+	l.Printf("mishap chance = %d.%02d%%", mishap_chance/100, mishap_chance%100)
 }
 
-func (s *SpeciesData) ReportGases(w io.Writer) {
-	fmt.Fprintf(w, "\n\n\nAtmospheric Requirement: %d%%-%d%% %s", s.Gases.Required.Min, s.Gases.Required.Max, s.Gases.Required.Type.Char())
-	fmt.Fprintf(w, "\nNeutral Gases:")
+func (s *SpeciesData) ReportGases(l *Logger) {
+	l.Printf("\n\n\nAtmospheric Requirement: %d%%-%d%% %s", s.Gases.Required.Min, s.Gases.Required.Max, s.Gases.Required.Type.Char())
+	l.Printf("\nNeutral Gases:")
 	for i, gas := range s.Gases.Neutral {
 		if i != 0 {
-			fmt.Fprintf(w, ",")
+			l.Printf(",")
 		}
-		fmt.Fprintf(w, " %s", gas.Char())
+		l.Printf(" %s", gas.Char())
 	}
-	fmt.Fprintf(w, "\nPoisonous Gases:")
+	l.Printf("\nPoisonous Gases:")
 	for i, gas := range s.Gases.Poison {
 		if i != 0 {
-			fmt.Fprintf(w, ",")
+			l.Printf(",")
 		}
-		fmt.Fprintf(w, " %s", gas.Char())
+		l.Printf(" %s", gas.Char())
 	}
-	fmt.Fprintf(w, "\n")
+	l.Printf("\n")
 }
 
 /* Print header for status report. */
-func (s *SpeciesData) ReportHeader(w io.Writer, turnNumber int) {
-	fmt.Fprintf(w, "\n\t\t\t SPECIES STATUS\n\n\t\t\tSTART OF TURN %d\n\n", turnNumber)
-	fmt.Fprintf(w, "Species name: %s\n", s.Name)
-	fmt.Fprintf(w, "Government name: %s\n", s.Government.Name)
-	fmt.Fprintf(w, "Government type: %s\n", s.Government.Type)
+func (s *SpeciesData) ReportHeader(l *Logger, turnNumber int) {
+	l.Printf("\n\t\t\t SPECIES STATUS\n\n\t\t\tSTART OF TURN %d\n\n", turnNumber)
+	l.Printf("Species name: %s\n", s.Name)
+	l.Printf("Government name: %s\n", s.Government.Name)
+	l.Printf("Government type: %s\n", s.Government.Type)
 }
 
 // ReportIncludeLogFile copies the log file for the prior turn into the current report
-func (s *SpeciesData) ReportIncludeLogFile(w io.Writer, galaxyPath string, turnNumber int) {
-	log_file, err := ioutil.ReadFile(filepath.Join(galaxyPath, fmt.Sprintf("sp%02d.log", s.Number)))
+func (s *SpeciesData) ReportIncludeLogFile(l *Logger, galaxyPath string, turnNumber int) {
+	msg, err := ioutil.ReadFile(filepath.Join(galaxyPath, fmt.Sprintf("sp%02d.log", s.Number)))
 	if err != nil {
 		return
 	}
 	priorTurnNumber := turnNumber - 1
 	if priorTurnNumber > 0 {
-		_, _ = fmt.Fprintf(w, "\n\n\t\t\tEVENT LOG FOR TURN %d\n", priorTurnNumber)
+		l.Printf("\n\n\t\t\tEVENT LOG FOR TURN %d\n", priorTurnNumber)
 	}
-	_, _ = w.Write(log_file)
+	l.Write(msg)
 }
 
 // Print report for each producing planet
-func (s *SpeciesData) ReportProducingPlanets(w io.Writer) {
+func (s *SpeciesData) ReportProducingPlanets(l *Logger) {
 	for _, nampla := range s.NamedPlanets {
 		if nampla.Planet.Coords.Orbit == 99 {
 			continue
@@ -516,12 +512,12 @@ func (s *SpeciesData) ReportProducingPlanets(w io.Writer) {
 		if nampla.Planet == nil {
 			fmt.Printf("error: nampla %q planet is nil\n", nampla.Name)
 		}
-		nampla.Report(w, s, nampla.Planet, s.Ships)
+		nampla.Report(l, s, nampla.Planet, s.Ships)
 	}
 }
 
 // Print one-line listing for non-producing planets
-func (s *SpeciesData) ReportNonProducingPlanets(w io.Writer, headerPrinted, ignore_field_distorters, truncate_name bool) bool {
+func (s *SpeciesData) ReportNonProducingPlanets(l *Logger, headerPrinted, ignore_field_distorters, truncate_name bool) bool {
 	// printingAlien := false
 	for _, nampla := range s.NamedPlanets {
 		if nampla.Planet.Coords.Orbit == 99 {
@@ -532,31 +528,31 @@ func (s *SpeciesData) ReportNonProducingPlanets(w io.Writer, headerPrinted, igno
 		}
 
 		if !headerPrinted {
-			fmt.Fprintf(w, "\n\n* * * * * * * * * * * * * * * * * * * * * * * * *\n")
-			fmt.Fprintf(w, "\n\nOther planets and ships:\n\n")
+			l.Printf("\n\n* * * * * * * * * * * * * * * * * * * * * * * * *\n")
+			l.Printf("\n\nOther planets and ships:\n\n")
 			headerPrinted = true
 		}
-		fmt.Fprintf(w, "%4d%3d%3d #%d\tPL %s", nampla.Planet.Coords.X, nampla.Planet.Coords.Y, nampla.Planet.Coords.Z, nampla.Planet.Coords.Orbit, nampla.Name)
+		l.Printf("%4d%3d%3d #%d\tPL %s", nampla.Planet.Coords.X, nampla.Planet.Coords.Y, nampla.Planet.Coords.Z, nampla.Planet.Coords.Orbit, nampla.Name)
 
 		for j := 0; j < MAX_ITEMS; j++ {
 			if nampla.ItemQuantity[j] > 0 {
-				fmt.Fprintf(w, ", %d %s", nampla.ItemQuantity[j], itemData[j].abbr)
+				l.Printf(", %d %s", nampla.ItemQuantity[j], itemData[j].abbr)
 			}
 		}
-		fmt.Fprintf(w, "\n")
+		l.Printf("\n")
 
 		/* Print any ships at this planet. */
 		for _, ship := range s.Ships {
 			if ship.alreadyListed || !ship.Coords.SamePlanet(nampla.Planet.Coords) {
 				continue
 			}
-			fmt.Fprintf(w, "\t\t%s", ship.GetName(ignore_field_distorters, truncate_name))
+			l.Printf("\t\t%s", ship.GetName(ignore_field_distorters, truncate_name))
 			for j := 0; j < MAX_ITEMS; j++ {
 				if ship.ItemQuantity[j] > 0 {
-					fmt.Fprintf(w, ", %d %s", ship.ItemQuantity[j], itemData[j].abbr)
+					l.Printf(", %d %s", ship.ItemQuantity[j], itemData[j].abbr)
 				}
 			}
-			fmt.Fprintf(w, "\n")
+			l.Printf("\n")
 
 			ship.alreadyListed = true
 		}
@@ -564,7 +560,7 @@ func (s *SpeciesData) ReportNonProducingPlanets(w io.Writer, headerPrinted, igno
 	return headerPrinted
 }
 
-func (s *SpeciesData) ReportShipsNotOnPlanet(w io.Writer, testMode, headerPrinted, ignore_field_distorters, truncate_name bool) bool {
+func (s *SpeciesData) ReportShipsNotOnPlanet(l *Logger, testMode, headerPrinted, ignore_field_distorters, truncate_name bool) bool {
 	for _, ship := range s.Ships {
 		ship.ClearSpecial()
 		if ship.alreadyListed {
@@ -575,25 +571,25 @@ func (s *SpeciesData) ReportShipsNotOnPlanet(w io.Writer, testMode, headerPrinte
 			continue
 		}
 		if !headerPrinted {
-			fmt.Fprintf(w, "\n\n* * * * * * * * * * * * * * * * * * * * * * * * *\n")
-			fmt.Fprintf(w, "\n\nOther planets and ships:\n\n")
+			l.Printf("\n\n* * * * * * * * * * * * * * * * * * * * * * * * *\n")
+			l.Printf("\n\nOther planets and ships:\n\n")
 			headerPrinted = true
 		}
 
 		if ship.Status.JumpedInCombat || ship.Status.ForcedJump {
-			fmt.Fprintf(w, "  ?? ?? ??\t%s", ship.GetName(ignore_field_distorters, truncate_name))
+			l.Printf("  ?? ?? ??\t%s", ship.GetName(ignore_field_distorters, truncate_name))
 		} else if testMode && ship.ArrivedViaWormhole {
-			fmt.Fprintf(w, "  ?? ?? ??\t%s", ship.GetName(ignore_field_distorters, truncate_name))
+			l.Printf("  ?? ?? ??\t%s", ship.GetName(ignore_field_distorters, truncate_name))
 		} else {
-			fmt.Fprintf(w, "%4d%3d%3d\t%s", ship.Coords.X, ship.Coords.Y, ship.Coords.Z, ship.GetName(ignore_field_distorters, truncate_name))
+			l.Printf("%4d%3d%3d\t%s", ship.Coords.X, ship.Coords.Y, ship.Coords.Z, ship.GetName(ignore_field_distorters, truncate_name))
 		}
 
 		for i := 0; i < MAX_ITEMS; i++ {
 			if ship.ItemQuantity[i] > 0 {
-				fmt.Fprintf(w, ", %d %s", ship.ItemQuantity[i], itemData[i].abbr)
+				l.Printf(", %d %s", ship.ItemQuantity[i], itemData[i].abbr)
 			}
 		}
-		fmt.Fprintf(w, "\n")
+		l.Printf("\n")
 
 		if ship.Status.JumpedInCombat || ship.Status.ForcedJump {
 			continue
@@ -607,13 +603,13 @@ func (s *SpeciesData) ReportShipsNotOnPlanet(w io.Writer, testMode, headerPrinte
 			if ship2.alreadyListed || ship2.Coords.Orbit == 99 || !ship2.Coords.SameSystem(ship.Coords) {
 				continue
 			}
-			fmt.Fprintf(w, "\t\t%s", ship2.GetName(ignore_field_distorters, truncate_name))
+			l.Printf("\t\t%s", ship2.GetName(ignore_field_distorters, truncate_name))
 			for j := 0; j < MAX_ITEMS; j++ {
 				if ship2.ItemQuantity[j] > 0 {
-					fmt.Fprintf(w, ", %d %s", ship2.ItemQuantity[j], itemData[j].abbr)
+					l.Printf(", %d %s", ship2.ItemQuantity[j], itemData[j].abbr)
 				}
 			}
-			fmt.Fprintf(w, "\n")
+			l.Printf("\n")
 
 			ship2.alreadyListed = true
 		}
@@ -621,38 +617,38 @@ func (s *SpeciesData) ReportShipsNotOnPlanet(w io.Writer, testMode, headerPrinte
 	return headerPrinted
 }
 
-func (s *SpeciesData) ReportTechLevels(w io.Writer) {
-	fmt.Fprintf(w, "\nTech Levels:\n")
-	fmt.Fprintf(w, "   %s = %d", techData[MI].name, s.TechLevel[MI])
+func (s *SpeciesData) ReportTechLevels(l *Logger) {
+	l.Printf("\nTech Levels:\n")
+	l.Printf("   %s = %d", techData[MI].name, s.TechLevel[MI])
 	if s.TechKnowledge[MI] > s.TechLevel[MI] {
-		fmt.Fprintf(w, "/%d", s.TechKnowledge[MI])
+		l.Printf("/%d", s.TechKnowledge[MI])
 	}
-	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "   %s = %d", techData[MA].name, s.TechLevel[MA])
+	l.Printf("\n")
+	l.Printf("   %s = %d", techData[MA].name, s.TechLevel[MA])
 	if s.TechKnowledge[MA] > s.TechLevel[MA] {
-		fmt.Fprintf(w, "/%d", s.TechKnowledge[MA])
+		l.Printf("/%d", s.TechKnowledge[MA])
 	}
-	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "   %s = %d", techData[ML].name, s.TechLevel[ML])
+	l.Printf("\n")
+	l.Printf("   %s = %d", techData[ML].name, s.TechLevel[ML])
 	if s.TechKnowledge[ML] > s.TechLevel[ML] {
-		fmt.Fprintf(w, "/%d", s.TechKnowledge[ML])
+		l.Printf("/%d", s.TechKnowledge[ML])
 	}
-	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "   %s = %d", techData[GV].name, s.TechLevel[GV])
+	l.Printf("\n")
+	l.Printf("   %s = %d", techData[GV].name, s.TechLevel[GV])
 	if s.TechKnowledge[GV] > s.TechLevel[GV] {
-		fmt.Fprintf(w, "/%d", s.TechKnowledge[GV])
+		l.Printf("/%d", s.TechKnowledge[GV])
 	}
-	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "   %s = %d", techData[LS].name, s.TechLevel[LS])
+	l.Printf("\n")
+	l.Printf("   %s = %d", techData[LS].name, s.TechLevel[LS])
 	if s.TechKnowledge[LS] > s.TechLevel[LS] {
-		fmt.Fprintf(w, "/%d", s.TechKnowledge[LS])
+		l.Printf("/%d", s.TechKnowledge[LS])
 	}
-	fmt.Fprintf(w, "\n")
-	fmt.Fprintf(w, "   %s = %d", techData[BI].name, s.TechLevel[BI])
+	l.Printf("\n")
+	l.Printf("   %s = %d", techData[BI].name, s.TechLevel[BI])
 	if s.TechKnowledge[BI] > s.TechLevel[BI] {
-		fmt.Fprintf(w, "/%d", s.TechKnowledge[BI])
+		l.Printf("/%d", s.TechKnowledge[BI])
 	}
-	fmt.Fprintf(w, "\n")
+	l.Printf("\n")
 }
 
 // The following routine provides the 'distorted' species number used to

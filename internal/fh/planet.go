@@ -61,15 +61,12 @@ var earth = []struct{ diameter, temperatureClass int }{
 	{49, 3},  // Neptune
 }
 
-// GenerateEarthLikePlanet will try to random generate a set of planets
+// GenerateEarthLikePlanet will try to randomly generate a set of planets
 // that contains one Earth-like planet. If it can't, it will return nil.
 func GenerateEarthLikePlanet(starId string, num_planets int) []*PlanetData {
-	// set flag to indicate this star system requires an earth-like planet.
-	// We will reset it after we have created one.
-	make_earth := true
-
 	var planets []*PlanetData
 	var homePlanet *PlanetData
+	var innerPlanet *PlanetData // the planet immediately closer to the star
 
 	/* Main loop. Generate one planet at a time. */
 	for planet_number := 1; planet_number <= num_planets; planet_number++ {
@@ -87,9 +84,20 @@ func GenerateEarthLikePlanet(starId string, num_planets int) []*PlanetData {
 		planet.TemperatureClass = earth[startOffset].temperatureClass
 
 		/* If diameter is greater than 40,000 km, assume the planet is a gas giant. */
-		gas_giant := (planet.Diameter > 40)
+		isGasGiant := (planet.Diameter > 40)
 
-		planet.Density = planet.GenerateDensity(gas_giant)
+		planet.TemperatureClass = planet.GenerateTemperatureClass(num_planets, planet_number, isGasGiant, earth[startOffset].temperatureClass)
+		if innerPlanet != nil {
+			/* Make sure that planets farther from the sun are not warmer than planets closer to the sun. */
+			if innerPlanet.TemperatureClass < planet.TemperatureClass {
+				planet.TemperatureClass = innerPlanet.TemperatureClass - (rnd(3) - 1)
+				if planet.TemperatureClass < 1 {
+					planet.TemperatureClass = 1
+				}
+			}
+		}
+
+		planet.Density = planet.GenerateDensity(isGasGiant)
 
 		// Gravitational acceleration is proportional to the mass divided by the radius-squared.
 		// The radius is proportional to the diameter, and the mass is proportional to the density times the radius-cubed.
@@ -98,19 +106,10 @@ func GenerateEarthLikePlanet(starId string, num_planets int) []*PlanetData {
 		// The factor 72 ensures that "g" will be 100 for Earth (density=550 and diameter=13).
 		planet.Gravity = (planet.Density * planet.Diameter) / 72
 
-		planet.TemperatureClass = planet.GenerateTemperatureClass(num_planets, planet_number, gas_giant, earth[startOffset].temperatureClass)
-		/* Make sure that planets farther from the sun are not warmer than planets closer to the sun. */
-		if planet_number > 1 && planets[planet_number-1].TemperatureClass < planet.TemperatureClass {
-			planet.TemperatureClass = planets[planet_number-1].TemperatureClass - (rnd(3) - 1)
-			if planet.TemperatureClass < 1 {
-				planet.TemperatureClass = 1
-			}
-		}
-
 		// Check if this planet should be earth-like.
 		// If so, discard all of the above and replace with earth-like characteristics.
-		if make_earth && homePlanet == nil && planet.TemperatureClass <= 11 {
-			homePlanet, make_earth = planet, false /* Once only. */
+		if homePlanet == nil && planet.TemperatureClass <= 11 {
+			homePlanet = planet
 
 			planet.Diameter = 11 + rnd(3)
 			planet.Gravity = 93 + rnd(11) + rnd(11) + rnd(5)
@@ -147,7 +146,7 @@ func GenerateEarthLikePlanet(starId string, num_planets int) []*PlanetData {
 		}
 
 		/* Pressure class depends primarily on gravity. Calculate an approximate value and randomize it. */
-		planet.PressureClass = planet.GeneratePressureClass(planet.Gravity, planet.TemperatureClass, gas_giant)
+		planet.PressureClass = planet.GeneratePressureClass(planet.Gravity, planet.TemperatureClass, isGasGiant)
 
 		/* Generate gases, if any, in the atmosphere. */
 		for _, gas := range planet.GenerateGases(planet.PressureClass, planet.TemperatureClass) {
@@ -156,21 +155,28 @@ func GenerateEarthLikePlanet(starId string, num_planets int) []*PlanetData {
 
 		// Get mining difficulty.
 		planet.MiningDifficulty = planet.GenerateMiningDifficulty(planet.Diameter, true)
+
+		innerPlanet = planet
 	}
 
 	if homePlanet == nil {
-		//fmt.Printf("found no home planet\n")
+		fmt.Printf("found no home planet\n")
 		return nil
 	}
 
 	// If this is a potential home system, make sure it passes certain tests.
 	// What this test is, I do not know.
-	potential := 0
-	for _, planet := range planets {
+	potential, isVerbose, isVeryVerbose := 0, false, false
+	for i, planet := range planets {
+		if isVeryVerbose {
+			fmt.Printf("planet life support potential orbit %d lsn %8d\n", i+1, LSN(planet, homePlanet))
+		}
 		potential += 20000 / ((LSN(planet, homePlanet) + 3) * (50 + planet.MiningDifficulty))
 	}
 	if potential < 54 || potential > 56 {
-		//fmt.Printf("home planet potential %d did not pass certain tests\n", potential)
+		if isVerbose {
+			fmt.Printf("home planet potential %d did not pass certain tests\n", potential)
+		}
 		return nil
 	}
 
@@ -199,9 +205,9 @@ func GeneratePlanet(starId string, coords Coords, num_planets int) ([]*PlanetDat
 		planet.TemperatureClass = earth[startOffset].temperatureClass
 
 		/* If diameter is greater than 40,000 km, assume the planet is a gas giant. */
-		gas_giant := (planet.Diameter > 40)
+		isGasGiant := (planet.Diameter > 40)
 
-		planet.Density = planet.GenerateDensity(gas_giant)
+		planet.Density = planet.GenerateDensity(isGasGiant)
 
 		// Gravitational acceleration is proportional to the mass divided by the radius-squared.
 		// The radius is proportional to the diameter, and the mass is proportional to the density times the radius-cubed.
@@ -210,7 +216,7 @@ func GeneratePlanet(starId string, coords Coords, num_planets int) ([]*PlanetDat
 		// The factor 72 ensures that "g" will be 100 for Earth (density=550 and diameter=13).
 		planet.Gravity = (planet.Density * planet.Diameter) / 72
 
-		planet.TemperatureClass = planet.GenerateTemperatureClass(num_planets, planet_number, gas_giant, earth[startOffset].temperatureClass)
+		planet.TemperatureClass = planet.GenerateTemperatureClass(num_planets, planet_number, isGasGiant, earth[startOffset].temperatureClass)
 		/* Make sure that planets farther from the sun are not warmer than planets closer to the sun. */
 		if planet_number > 1 && planets[planet_number-1].TemperatureClass < planet.TemperatureClass {
 			planet.TemperatureClass = planets[planet_number-1].TemperatureClass - (rnd(3) - 1)
@@ -220,7 +226,7 @@ func GeneratePlanet(starId string, coords Coords, num_planets int) ([]*PlanetDat
 		}
 
 		/* Pressure class depends primarily on gravity. Calculate an approximate value and randomize it. */
-		planet.PressureClass = planet.GeneratePressureClass(planet.Gravity, planet.TemperatureClass, gas_giant)
+		planet.PressureClass = planet.GeneratePressureClass(planet.Gravity, planet.TemperatureClass, isGasGiant)
 
 		/* Generate gases, if any, in the atmosphere. */
 		for _, gas := range planet.GenerateGases(planet.PressureClass, planet.TemperatureClass) {
@@ -484,7 +490,7 @@ func (p *PlanetData) GenerateTemperatureClass(numPlanets, orbit int, gasGiant bo
 		}
 	}
 
-	// Sometimes, an inner planet in star systems with less than four planets are too cold.
+	// Sometimes, inner planets in star systems with less than four planets are too cold.
 	// Warm them up a little.
 	if numPlanets < 4 && orbit < 3 {
 		for temperatureClass < 12 {
@@ -539,4 +545,19 @@ func LSN(current_planet, home_planet *PlanetData) int {
 	}
 
 	return ls_needed
+}
+
+func NewSystemTemplates(l *Logger, numberOfPlanets, maxTries int) []*PlanetData {
+	id := fmt.Sprintf("homes/%02d", numberOfPlanets)
+	var planets []*PlanetData
+	for tries := 0; tries < maxTries; tries++ {
+		planets = GenerateEarthLikePlanet(id, numberOfPlanets)
+		if planets != nil {
+			l.Printf("Creating home system with %d planets after %d attempts...\n", numberOfPlanets, tries+1)
+			return planets
+		}
+	}
+	l.Printf("Failed to create home system with %d planets after %d attempts...\n", numberOfPlanets, maxTries)
+	fmt.Printf("Failed to create home system with %d planets after %d attempts...\n", numberOfPlanets, maxTries)
+	return nil
 }

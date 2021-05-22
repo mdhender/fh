@@ -23,94 +23,39 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 )
 
 type Logger struct {
-	Disabled    bool
-	Indentation int
-	Position    int
-	StartOfLine bool
-	Line        []byte
-	File        io.Writer
-	Stdout      io.Writer
-	Summary     io.Writer
+	Disabled bool
+	File     io.WriteCloser
+	Stdout   io.WriteCloser
+	Summary  io.WriteCloser
 }
 
 func (l *Logger) Char(ch byte) {
-	if l.Disabled {
-		return
+	l.Write([]byte{ch})
+}
+
+func (l *Logger) Close() {
+	if l.File != nil {
+		l.File.Close()
 	}
-
-	if l.Line == nil {
-		l.Line = make([]byte, 128, 128)
+	if l.Stdout != nil && l.Stdout != os.Stdout {
+		l.Stdout.Close()
 	}
-
-	// check if current line is getting too long
-	if (ch == ' ' || ch == '\n') && l.Position > 77 {
-		// find closest preceding space
-		temp_position := l.Position - 1
-		for temp_position >= 0 && l.Line[l.Position] != ' ' {
-			temp_position--
-		}
-		if temp_position == -1 {
-			// no spaces!
-			temp_position = l.Position
-		}
-		front, rest := l.Line[:temp_position], l.Line[temp_position:]
-
-		// write front of line to files
-		l.Puts(front)
-
-		// copy overflow word to beginning of next line
-		copy(l.Line, rest)
-		l.Position = l.Indentation + 2 // why do we add 2 here?
-		for i := 0; i < l.Position; i++ {
-			l.Line[i] = ' '
-		}
-		copy(l.Line[l.Position:], rest)
-		l.Position += len(rest)
-
-		if ch == ' ' {
-			l.Line[l.Position] = ch
-			l.Position++
-			return
-		}
-	}
-
-	// check if line is being manually terminated
-	if ch == '\n' {
-		// write current line to output
-		l.Puts(l.Line[:l.Position])
-
-		// set up for next line
-		l.Position = 0
-		l.Indentation = 0
-		l.StartOfLine = true
-
-		return
-	}
-
-	// save this character
-	l.Line[l.Position] = ch
-	l.Position++
-
-	l.StartOfLine = l.StartOfLine && ch == ' '
-	if l.StartOfLine {
-		// save number of indenting spaces for current line
-		l.Indentation++
+	if l.Summary != nil {
+		l.Summary.Close()
 	}
 }
 
 func (l *Logger) Int(value int) {
-	if l.Disabled {
-		return
-	}
-	l.String(fmt.Sprintf("%d", value))
+	l.Printf("%d", value)
 }
 
 func (l *Logger) Long(value int) {
-	l.Int(value)
+	l.Printf("%d", value)
 }
 
 func (l *Logger) Message(msg string) {
@@ -122,42 +67,33 @@ func (l *Logger) Message(msg string) {
 	}
 }
 
-func (l *Logger) Puts(line []byte) {
-	nl := []byte{'\n'}
+func (l *Logger) Printf(format string, a ...interface{}) {
+	l.Write([]byte(fmt.Sprintf(format, a...)))
+}
+
+func (l *Logger) Write(b []byte) {
+	if l.Disabled || len(b) == 0 {
+		return
+	}
 	if l.File != nil {
-		if _, err := l.File.Write(line); err != nil {
-			panic(err)
-		}
-		if _, err := l.File.Write(nl); err != nil {
+		if _, err := l.File.Write(b); err != nil {
 			panic(err)
 		}
 	}
 	if l.Stdout != nil {
-		if _, err := l.Stdout.Write(line); err != nil {
-			panic(err)
-		}
-		if _, err := l.Stdout.Write(nl); err != nil {
+		if _, err := l.Stdout.Write(b); err != nil {
 			panic(err)
 		}
 	}
 	if l.Summary != nil {
-		if _, err := l.Summary.Write(line); err != nil {
-			panic(err)
-		}
-		if _, err := l.Summary.Write(nl); err != nil {
+		if _, err := l.Summary.Write(b); err != nil {
 			panic(err)
 		}
 	}
 }
 
 func (l *Logger) String(s string) {
-	if l.Disabled {
-		return
-	}
-
-	for _, ch := range []byte(s) {
-		l.Char(ch)
-	}
+	l.Write([]byte(s))
 }
 
 func GetMessage(galaxyPath string, n int) (string, error) {

@@ -55,16 +55,13 @@ func GetSystems(inputPath string, isVerbose bool) (map[string]*StarData, error) 
 	stars := make(map[string]*StarData)
 	for _, system := range systems {
 		star := &StarData{
-			ID:       system.ID,
-			Coords:   system.Coords,
-			Type:     system.Type,
-			Color:    system.Color,
-			Size:     system.Size,
-			WormHere: system.Wormhole != nil,
-			Message:  system.Message,
-		}
-		if star.WormHere {
-			star.WormCoords = Coords{X: system.Coords.X, Y: system.Coords.Y, Z: system.Coords.Z}
+			ID:     system.ID,
+			Coords: system.Coords,
+			Type:   system.Type,
+			Color:  system.Color,
+			Size:   system.Size,
+			//Wormhole: system.Wormhole,
+			Message: system.Message,
 		}
 		stars[star.ID] = star
 	}
@@ -96,12 +93,8 @@ func (s *Systems) Write(outputPath string, isVerbose bool) error {
 			PotentialHomeSystem: star.HomeSystem,
 			Message:             star.Message,
 		}
-		if star.WormHere {
-			if star.WormCoords.X == 0 && star.WormCoords.Y == 0 && star.WormCoords.Z == 0 {
-				fmt.Printf("internal error: star %q has invalid WormHere\n", star.ID)
-			} else {
-				o.Wormhole = &Coords{X: star.WormCoords.X, Y: star.WormCoords.Y, Z: star.WormCoords.Z}
-			}
+		if star.Wormhole != nil {
+			o.Wormhole = &Coords{X: star.Wormhole.Coords.X, Y: star.Wormhole.Coords.Y, Z: star.Wormhole.Coords.Z}
 		}
 		for visitor := range star.VisitedBy {
 			o.VisitedBy = append(o.VisitedBy, visitor)
