@@ -18,11 +18,8 @@
 
 package fh
 
-import (
-	"fmt"
-)
-
 type StarData struct {
+	key          int
 	ID           string                                                           `json:"id"`
 	SystemNumber int                                                              `json:"system_number"` // one base index
 	Coords       Coords                                                           `json:"xyz"`           /* Coordinates. */
@@ -30,89 +27,23 @@ type StarData struct {
 	Color        StarColor       /* Star color. Blue, blue-white, etc. */
 	Size         int             /* Star size, from 0 thru 9 inclusive. */
 	NumPlanets   int             /* Number of usable planets in star system. */
-	HomeSystem   bool            /* TRUE if this is a good potential home system. */
 	Wormhole     *StarData       // set only if the system contains a natural wormhole
 	Message      int             /* Message associated with this star system, if any. */
 	VisitedBy    map[string]bool `json:"visited_by"` // map of species id, true if corresponding species has been here.
 	PlanetIndex  int             /* Index (starting at zero) into the file "planets.dat" of the first planet in the star system. */
 	Planets      []*PlanetData
+	HomeSpecies  *SpeciesData
 }
 
-func NewStar(l *Logger) (*StarData, error) {
+func NewStar(l *Logger, at Coords) (*StarData, error) {
 	star := &StarData{
+		key:       at.SystemID(),
+		Coords:    at,
 		Size:      rnd(10) - 1, // size is totally random
 		VisitedBy: make(map[string]bool),
 	}
 
 	// determine type of star, favoring MAIN_SEQUENCE stars.
-	// the type of the star will influence the number of dice we roll
-	// when generating the planets.
-	var numberOfDice int
-	switch rnd(GIANT + 6) {
-	case 1:
-		star.Type, numberOfDice = DWARF, 1
-	case 2:
-		star.Type, numberOfDice = DEGENERATE, 2
-	case 3:
-		star.Type, numberOfDice = GIANT, 3
-	default:
-		star.Type, numberOfDice = MAIN_SEQUENCE, 2
-	}
-
-	// color of star is totally random, but the color impacts the number
-	// of dice that we roll later when generating the planets.
-	var sizeOfDie int
-	switch c := rnd(RED); c {
-	case BLUE:
-		star.Color, sizeOfDie = StarColor(c), 8
-	case BLUE_WHITE:
-		star.Color, sizeOfDie = StarColor(c), 7
-	case WHITE:
-		star.Color, sizeOfDie = StarColor(c), 6
-	case YELLOW_WHITE:
-		star.Color, sizeOfDie = StarColor(c), 5
-	case YELLOW:
-		star.Color, sizeOfDie = StarColor(c), 4
-	case ORANGE:
-		star.Color, sizeOfDie = StarColor(c), 3
-	case RED:
-		star.Color, sizeOfDie = StarColor(c), 2
-	default:
-		return nil, fmt.Errorf("assert(StarColor != %d)", c)
-	}
-
-	// initialize the planet generator to bias it towards fewer planets
-	numPlanets := -2
-	for i := 0; i < numberOfDice; i++ {
-		numPlanets += rnd(sizeOfDie)
-	}
-	// then adjust if too few or too many planets
-	for numPlanets < 1 {
-		numPlanets += rnd(2)
-	}
-	for numPlanets > 9 {
-		numPlanets -= rnd(3)
-	}
-	star.Planets = make([]*PlanetData, numPlanets, numPlanets)
-
-	l.Printf("Generated star (type %-13s) (planets %d)\n", star.Type, len(star.Planets))
-
-	return star, nil
-}
-
-func GenerateStar(lg Loggy, at Coords, nSpecies int) (*StarData, error) {
-	lg.Log("Generating star (%3d, %3d, %3d)\n", at.X, at.Y, at.Z)
-
-	/* Set coordinates. */
-	star := &StarData{
-		ID:          at.String(),
-		Coords:      at,
-		NumPlanets:  -2, // default value to initialize the planet generator
-		PlanetIndex: -1,
-		VisitedBy:   make(map[string]bool),
-	}
-
-	/* Determine type of star. Make MAIN_SEQUENCE the most common star type. */
 	switch rnd(GIANT + 6) {
 	case 1:
 		star.Type = DWARF
@@ -124,31 +55,40 @@ func GenerateStar(lg Loggy, at Coords, nSpecies int) (*StarData, error) {
 		star.Type = MAIN_SEQUENCE
 	}
 
-	/* Determine the number of planets in orbit around the star. The algorithm is something I tweaked until I liked it. It's weird, but it works. */
-	/* Color and size of star are totally random. */
-	star.Size = rnd(10) - 1
-	switch c := rnd(RED); c {
-	case BLUE:
-		star.Color = BLUE
-	case BLUE_WHITE:
-		star.Color = BLUE_WHITE
-	case WHITE:
-		star.Color = WHITE
-	case YELLOW_WHITE:
-		star.Color = YELLOW_WHITE
-	case YELLOW:
-		star.Color = YELLOW
-	case ORANGE:
-		star.Color = ORANGE
-	case RED:
-		star.Color = RED
-	default:
-		return nil, fmt.Errorf("assert(StarColor != %d)", c)
+	// color of star is totally random, but the color impacts the number
+	// of dice that we roll later when generating the planets.
+	star.Color = StarColor(rnd(RED))
+
+	planets, err := GeneratePlanets(star.Coords, star.rollForPlanets())
+	if err != nil {
+		return nil, err
+	}
+	star.Planets = planets
+
+	l.Printf("Generated %-13s star with %2d planets at %s\n", star.Type, len(star.Planets), at.XYZ())
+
+	return star, nil
+}
+
+func (s *StarData) rollForPlanets() int {
+	// the type of the star will influence the number of dice we roll
+	// when generating the planets.
+	var numberOfDice int
+	switch s.Type {
+	case DWARF:
+		numberOfDice = 1
+	case DEGENERATE:
+		numberOfDice = 2
+	case GIANT:
+		numberOfDice = 3
+	case MAIN_SEQUENCE:
+		numberOfDice = 2
 	}
 
-	/* Size of die. Big stars (blue, blue-white) roll bigger dice. Smaller stars (orange, red) roll smaller dice. */
+	// color of star is totally random, but the color impacts the number
+	// of dice that we roll later when generating the planets.
 	var sizeOfDie int
-	switch star.Color {
+	switch s.Color {
 	case BLUE:
 		sizeOfDie = 8
 	case BLUE_WHITE:
@@ -165,42 +105,19 @@ func GenerateStar(lg Loggy, at Coords, nSpecies int) (*StarData, error) {
 		sizeOfDie = 2
 	}
 
-	/* Number of rolls: dwarves have 1 roll, degenerates and main sequence stars have 2 rolls, and giants have 3 rolls. */
-	var numberOfDice int
-	switch star.Type {
-	case DWARF:
-		numberOfDice = 1
-	case DEGENERATE:
-		numberOfDice = 2
-	case MAIN_SEQUENCE:
-		numberOfDice = 2
-	case GIANT:
-		numberOfDice = 3
-	default:
-		panic(fmt.Sprintf("assert(star.Type != %d)", star.Type))
+	// initialize the planet generator to bias it towards fewer planets
+	numPlanets := -2
+	for i := 0; i < numberOfDice; i++ {
+		numPlanets += rnd(sizeOfDie)
 	}
-
-	for i := 1; i <= numberOfDice; i++ {
-		star.NumPlanets += rnd(sizeOfDie)
+	// then adjust if too few or too many planets
+	for numPlanets < 1 {
+		numPlanets += rnd(2)
 	}
-	// adjust if too few or too many planets
-	for star.NumPlanets < 1 {
-		star.NumPlanets += rnd(2)
+	for numPlanets > 9 {
+		numPlanets -= rnd(3)
 	}
-	for star.NumPlanets > 9 {
-		star.NumPlanets -= rnd(3)
-	}
-
-	lg.Log("Generating star (%3d, %3d, %3d) (type %-13s) (planets %d)\n", at.X, at.Y, at.Z, star.Type, star.NumPlanets)
-
-	// generate planets
-	var err error
-	star.Planets, err = GeneratePlanet(star.ID, star.Coords, star.NumPlanets)
-	if err != nil {
-		return nil, err
-	}
-
-	return star, nil
+	return numPlanets
 }
 
 func (s *StarData) At(x, y, z int) bool {
@@ -208,13 +125,12 @@ func (s *StarData) At(x, y, z int) bool {
 }
 
 // ConvertToHomeSystem converts the system to a system with a home planet
-func (s *StarData) ConvertToHomeSystem(src []*PlanetData) {
-	fmt.Printf("[convert] %s planets %d %d\n", s.Coords.XYZ(), len(s.Planets), len(src))
-	s.HomeSystem = true
-
+func (s *StarData) ConvertToHomeSystem(l *Logger, species *SpeciesData, src []*PlanetData) {
 	// update the star with values from the source template
 	for i, planet := range src {
+		at := s.Planets[i].Coords
 		s.Planets[i] = planet.Clone()
+		s.Planets[i].Coords = at
 	}
 
 	// make minor random changes to the planets
@@ -260,6 +176,9 @@ func (s *StarData) ConvertToHomeSystem(src []*PlanetData) {
 			planet.MiningDifficulty += rnd(10)
 		}
 	}
+
+	l.Printf("Converted system %s to home system (planets %d/%d)\n", s.Coords.XYZ(), len(s.Planets), len(src))
+	s.HomeSpecies = species
 }
 
 // returns index, not number

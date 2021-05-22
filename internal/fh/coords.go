@@ -27,6 +27,11 @@ type Coords struct {
 	Orbit int `json:"orbit,omitempty"` // zero means the star, non-zero is planet number
 }
 
+func (c Coords) CloserThan(t Coords, d int) bool {
+	dx, dy, dz := c.X-t.X, c.Y-t.Y, c.Z-t.Z
+	return dx*dx+dy*dy+dz*dz < d*d
+}
+
 func (c Coords) DeltaXYZ(t Coords) (int, int, int) {
 	dX, dY, dZ := c.X-t.X, c.Y-t.Y, c.Z-t.Z
 	if dX < 0 {
@@ -71,5 +76,5 @@ func (c Coords) SystemID() int {
 }
 
 func (c Coords) XYZ() string {
-	return fmt.Sprintf("%d %d %d", c.X, c.Y, c.Z)
+	return fmt.Sprintf("%3d %3d %3d", c.X, c.Y, c.Z)
 }

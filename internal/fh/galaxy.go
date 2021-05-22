@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"github.com/mdhender/fh/internal/prng"
 	"io/ioutil"
+	"math"
 	"os"
 	"path/filepath"
 	"sort"
@@ -95,6 +96,7 @@ func GenerateGalaxy(l *Logger, setupData *SetupData, galaxyPath string, players 
 		Radius: setupData.Galaxy.MinimumDistance, // setup data influences the minimum radius
 		l:      l,
 	}
+	defer l.Close()
 
 	// initialize from some player data
 	g.Players = make(map[string]*Player)
@@ -126,7 +128,7 @@ func GenerateGalaxy(l *Logger, setupData *SetupData, galaxyPath string, players 
 	for g.Radius*g.Radius*g.Radius < volume {
 		g.Radius++
 	}
-	g.Log("For %d stars, the galaxy should have a radius of about %d parsecs.", desiredNumberOfSystems, g.Radius)
+	g.Log("For %d stars, the galaxy should have a radius of about %d parsecs.\n", desiredNumberOfSystems, g.Radius)
 	if setupData.Galaxy.Overrides.UseOverrides {
 		if setupData.Galaxy.Overrides.Radius != 0 && setupData.Galaxy.Overrides.Radius != g.Radius {
 			g.Log("\tBut we are over-riding that to a radius of about %d parsecs.", setupData.Galaxy.Overrides.Radius)
@@ -158,28 +160,10 @@ func GenerateGalaxy(l *Logger, setupData *SetupData, galaxyPath string, players 
 	// create the star systems and disperse them throughout the cluster
 	g.Systems = make(map[int]*StarData)
 	g.Translate.XYZToSystem = make(map[string]*StarData)
-	var planetCount [10]int
-	for i := 0; i < desiredNumberOfSystems; i++ {
-		system, err := NewStar(l)
-		if err != nil {
-			return nil, err
-		}
-		g.allSystems = append(g.allSystems, system)
-		g.Systems[system.Coords.SystemID()] = system
-		g.Translate.XYZToSystem[system.Coords.XYZ()] = system
-		g.NumberOfPlanets += len(system.Planets)
-		planetCount[len(system.Planets)]++
-	}
-	for i:=0; i<len(planetCount); i++{
-		if planetCount[i] == 0 {
-			continue
-		}
-		l.Printf("    %d systems have %d planets\n", planetCount[i], i)
-	}
-	l.Printf("    %d planets per system on average\n", g.NumberOfPlanets / len(g.allSystems))
-
 	locations := make(map[int]*StarData)
-	for _, system := range g.allSystems {
+	var planetCount [10]int
+	mushyDistance, maxDistance := 9+g.Radius*g.Radius, 0
+	for i := 0; i < desiredNumberOfSystems; {
 		// generate coordinates randomly
 		at := Coords{X: rnd(galactic_diameter) - 1, Y: rnd(galactic_diameter) - 1, Z: rnd(galactic_diameter) - 1}
 		real_x, real_y, real_z := at.X-g.Center.X, at.Y-g.Center.Y, at.Z-g.Center.Z
@@ -188,55 +172,51 @@ func GenerateGalaxy(l *Logger, setupData *SetupData, galaxyPath string, players 
 		// (sort of - actually just validates the distance from the center)
 		sq_distance_from_center := (real_x * real_x) + (real_y * real_y) + (real_z * real_z)
 		// TODO: original was >=. Changed this because why?
-		if sq_distance_from_center > g.Radius*g.Radius {
+		if sq_distance_from_center > mushyDistance {
 			continue
 		}
-		// verify that we don't already have a star here
+		// verify that we don't already have a system there
 		if _, exists := locations[at.SystemID()]; exists {
 			continue
 		}
-		// move the star to these coordinates
-		system.Coords = at
-		locations[system.Coords.SystemID()] = system
-	}
-
-	// TODO: think about this. put a wormhole into all home systems that points
-	// back to the home system. call it an artifact of inventing FTL travel.
-	// it would make it simple for aliens to detect that this was a home system.
-
-	// randomly place wormholes between systems.
-	// we want about 8% of systems to contain a wormhole.
-	desiredNumberOfWormholes := 1 + (8 * (len(g.allSystems) - len(g.Players)) / 100)
-	g.Log("This galaxy wants a total of %d wormholes.\n", desiredNumberOfWormholes)
-	// we want wormholes to have a minimum length determined by the cluster size
-	minWormholeLength := 20 // galactic_radius + 3 // in parsecs
-	mwlSquared := minWormholeLength * minWormholeLength
-	// now we actually distribute the wormholes
-	for _, system := range g.allSystems {
-		if desiredNumberOfWormholes < 1 {
-			break
-		}
-		// don't allow home systems to have wormholes or any system to have multiple wormholes
-		if system.HomeSystem || system.Wormhole != nil {
-			continue
-		}
-		// randomly fetch a star that doesn't have a wormhole and
-		// is at least the minimum distance away
-		var endpoint *StarData
+		// all systems need to separated by at least 3 parsecs
+		var neighbor *StarData
 		for _, o := range g.allSystems {
-			// eliminate endpoints that already have wormholes or are too close
-			if o.Wormhole != nil || o.Coords.DistanceSquaredTo(system.Coords) < mwlSquared {
-				continue
+			if o.Coords.DistanceSquaredTo(at) < 9 {
+				neighbor = o
+				break
 			}
-			endpoint = o
-			break
 		}
-		if endpoint == nil { // none of the existing stars met the criteria
+		if neighbor != nil {
 			continue
 		}
-		system.Wormhole, endpoint.Wormhole = endpoint, system
-		desiredNumberOfWormholes--
+
+		if sq_distance_from_center > maxDistance {
+			maxDistance = sq_distance_from_center
+		}
+
+		system, err := NewStar(l, at)
+		if err != nil {
+			return nil, err
+		}
+		g.allSystems = append(g.allSystems, system)
+		g.Systems[system.key] = system
+		g.Translate.XYZToSystem[system.Coords.XYZ()] = system
+		g.NumberOfPlanets += len(system.Planets)
+		planetCount[len(system.Planets)]++
+		locations[system.key] = system
+
+		i++
 	}
+	l.Printf("Maximum distance from center of cluster is %f parsecs\n", math.Sqrt(float64(maxDistance)))
+
+	for i := 0; i < len(planetCount); i++ {
+		if planetCount[i] == 0 {
+			continue
+		}
+		l.Printf("    %3d systems have %d planets\n", planetCount[i], i)
+	}
+	l.Printf("    %3d planets per system on average\n", g.NumberOfPlanets/len(g.allSystems))
 
 	// create species
 	g.Species = make(map[string]*SpeciesData)
@@ -286,6 +266,7 @@ func GenerateGalaxy(l *Logger, setupData *SetupData, galaxyPath string, players 
 		} else if system == nil {
 			return nil, fmt.Errorf("assert(getRandomSystem != nil)")
 		}
+		system.HomeSpecies = s
 		s.Home.System.Star = system
 	}
 
@@ -294,6 +275,43 @@ func GenerateGalaxy(l *Logger, setupData *SetupData, galaxyPath string, players 
 		if err := g.ConvertToHomeSystem(l, s); err != nil {
 			return nil, err
 		}
+	}
+
+	// TODO: think about this. put a wormhole into all home systems that points
+	// back to the home system. call it an artifact of inventing FTL travel.
+	// it would make it simple for aliens to detect that this was a home system.
+
+	// randomly place wormholes between systems.
+	// we want about 8% of systems to contain a wormhole.
+	desiredNumberOfWormholes := 1 + (8 * (len(g.allSystems) - len(g.Players)) / 100)
+	l.Printf("This galaxy wants a total of %d wormholes.\n", desiredNumberOfWormholes)
+	// we want wormholes to have a minimum length determined by the cluster size
+	minWormholeLength := 20 // galactic_radius + 3 // in parsecs
+	// now we actually distribute the wormholes
+	for _, system := range g.allSystems {
+		if desiredNumberOfWormholes < 1 {
+			break
+		}
+		// don't allow any system to have multiple wormholes
+		if system.Wormhole != nil {
+			continue
+		}
+		// randomly fetch a star that doesn't have a wormhole and
+		// is at least the minimum distance away
+		var endpoint *StarData
+		for _, o := range g.allSystems {
+			// eliminate endpoints that already have wormholes or are too close
+			if o.Wormhole != nil || o.Coords.CloserThan(system.Coords, minWormholeLength) {
+				continue
+			}
+			endpoint = o
+			break
+		}
+		if endpoint == nil { // none of the existing stars met the criteria
+			continue
+		}
+		system.Wormhole, endpoint.Wormhole = endpoint, system
+		desiredNumberOfWormholes--
 	}
 
 	// create log file for first turn. write home star system data to it.
@@ -313,13 +331,12 @@ func GenerateGalaxy(l *Logger, setupData *SetupData, galaxyPath string, players 
 		l.Printf("Created file %q\n", speciesLogFile)
 	}
 
-	g.Log("This galaxy contains a total of %d stars and %d planets.\n", len(g.allSystems), g.NumberOfPlanets)
+	l.Printf("This galaxy contains a total of %d stars and %d planets.\n", len(g.allSystems), g.NumberOfPlanets)
 	if g.NumberOfWormHoles == 1 {
-		g.Log("The galaxy contains %d natural wormhole.\n\n", g.NumberOfWormHoles)
+		l.Printf("The galaxy contains %d natural wormhole.\n\n", g.NumberOfWormHoles)
 	} else {
-		g.Log("The galaxy contains %d natural wormholes.\n\n", g.NumberOfWormHoles)
+		l.Printf("The galaxy contains %d natural wormholes.\n\n", g.NumberOfWormHoles)
 	}
-	g.l.Close()
 
 	return g, nil
 }
@@ -407,6 +424,7 @@ func (g *GalaxyData) AllSpecies() []*SpeciesData {
 	return g.allSpecies
 }
 
+// AllSystems returns a new list containing all of the systems
 func (g *GalaxyData) AllSystems() []*StarData {
 	if len(g.Systems) != len(g.allSystems) {
 		g.Systems = make(map[int]*StarData)
@@ -427,7 +445,7 @@ func (g *GalaxyData) ConvertToHomeSystem(l *Logger, s *SpeciesData) error {
 	}
 	fmt.Printf("[convert] %s planets %d %d\n", homeSystem.Coords.XYZ(), len(homeSystem.Planets), len(g.SystemTemplates[len(homeSystem.Planets)]))
 
-	homeSystem.ConvertToHomeSystem(g.SystemTemplates[len(homeSystem.Planets)])
+	homeSystem.ConvertToHomeSystem(l, s, g.SystemTemplates[len(homeSystem.Planets)])
 	pn := s.Home.System.Star.HomePlanetNumber()
 	l.Printf("Converted system %s, home planet %d\n", s.Home.System.Star.Coords.XYZ(), pn)
 
@@ -556,45 +574,39 @@ func (g *GalaxyData) GetPlanet(coords Coords) *PlanetData {
 // GetRandomSystem returns a randomly selected system meeting some criteria.
 func (g *GalaxyData) GetRandomSystem(acceptHomeSystem, acceptWormhole bool, noCloserThan int) (*StarData, error) {
 	allSystems := g.AllSystems()
-	minDSquared := noCloserThan * noCloserThan
 
 	var forbiddenSystems []*StarData
 	for _, system := range allSystems {
-		if system.HomeSystem && !acceptHomeSystem {
+		if system.HomeSpecies != nil && !acceptHomeSystem {
 			forbiddenSystems = append(forbiddenSystems, system)
 		} else if system.Wormhole != nil && !acceptWormhole {
 			forbiddenSystems = append(forbiddenSystems, system)
 		}
 	}
 
-	// TODO: shuffle the systems instead of starting at a random offset
-	j := rnd(len(allSystems)) - 1
-	for i := 0; i < len(allSystems); i++ {
-		if j = j + 1; j == len(allSystems) {
-			j = 0
-		}
-		origin := allSystems[j]
-		if origin == nil {
+	// TODO: shuffle the systems instead of starting at the beginning
+	for _, s := range g.allSystems {
+		if s == nil {
 			continue
-		} else if len(origin.Planets) < 3 {
+		} else if len(s.Planets) < 3 {
 			continue
-		} else if origin.HomeSystem && !acceptHomeSystem {
+		} else if s.HomeSpecies != nil && !acceptHomeSystem {
 			continue
-		} else if origin.Wormhole != nil && !acceptWormhole {
+		} else if s.Wormhole != nil && !acceptWormhole {
 			continue
 		}
 		nearForbiddenSystem := false
-		for _, star := range forbiddenSystems {
-			if origin.Coords.DistanceSquaredTo(star.Coords) < minDSquared {
+		for _, system := range forbiddenSystems {
+			if s.Coords.CloserThan(system.Coords, noCloserThan) {
 				nearForbiddenSystem = true
 				break
 			}
 		}
 		if !nearForbiddenSystem {
-			return origin, nil
+			return s, nil
 		}
 	}
-	fmt.Printf("[galaxy] getRandomSystem: %d systems (%d forbidden)\n", len(allSystems), len(forbiddenSystems))
+	fmt.Printf("[galaxy] getRandomSystem: %d systems (%d forbidden) %d parsecs\n", len(allSystems), len(forbiddenSystems), noCloserThan)
 	return nil, fmt.Errorf("all suitable systems are within %d parsecs of each other", noCloserThan)
 }
 
@@ -813,7 +825,7 @@ func (g *GalaxyData) Write(outputPath string, isVerbose bool) error {
 	type Wormhole struct {
 		key  int
 		From int `json:"from"`
-		To   int `json:"exit"`
+		To   int `json:"to"`
 	}
 	var galaxy struct {
 		ID        string      `json:"id"`
@@ -832,18 +844,25 @@ func (g *GalaxyData) Write(outputPath string, isVerbose bool) error {
 		galaxy.Species = append(galaxy.Species, s.Name)
 	}
 
-	for _, star := range g.AllSystems() {
-		system := &System{key: star.Coords.SystemID(), Coords: star.Coords.String()}
+	// assume that AllSystems does not return a sorted list
+	allSystems := g.AllSystems()
+	for i := 0; i < len(allSystems); i++ {
+		for j := i + 1; j < len(allSystems); j++ {
+			if allSystems[i].key > allSystems[j].key {
+				allSystems[i], allSystems[j] = allSystems[j], allSystems[i]
+			}
+		}
+	}
+
+	for _, star := range allSystems {
+		system := &System{key: star.key, Coords: star.Coords.String()}
 		if star.Wormhole != nil {
 			galaxy.Wormholes = append(galaxy.Wormholes, &Wormhole{
-				From: star.Coords.SystemID(),
-				To:   star.Wormhole.Coords.SystemID(),
+				From: star.key,
+				To:   star.Wormhole.key,
 			})
 		}
 		for i, p := range star.Planets {
-			if p == nil {
-				break
-			}
 			planet := &Planet{
 				Orbit:                    p.Coords.Orbit,
 				Density:                  p.Density,
@@ -859,7 +878,7 @@ func (g *GalaxyData) Write(outputPath string, isVerbose bool) error {
 				TemperatureClass:         p.TemperatureClass,
 			}
 			if planet.Orbit != i+1 {
-				fmt.Printf("internal error: planet %q has invalid orbit: expected %d: got %d\n", p.ID, i+1, p.Coords.Orbit)
+				fmt.Printf("internal error: system %s planet %d has invalid orbit: expected %d: got %d\n", star.Coords.XYZ(), i+1, p.Coords.Orbit, planet.Orbit)
 				planet.Orbit = i + 1
 			}
 			system.PotentialHomeSystem = system.PotentialHomeSystem || p.Special == IDEAL_HOME_PLANET || p.Special == IDEAL_COLONY_PLANET
@@ -873,13 +892,8 @@ func (g *GalaxyData) Write(outputPath string, isVerbose bool) error {
 		sort.Strings(system.VisitedBy)
 		galaxy.Systems = append(galaxy.Systems, system)
 	}
-	for i := 0; i < len(galaxy.Systems); i++ {
-		for j := i + 1; j < len(galaxy.Systems); j++ {
-			if galaxy.Systems[i].key > galaxy.Systems[j].key {
-				galaxy.Systems[i], galaxy.Systems[j] = galaxy.Systems[j], galaxy.Systems[i]
-			}
-		}
-	}
+
+	// sort wormholes on output
 	for i := 0; i < len(galaxy.Wormholes); i++ {
 		for j := i + 1; j < len(galaxy.Wormholes); j++ {
 			if galaxy.Wormholes[i].From > galaxy.Wormholes[j].From {

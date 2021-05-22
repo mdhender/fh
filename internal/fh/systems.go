@@ -70,31 +70,33 @@ func GetSystems(inputPath string, isVerbose bool) (map[string]*StarData, error) 
 
 func (s *Systems) Write(outputPath string, isVerbose bool) error {
 	type System struct {
-		key                 int
-		ID                  string    `json:"id"`
-		Coords              Coords    `json:"coords"`
-		Type                StarType  `json:"type"`
-		Color               StarColor `json:"color"`
-		Size                int       `json:"size"`
-		PotentialHomeSystem bool      `json:"potential_home_system,omitempty"`
-		Wormhole            *Coords   `json:"wormhole_exit,omitempty"`
-		Message             int       `json:"message,omitempty"`
-		VisitedBy           []string  `json:"visited_by,omitempty"`
+		key       int
+		ID        string    `json:"id"`
+		Coords    Coords    `json:"coords"`
+		Type      StarType  `json:"type"`
+		Color     StarColor `json:"color"`
+		Size      int       `json:"size"`
+		Wormhole  *Coords   `json:"wormhole_exit,omitempty"`
+		Message   int       `json:"message,omitempty"`
+		VisitedBy []string  `json:"visited_by,omitempty"`
+		HomeOf    string    `json:"home_of,omitempty"`
 	}
 	var data []*System
 	for _, star := range s.Data {
 		o := &System{
-			key:                 star.Coords.SystemID(),
-			ID:                  star.Coords.String(),
-			Coords:              Coords{X: star.Coords.X, Y: star.Coords.Y, Z: star.Coords.Z},
-			Type:                star.Type,
-			Color:               star.Color,
-			Size:                star.Size,
-			PotentialHomeSystem: star.HomeSystem,
-			Message:             star.Message,
+			key:     star.Coords.SystemID(),
+			ID:      star.Coords.String(),
+			Coords:  Coords{X: star.Coords.X, Y: star.Coords.Y, Z: star.Coords.Z},
+			Type:    star.Type,
+			Color:   star.Color,
+			Size:    star.Size,
+			Message: star.Message,
 		}
 		if star.Wormhole != nil {
 			o.Wormhole = &Coords{X: star.Wormhole.Coords.X, Y: star.Wormhole.Coords.Y, Z: star.Wormhole.Coords.Z}
+		}
+		if star.HomeSpecies != nil {
+			o.HomeOf = star.HomeSpecies.Name
 		}
 		for visitor := range star.VisitedBy {
 			o.VisitedBy = append(o.VisitedBy, visitor)

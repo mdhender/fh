@@ -183,23 +183,23 @@ func GenerateEarthLikePlanet(starId string, num_planets int) []*PlanetData {
 	return planets
 }
 
-func GeneratePlanet(starId string, coords Coords, num_planets int) ([]*PlanetData, error) {
+func GeneratePlanets(at Coords, numberOfPlanets int) ([]*PlanetData, error) {
 	var planets []*PlanetData
 
-	/* Main loop. Generate one planet at a time. */
-	for planet_number := 1; planet_number <= num_planets; planet_number++ {
+	// generate one planet at a time
+	for planet_number := 1; planet_number <= numberOfPlanets; planet_number++ {
 		planet := &PlanetData{
-			ID:     fmt.Sprintf("%s-%02d", starId, planet_number),
-			Coords: Coords{X: coords.X, Y: coords.Y, Z: coords.Z, Orbit: planet_number},
+			ID:     fmt.Sprintf("%s #%02d", at.XYZ(), planet_number),
+			Coords: Coords{X: at.X, Y: at.Y, Z: at.Z, Orbit: planet_number},
 		}
 		planets = append(planets, planet)
 
 		/* Start with diameters, temperature classes and pressure classes based on the planets in Earth's solar system. */
 		var startOffset int
-		if num_planets <= 3 {
+		if numberOfPlanets <= 3 {
 			startOffset = 2*planet_number + 1
 		} else {
-			startOffset = (9 * planet_number) / num_planets
+			startOffset = (9 * planet_number) / numberOfPlanets
 		}
 		planet.Diameter = planet.GenerateDiameter(earth[startOffset].diameter)
 		planet.TemperatureClass = earth[startOffset].temperatureClass
@@ -216,7 +216,7 @@ func GeneratePlanet(starId string, coords Coords, num_planets int) ([]*PlanetDat
 		// The factor 72 ensures that "g" will be 100 for Earth (density=550 and diameter=13).
 		planet.Gravity = (planet.Density * planet.Diameter) / 72
 
-		planet.TemperatureClass = planet.GenerateTemperatureClass(num_planets, planet_number, isGasGiant, earth[startOffset].temperatureClass)
+		planet.TemperatureClass = planet.GenerateTemperatureClass(numberOfPlanets, planet_number, isGasGiant, earth[startOffset].temperatureClass)
 		/* Make sure that planets farther from the sun are not warmer than planets closer to the sun. */
 		if planet_number > 1 && planets[planet_number-1].TemperatureClass < planet.TemperatureClass {
 			planet.TemperatureClass = planets[planet_number-1].TemperatureClass - (rnd(3) - 1)
@@ -553,11 +553,11 @@ func NewSystemTemplates(l *Logger, numberOfPlanets, maxTries int) []*PlanetData 
 	for tries := 0; tries < maxTries; tries++ {
 		planets = GenerateEarthLikePlanet(id, numberOfPlanets)
 		if planets != nil {
-			l.Printf("Creating home system with %d planets after %d attempts...\n", numberOfPlanets, tries+1)
+			l.Printf("Created home system template with %d planets after %6s attempts...\n", numberOfPlanets, Commas(tries+1))
 			return planets
 		}
 	}
-	l.Printf("Failed to create home system with %d planets after %d attempts...\n", numberOfPlanets, maxTries)
-	fmt.Printf("Failed to create home system with %d planets after %d attempts...\n", numberOfPlanets, maxTries)
+	l.Printf("Failed to create home system template with %d planets after %d attempts...\n", numberOfPlanets, maxTries)
+	fmt.Printf("Failed to create home system template with %d planets after %d attempts...\n", numberOfPlanets, maxTries)
 	return nil
 }
