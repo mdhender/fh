@@ -118,6 +118,7 @@ files, then creates a new galaxy file.`,
 			return err
 		}
 		l := &fh.Logger{Stdout: logFile}
+		defer l.Close()
 
 		playersFileName := filepath.Join(galaxyPath, "players.json")
 		if isVerbose {
