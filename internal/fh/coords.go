@@ -18,7 +18,12 @@
 
 package fh
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+	"math/rand"
+	"time"
+)
 
 type Coords struct {
 	X     int `json:"x"`
@@ -77,4 +82,34 @@ func (c Coords) SystemID() int {
 
 func (c Coords) XYZ() string {
 	return fmt.Sprintf("%3d %3d %3d", c.X, c.Y, c.Z)
+}
+
+var __coordsPRNG *rand.Rand
+
+// RandomCoords returns a random point within the sphere with a decent distribution.
+// For alternative methods, see
+//   https://karthikkaranth.me/blog/generating-random-points-in-a-sphere/
+//   https://mathworld.wolfram.com/SpherePointPicking.html
+func RandomCoords(radius int) Coords {
+	if __coordsPRNG == nil {
+		__coordsPRNG = rand.New(rand.NewSource(time.Now().UnixNano()))
+		//__coordsPRNG = rand.New(rand.NewSource(0xBADC0FFEE))
+	}
+
+	r := float64(radius)
+	rSquared := float64(radius * radius)
+	d := float64(2 * radius)
+	x := d * __coordsPRNG.Float64() - r
+	y := d * __coordsPRNG.Float64() - r
+	z := d * __coordsPRNG.Float64() - r
+	for x*x+y*y+z*z > rSquared {
+		x = d * __coordsPRNG.Float64() - r
+		y = d * __coordsPRNG.Float64() - r
+		z = d * __coordsPRNG.Float64() - r
+	}
+	return Coords{
+		X: int(math.Round(x)),
+		Y: int(math.Round(y)),
+		Z: int(math.Round(z)),
+	}
 }
