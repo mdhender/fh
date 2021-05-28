@@ -22,11 +22,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mdhender/fh/internal/prng"
+"github.com/montanaflynn/stats"
 	"io/ioutil"
 	"math"
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 type GalaxyData struct {
@@ -63,15 +65,194 @@ type Player struct {
 	Species      string `json:"species"`
 }
 
+func NewGalaxy(w *Writer, setupData *SetupData) (*GalaxyData, error) {
+	g := &GalaxyData{
+		ID:     setupData.Galaxy.Name,
+		Name:   setupData.Galaxy.Name,
+		Radius: setupData.Galaxy.MinimumDistance, // setup data influences the minimum radius
+	}
+	return g, nil
+}
+
+func (g *GalaxyData) AddPlayer(w *Writer, p *PlayerData) error {
+	if p == nil {
+		return fmt.Errorf("player must not be nil")
+	} else if strings.TrimSpace(p.SpeciesName) == "" {
+		return fmt.Errorf("player %q: species name must not be blank", p.Email)
+	} else if p.SpeciesName != strings.TrimSpace(p.SpeciesName) {
+		return fmt.Errorf("player %q: species name must not have leading or trailing spaces", p.Email)
+	}
+	// player species name must be unique
+	for _, s := range g.allSpecies {
+		if s.Name == p.SpeciesName {
+			return fmt.Errorf("player %q: species name must be unique", p.Email)
+		}
+	}
+
+	// player-specified tech levels must sum to 15
+	if p.BI+p.GV+p.LS+p.ML != 15 {
+		return fmt.Errorf("species %q: total tech levels must sum to 15", p.SpeciesName)
+	}
+
+	s := &SpeciesData{
+		ID:     fmt.Sprintf("SP%02d", len(g.allSpecies)+1),
+		Number: len(g.allSpecies) + 1,
+		Name:   p.SpeciesName,
+	}
+	s.Government.Name = p.GovName
+	s.Government.Type = p.GovType
+	s.Home.System = &NamedSystem{Name: p.HomeSystemName}
+	s.Home.World = &NamedPlanetData{Name: p.HomePlanetName}
+
+	// set tech levels
+	s.TechLevel[MA], s.TechKnowledge[MA], s.InitTechLevel[MA] = 10, 10, 10
+	s.TechLevel[MI], s.TechKnowledge[MI], s.InitTechLevel[MI] = 10, 10, 10
+	s.TechLevel[BI], s.TechKnowledge[BI], s.InitTechLevel[BI] = p.BI, p.BI, p.BI
+	s.TechLevel[GV], s.TechKnowledge[GV], s.InitTechLevel[GV] = p.GV, p.GV, p.GV
+	s.TechLevel[LS], s.TechKnowledge[LS], s.InitTechLevel[LS] = p.LS, p.LS, p.LS
+	s.TechLevel[ML], s.TechKnowledge[ML], s.InitTechLevel[ML] = p.ML, p.ML, p.ML
+
+	g.allSpecies = append(g.allSpecies, s)
+	return nil
+}
+
+// CalculateRadius returns the minimum radius needed to support the
+// desired number of species.
+func (g *GalaxyData) CalculateRadius(w *Writer, n int, largeCluster bool) (int, error) {
+	// v is the volume needed to support all of the species
+	v := n * STANDARD_GALACTIC_RADIUS * STANDARD_GALACTIC_RADIUS * STANDARD_GALACTIC_RADIUS / STANDARD_NUMBER_OF_SPECIES
+	// if the game master wants a large cluster, increase the volume by 50%
+	if largeCluster {
+		v = 3 * v / 2
+	}
+	// find the smallest radius sphere with at least that much volume
+	r := MIN_RADIUS
+	for r*r*r < v {
+		r++
+	}
+	// sanity check since computing resources are finite
+	if r > MAX_RADIUS {
+		return r, fmt.Errorf("radius %d outside the allowed range of %d to %d parsecs", r, MIN_RADIUS, MAX_RADIUS)
+	}
+
+	return r, nil
+}
+
+func (g *GalaxyData) CheckSpacing(w *Writer, homes bool) {
+	if homes {
+		for _, s := range g.allSpecies {
+			hw := s.Home.System.Star
+			var data stats.Float64Data
+			for _, a := range g.allSpecies {
+				if s == a {
+					continue
+				}
+				data = append(data, float64(hw.Coords.DistanceTo(a.Home.System.Star.Coords)))
+			}
+			min, _ := stats.Min(data)
+			max, _ := stats.Max(data)
+			mean, _ := stats.Mean(data)
+			mode, _ := stats.Mode(data)
+			var mowed float64
+			if len(mode) != 0 {
+				mowed = mode[0]
+			}
+			fmt.Printf("[spacing] %-40s min %3d mean %3d mode %3d max %3d\n", s.Name, int(min), int(mean), int(mowed), int(max))
+		}
+	}
+}
+
+// CreateHomeSystem makes a new system and tags it as the home system
+// for the species. The home system will be at least radius/3 parsecs
+// away from the center of the cluster.
+func (g *GalaxyData) CreateHomeSystem(w *Writer, s *SpeciesData, noCloserThan int) error {
+	at := g.RandomXYZ(w, noCloserThan, true, true, false)
+	system, err := NewStar(w, at, true)
+	if err != nil {
+		return err
+	}
+	s.Home.System.Star = system
+	return nil
+}
+
+func (g *GalaxyData) CreateHomeSystems(w *Writer, noCloserThan int) error {
+	for _, s := range g.allSpecies {
+		fmt.Printf("[create] creating home system %q\n", s.Name)
+		if err := g.CreateHomeSystem(w, s, noCloserThan); err != nil {
+			return fmt.Errorf("species %q: %w", s.Name, err)
+		}
+		fmt.Printf("[create] created  home system %q %s\n", s.Name, s.Home.System.Star.Coords.XYZ())
+	}
+	return nil
+}
+
+func (g *GalaxyData) NumberOfSpecies() int {
+	return len(g.allSpecies)
+}
+
+func (g *GalaxyData) RandomXYZ(w *Writer, minDistance int, avoidOrigin, avoidHomeSystems, avoidWormholes bool) Coords {
+	origin	 := Coords{X:0,Y:0,Z:0}
+	var homes []Coords
+	if avoidHomeSystems {
+		for _, alien := range g.allSpecies {
+			if alien.Home.System.Star != nil {
+				homes = append(homes, alien.Home.System.Star.Coords)
+			}
+		}
+	}
+	var holes []Coords
+	if avoidWormholes {
+		for _, system := range g.allSystems {
+			if system.Wormhole != nil {
+				holes = append(holes, system.Wormhole.Coords)
+			}
+		}
+	}
+	minDistanceToOrigin := g.Radius / 3
+	minDistanceToHoles := 5
+	minDistanceToHomes := minDistanceToHoles * 2
+	for {
+		tooClose, at := false, RandomCoords(g.Radius)
+		if avoidOrigin && at.DistanceTo(origin) < minDistanceToOrigin {
+			continue
+		}
+		for _, system := range g.allSystems {
+			distanceTo := at.DistanceTo(system.Coords)
+			if distanceTo < minDistance {
+				tooClose = true
+				break
+			}
+			if avoidWormholes && system.Wormhole != nil && distanceTo < minDistanceToHoles {
+				tooClose = true
+				break
+			}
+			if tooClose {
+				break
+			}
+		}
+		if !tooClose && avoidHomeSystems {
+			for _, c := range homes {
+				if at.DistanceTo(c) < minDistanceToHomes {
+					tooClose = true
+					break
+				}
+			}
+		}
+		if !tooClose {
+			return at
+		}
+	}
+}
+
 func GenerateGalaxy(l *Logger, setupData *SetupData, galaxyPath string, players []*PlayerData) (*GalaxyData, error) {
 	// derive galaxy setup data from number of players
 	var desiredNumberOfSystems int
 	if setupData.Galaxy.Overrides.UseOverrides {
-		typicalNumberOfStars := EstimateNumberOfSystems(len(players), setupData.Galaxy.LowDensity)
+		typicalNumberOfStars := EstimateNumberOfSystems(len(players), true)
 		desiredNumberOfSystems = setupData.Galaxy.Overrides.NumberOfStars
 		l.Printf("For %d species, overriding normal %d stars to %d stars.\n", typicalNumberOfStars, desiredNumberOfSystems)
 	} else {
-		desiredNumberOfSystems = EstimateNumberOfSystems(len(players), setupData.Galaxy.LowDensity)
+		desiredNumberOfSystems = EstimateNumberOfSystems(len(players), true)
 		l.Printf("For %d species, there should be about %d stars.\n", len(players), desiredNumberOfSystems)
 	}
 	if !(MIN_STARS <= desiredNumberOfSystems) {
@@ -195,7 +376,7 @@ func GenerateGalaxy(l *Logger, setupData *SetupData, galaxyPath string, players 
 			maxDistance = sq_distance_from_center
 		}
 
-		system, err := NewStar(l, at)
+		system, err := NewStar(nil, at, false)
 		if err != nil {
 			return nil, err
 		}

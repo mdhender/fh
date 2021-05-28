@@ -35,7 +35,7 @@ type StarData struct {
 	HomeSpecies  *SpeciesData
 }
 
-func NewStar(l *Logger, at Coords) (*StarData, error) {
+func NewStar(w *Writer, at Coords, isHomeSystem bool) (*StarData, error) {
 	star := &StarData{
 		key:       at.SystemID(),
 		Coords:    at,
@@ -59,13 +59,20 @@ func NewStar(l *Logger, at Coords) (*StarData, error) {
 	// of dice that we roll later when generating the planets.
 	star.Color = StarColor(rnd(RED))
 
-	planets, err := GeneratePlanets(star.Coords, star.rollForPlanets())
+	nPlanets := star.rollForPlanets()
+	if isHomeSystem {
+		// adjust if too few planets for a home system
+		for nPlanets < 5 {
+			nPlanets += rnd(2)
+		}
+	}
+	planets, err := GeneratePlanets(star.Coords, nPlanets)
 	if err != nil {
 		return nil, err
 	}
 	star.Planets = planets
 
-	l.Printf("Generated %-13s star with %2d planets at %s\n", star.Type, len(star.Planets), at.XYZ())
+	w.Printf("Generated %-13s star with %2d planets at %s\n", star.Type, len(star.Planets), at.XYZ())
 
 	return star, nil
 }

@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/mdhender/fh/internal/fh"
 	"github.com/mdhender/fh/internal/prng"
+	"math"
 	"os"
 	"path/filepath"
 	"time"
@@ -117,8 +118,8 @@ files, then creates a new galaxy file.`,
 		if err != nil {
 			return err
 		}
-		l := &fh.Logger{Stdout: logFile}
-		defer l.Close()
+		w := &fh.Writer{File: logFile}
+		defer w.Close()
 
 		playersFileName := filepath.Join(galaxyPath, "players.json")
 		if isVerbose {
@@ -133,6 +134,71 @@ files, then creates a new galaxy file.`,
 		if err = fh.ValidateNumberOfPlayers(len(players)); err != nil {
 			return err
 		}
+
+		ga, err := fh.NewGalaxy(w, setupData)
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			os.Exit(2)
+		}
+		fmt.Printf("[create] galaxy skeleton created in %v\n", time.Now().Sub(started))
+
+		for _, p := range players {
+			if err := ga.AddPlayer(w, p); err != nil {
+				fmt.Printf("%+v\n", err)
+				os.Exit(2)
+			}
+		}
+		fmt.Printf("[create] species skeleton created in %v\n", time.Now().Sub(started))
+
+		r, err := ga.CalculateRadius(w, ga.NumberOfSpecies(), setupData.Galaxy.LargeCluster)
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			os.Exit(2)
+		}
+		if r < setupData.Galaxy.Radius.Minimum {
+			fmt.Printf("[create] forcing radius to minimum %d parsecs\n", setupData.Galaxy.Radius.Minimum)
+			r = setupData.Galaxy.Radius.Minimum
+		}
+		if r > setupData.Galaxy.Radius.Maximum {
+			fmt.Printf("[create] forcing radius to maximum %d parsecs\n", setupData.Galaxy.Radius.Maximum)
+			r = setupData.Galaxy.Radius.Maximum
+		}
+		ga.Radius = r
+		fmt.Printf("[create] setting radius to %d parsecs\n", ga.Radius)
+
+		points, pointsIn := 0, 0
+		for x := -1 * r; x <= r; x++ {
+			for y := -1 * r; y <= r; y++ {
+				for z := -1 * r; z <= r; z++ {
+					points++
+					if x*x+y*y+z*z < r*r {
+						pointsIn++
+					}
+				}
+			}
+		}
+		fmt.Printf("[create] cluster contains %s possible systems\n", fh.Commas(pointsIn))
+		density := 0.002488
+		switch setupData.Galaxy.Density {
+		case "sparse":
+			density = 0.001658
+		case "high":
+			density = 0.003732
+		}
+		numberOfSystems := int(math.Round(float64(pointsIn) * density))
+		fmt.Printf("[create] cluster density %7.4f%% will generate %s systems\n", 100*density, fh.Commas(numberOfSystems))
+
+		fmt.Printf("[create] generating home systems no closer together than %d parsecs\n", setupData.Galaxy.MinimumDistance)
+		if err = ga.CreateHomeSystems(w, setupData.Galaxy.MinimumDistance); err != nil {
+			fmt.Printf("%+v\n", err)
+			os.Exit(2)
+		}
+		fmt.Printf("[create] created %d home systems in %v\n", ga.NumberOfSpecies(), time.Now().Sub(started))
+
+		ga.CheckSpacing(w, true)
+
+		l := &fh.Logger{Stdout: logFile}
+		defer l.Close()
 
 		// NewGalaxy step in setup_game.py
 		g, err := fh.GenerateGalaxy(l, setupData, galaxyPath, players)

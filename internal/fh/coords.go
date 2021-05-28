@@ -51,6 +51,11 @@ func (c Coords) DeltaXYZ(t Coords) (int, int, int) {
 	return dX, dY, dZ
 }
 
+func (c Coords) DistanceTo(t Coords) int {
+	dX, dY, dZ := c.X-t.X, c.Y-t.Y, c.Z-t.Z
+	return int(math.Round(math.Sqrt(float64(dX*dX + dY*dY + dZ*dZ))))
+}
+
 func (c Coords) DistanceSquaredTo(t Coords) int {
 	dX, dY, dZ := c.X-t.X, c.Y-t.Y, c.Z-t.Z
 	return (dX)*(dX) + (dY)*(dY) + (dZ)*(dZ)
@@ -99,17 +104,107 @@ func RandomCoords(radius int) Coords {
 	r := float64(radius)
 	rSquared := float64(radius * radius)
 	d := float64(2 * radius)
-	x := d * __coordsPRNG.Float64() - r
-	y := d * __coordsPRNG.Float64() - r
-	z := d * __coordsPRNG.Float64() - r
+	x := d*__coordsPRNG.Float64() - r
+	y := d*__coordsPRNG.Float64() - r
+	z := d*__coordsPRNG.Float64() - r
 	for x*x+y*y+z*z > rSquared {
-		x = d * __coordsPRNG.Float64() - r
-		y = d * __coordsPRNG.Float64() - r
-		z = d * __coordsPRNG.Float64() - r
+		x = d*__coordsPRNG.Float64() - r
+		y = d*__coordsPRNG.Float64() - r
+		z = d*__coordsPRNG.Float64() - r
 	}
 	return Coords{
 		X: int(math.Round(x)),
 		Y: int(math.Round(y)),
 		Z: int(math.Round(z)),
+	}
+}
+
+// BestCoord returns a random point within the sphere with a decent distribution.
+func BestCoord(radius int) Coords {
+	if __coordsPRNG == nil {
+		__coordsPRNG = rand.New(rand.NewSource(time.Now().UnixNano()))
+		//__coordsPRNG = rand.New(rand.NewSource(0xBADC0FFEE))
+	}
+
+	r := float64(radius)
+	rSquared := float64(radius * radius)
+	d := float64(2 * radius)
+	x := d*__coordsPRNG.Float64() - r
+	y := d*__coordsPRNG.Float64() - r
+	z := d*__coordsPRNG.Float64() - r
+	for x*x+y*y+z*z > rSquared {
+		x = d*__coordsPRNG.Float64() - r
+		y = d*__coordsPRNG.Float64() - r
+		z = d*__coordsPRNG.Float64() - r
+	}
+	return Coords{
+		X: int(math.Round(x)),
+		Y: int(math.Round(y)),
+		Z: int(math.Round(z)),
+	}
+}
+
+// RandomXYZ selects a random point within the sphere with a decent distribution.
+// Range of x,y,z is -r..0..r.
+// Point will be at least dPoint units away from the given point.
+// Point will be at least dHome units away from a home system.
+func RandomXYZ(r int, p Coords, dP int, holes []*StarData, dHoles int, homes []*StarData, dHomes int, systems []*StarData, dSystems int) (int,int,int) {
+	a, b, rSquared := -1 * (r + 1), 2 * r + 1, r * r
+	for {
+		x,y,z := a+rnd(b),a+rnd(b),a+rnd(b)
+		// point must be within the sphere
+		if rSquared < x*x + y*y + z*z {
+			continue
+		}
+		// point must not be close to first point
+		if dP > 0 {
+			dX, dY, dZ := p.X-x, p.Y-y, p.Z-z
+			if dP*dP < dX * dX + dY*dY + dZ * dZ {
+				continue
+			}
+		}
+		// point must not be close to wormhole
+		if holes != nil && dHoles > 0 {
+			d, tooClose := dHoles * dHoles, false
+			for _, s := range holes {
+				dX, dY, dZ := s.Coords.X-x, s.Coords.Y-y, s.Coords.Z-z
+				if d < dX * dX + dY*dY + dZ * dZ {
+					tooClose = true
+					break
+				}
+			}
+			if tooClose {
+				continue
+			}
+		}
+		// point must not be close to home system
+		if homes != nil && dHomes > 0 {
+			d, tooClose := dHomes * dHomes, false
+			for _, s := range homes {
+				dX, dY, dZ := s.Coords.X-x, s.Coords.Y-y, s.Coords.Z-z
+				if d < dX * dX + dY*dY + dZ * dZ {
+					tooClose = true
+					break
+				}
+			}
+			if tooClose {
+				continue
+			}
+		}
+		// point must not be close to system
+		if systems != nil && dSystems > 0 {
+			d, tooClose := dSystems * dSystems, false
+			for _, s := range systems {
+				dX, dY, dZ := s.Coords.X-x, s.Coords.Y-y, s.Coords.Z-z
+				if d < dX * dX + dY*dY + dZ * dZ {
+					tooClose = true
+					break
+				}
+			}
+			if tooClose {
+				continue
+			}
+		}
+		return x,y,z
 	}
 }

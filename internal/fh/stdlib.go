@@ -20,6 +20,7 @@ package fh
 
 import (
 	"fmt"
+	"io"
 	"strings"
 	"unicode"
 )
@@ -57,8 +58,8 @@ func Commas(value int) string {
 // The number is based on the number of players. If the game-master specifies the
 // low-density flag, then we bump that number by 50%. That, in turn, causes the
 // calculated galactic radius to increase to keep the density about the same.
-func EstimateNumberOfSystems(numberOfSpecies int, lowDensity bool) int {
-	if lowDensity {
+func EstimateNumberOfSystems(numberOfSpecies int, highDensity bool) int {
+	if highDensity {
 		return (3 * numberOfSpecies * STANDARD_NUMBER_OF_STAR_SYSTEMS) / (2 * STANDARD_NUMBER_OF_SPECIES)
 	}
 	return (numberOfSpecies * STANDARD_NUMBER_OF_STAR_SYSTEMS) / STANDARD_NUMBER_OF_SPECIES
@@ -87,4 +88,32 @@ func ValidateNumberOfPlayers(n int) error {
 		return fmt.Errorf("number of players must be between %d and %d, inclusive", MIN_SPECIES, MAX_SPECIES)
 	}
 	return nil
+}
+
+type Writer struct {
+	Disabled bool
+	File     io.WriteCloser
+}
+
+func (w *Writer) Close() error {
+	if w.File == nil {
+		return nil
+	}
+	err := w.File.Close()
+	w.Disabled, w.File = true, nil
+	return err
+}
+
+func (w *Writer) Printf(f string, a ...interface{}) {
+	if w == nil || w.Disabled || w.File == nil {
+		return
+	}
+	_, _ = fmt.Fprintf(w.File, f, a...)
+}
+
+func (w *Writer) Write(b []byte) {
+	if w.Disabled || w.File == nil {
+		return
+	}
+	_, _ = w.File.Write(b)
 }

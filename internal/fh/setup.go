@@ -35,9 +35,14 @@ type SetupData struct {
 			Radius        int  `json:"radius"`
 			NumberOfStars int  `json:"number_of_stars"`
 		}
-		LowDensity            bool `json:"low_density"`
-		ForbidNearbyWormholes bool `json:"forbid_nearby_wormholes"`
-		MinimumDistance       int  `json:"minimum_distance"`
+		LargeCluster          bool   `json:"large_cluster"`
+		Density               string `json:"density"` // should be sparse, normal, high
+		ForbidNearbyWormholes bool   `json:"forbid_nearby_wormholes"`
+		MinimumDistance       int    `json:"minimum_distance"`
+		Radius                struct {
+			Minimum int `json:"minimum,omitempty"`
+			Maximum int `json:"maximum,omitempty"`
+		}
 	} `json:"galaxy"`
 }
 
@@ -62,6 +67,15 @@ func GetSetup(dir, file string, isVerbose bool) (*SetupData, error) {
 		fmt.Printf("[setup] %-30s == %q\n", "GALAXY_NAME", setup.Galaxy.Name)
 	}
 
+	switch setup.Galaxy.Density {
+	case "": // default to normal if missing
+		setup.Galaxy.Density = "normal"
+	case "high", "normal", "sparse":
+		// acceptable values
+	default:
+		return nil, fmt.Errorf("galaxy.density must be sparse, normal, or high")
+	}
+
 	// try to use the location of the setup file to get a default path for the galaxy
 	if setup.Galaxy.Path != strings.TrimSpace(setup.Galaxy.Path) {
 		return nil, fmt.Errorf("galaxy.path can't have leading or trailing spaces")
@@ -78,6 +92,15 @@ func GetSetup(dir, file string, isVerbose bool) (*SetupData, error) {
 		return nil, fmt.Errorf("minimum distance must be at least 1")
 	} else if setup.Galaxy.MinimumDistance > MAX_RADIUS {
 		return nil, fmt.Errorf("minimum distance must be less than %d", MAX_RADIUS)
+	}
+
+	if setup.Galaxy.Radius.Minimum < 1 {
+		setup.Galaxy.Radius.Minimum = 1
+	}
+	if setup.Galaxy.Radius.Maximum < setup.Galaxy.Radius.Minimum {
+		setup.Galaxy.Radius.Maximum = MAX_RADIUS
+	} else if MAX_RADIUS < setup.Galaxy.Radius.Minimum {
+		setup.Galaxy.Radius.Maximum = MAX_RADIUS
 	}
 
 	return &setup, nil

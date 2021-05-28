@@ -202,7 +202,7 @@ func (t GasType) String() string {
 // MarshalJSON marshals the enum as a quoted json string
 func (t GasType) MarshalJSON() ([]byte, error) {
 	buffer := bytes.NewBufferString(`"`)
-	buffer.WriteString(t.String())
+	buffer.WriteString(t.Char())
 	buffer.WriteString(`"`)
 	return buffer.Bytes(), nil
 }
@@ -215,31 +215,31 @@ func (t *GasType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	switch string(b) {
-	case `"Hydrogen"`:
+	case `"Hydrogen"`, `"H2"`:
 		*t = H2
-	case `"Methane"`:
+	case `"Methane"`, `"CH4"`:
 		*t = CH4
-	case `"Helium"`:
+	case `"Helium"`, `"He"`:
 		*t = HE
-	case `"Ammonia"`:
+	case `"Ammonia"`, `"NH3"`:
 		*t = NH3
-	case `"Nitrogen"`:
+	case `"Nitrogen"`, `"N2"`:
 		*t = N2
-	case `"Carbon Dioxide"`:
+	case `"Carbon Dioxide"`, `"CO2"`:
 		*t = CO2
-	case `"Oxygen"`:
+	case `"Oxygen"`, `"O2"`:
 		*t = O2
-	case `"Hydrogen Chloride"`:
+	case `"Hydrogen Chloride"`, `"HCl"`:
 		*t = HCL
-	case `"Chlorine"`:
+	case `"Chlorine"`, `"Cl2"`:
 		*t = CL2
-	case `"Fluorine"`:
+	case `"Fluorine"`, `"F2"`:
 		*t = F2
-	case `"Steam"`:
+	case `"Steam"`, `"H2O"`:
 		*t = H2O
-	case `"Sulfur Dioxide"`:
+	case `"Sulfur Dioxide"`, `"SO2"`:
 		*t = SO2
-	case `"Hydrogen Sulfide"`:
+	case `"Hydrogen Sulfide"`, `"H2S"`:
 		*t = H2S
 	default:
 		return fmt.Errorf("invalid GasType %q", string(b))
