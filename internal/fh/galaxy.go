@@ -29,6 +29,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 )
 
 type GalaxyData struct {
@@ -57,6 +58,7 @@ type GalaxyData struct {
 	}
 	allPlanets []*PlanetData
 	l          *Logger
+	verbose bool
 }
 
 type Player struct {
@@ -66,11 +68,90 @@ type Player struct {
 }
 
 func NewGalaxy(w *Writer, setupData *SetupData) (*GalaxyData, error) {
+	started := time.Now()
+
 	g := &GalaxyData{
 		ID:     setupData.Galaxy.Name,
 		Name:   setupData.Galaxy.Name,
-		Radius: setupData.Galaxy.MinimumDistance, // setup data influences the minimum radius
+		verbose: setupData.IsVerbose,
 	}
+
+	r, err := g.CalculateRadius(w, setupData.NumberOfSpecies, setupData.Galaxy.LargeCluster)
+	if err != nil {
+		return nil, err
+	}
+	if r < setupData.Galaxy.Radius.Minimum {
+		w.Printf("Configuration forces radius %d to minimum %d parsecs\n", r, setupData.Galaxy.Radius.Minimum)
+		r = setupData.Galaxy.Radius.Minimum
+	}
+	if r > setupData.Galaxy.Radius.Maximum {
+		w.Printf("Configuration forces radius %d to maximum %d parsecs\n", r, setupData.Galaxy.Radius.Maximum)
+		r = setupData.Galaxy.Radius.Maximum
+	}
+	g.Radius = r
+	fmt.Printf("Cluster radius set to %d parsecs\n", g.Radius)
+
+	points, pointsIn := 0, 0
+	for x := -1 * r; x <= r; x++ {
+		for y := -1 * r; y <= r; y++ {
+			for z := -1 * r; z <= r; z++ {
+				points++
+				if x*x+y*y+z*z < r*r {
+					pointsIn++
+				}
+			}
+		}
+	}
+	w.Printf("Cluster contains %s possible systems\n", Commas(pointsIn))
+	density := 0.002488
+	switch setupData.Galaxy.Density {
+	case "sparse":
+		density = 0.001658
+	case "high":
+		density = 0.003732
+	}
+
+	numberOfSystems := int(math.Round(float64(pointsIn) * density))
+	w.Printf("Cluster density %7.4f%% will generate %s systems\n", 100*density, Commas(numberOfSystems))
+
+	fmt.Printf("[create] generating earth-like systems no closer together than %d parsecs\n", g.Radius / 3 + 1)
+	fmt.Printf("[create] generating remaining  systems no closer together than %d parsecs\n", setupData.Galaxy.MinimumDistance)
+	for i := 0; i < numberOfSystems; i++ {
+		nctOrigin, nctHoles, nctHomes, nctSystems := 0, 0, 0, setupData.Galaxy.MinimumDistance
+		isHomeSystem := i < setupData.NumberOfSpecies
+		if isHomeSystem {
+			nctOrigin = g.Radius / 2 + 1
+			nctHomes = g.Radius / 3 + 1
+		}
+		at := RandomXYZ(g.Radius, Coords{}, nctOrigin, nil, nctHoles, g.allSystems, nctHomes, g.allSystems, nctSystems)
+		s, err := NewStar(w, at, isHomeSystem)
+		if err != nil {
+			return nil, err
+		}
+		g.allSystems = append(g.allSystems, s)
+		if isHomeSystem {
+			// create an earth-like system with a certain minimum number of planets
+			minPlanets := 7
+			s.GenerateEarthLikeSystem(minPlanets)
+		} else {
+			// create a totally alien system
+			s.GenerateAlienSystem()
+		}
+		w.Printf("Generated %-13s star with %2d planets at %s\n", s.Type, len(s.Planets), at.XYZ())
+	}
+	fmt.Printf("[create] created %d/%d systems in %v\n", setupData.NumberOfSpecies, len(g.allSystems), time.Now().Sub(started))
+
+	if g.verbose {
+		g.CheckSpacing(w, true)
+	}
+
+	// generate remaining systems
+	for i := len(g.Systems); i < numberOfSystems; i++ {
+
+	}
+	// generate worm-holes
+
+
 	return g, nil
 }
 
@@ -121,11 +202,13 @@ func (g *GalaxyData) AddPlayer(w *Writer, p *PlayerData) error {
 func (g *GalaxyData) CalculateRadius(w *Writer, n int, largeCluster bool) (int, error) {
 	// v is the volume needed to support all of the species
 	v := n * STANDARD_GALACTIC_RADIUS * STANDARD_GALACTIC_RADIUS * STANDARD_GALACTIC_RADIUS / STANDARD_NUMBER_OF_SPECIES
+	w.Printf("Cluster volume defaults to %d cubic parsecs for %d species.\n", v)
 	// if the game master wants a large cluster, increase the volume by 50%
 	if largeCluster {
-		v = 3 * v / 2
+		v= 3 * v / 2
+		w.Printf("Configured for large cluster; volume increased from to %d cubic parsecs\n", v)
 	}
-	// find the smallest radius sphere with at least that much volume
+	// find the smallest sphere with at least that much volume
 	r := MIN_RADIUS
 	for r*r*r < v {
 		r++

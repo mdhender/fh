@@ -148,9 +148,9 @@ func BestCoord(radius int) Coords {
 // Range of x,y,z is -r..0..r.
 // Point will be at least dPoint units away from the given point.
 // Point will be at least dHome units away from a home system.
-func RandomXYZ(r int, p Coords, dP int, holes []*StarData, dHoles int, homes []*StarData, dHomes int, systems []*StarData, dSystems int) (int,int,int) {
+func RandomXYZ(r int, p Coords, dP int, holes []*StarData, dHoles int, homes []*StarData, dHomes int, systems []*StarData, dSystems int) Coords {
 	a, b, rSquared := -1 * (r + 1), 2 * r + 1, r * r
-	for {
+	for i:=0; i < 10_000; i++ {
 		x,y,z := a+rnd(b),a+rnd(b),a+rnd(b)
 		// point must be within the sphere
 		if rSquared < x*x + y*y + z*z {
@@ -205,6 +205,7 @@ func RandomXYZ(r int, p Coords, dP int, holes []*StarData, dHoles int, homes []*
 				continue
 			}
 		}
-		return x,y,z
+		return Coords{X:x,Y:y,Z:z}
 	}
+	panic(fmt.Sprintf("exceeded 10,000 attempts to place a new system"))
 }

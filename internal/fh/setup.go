@@ -27,6 +27,8 @@ import (
 )
 
 type SetupData struct {
+	IsVerbose bool `json:"is_verbose,omitempty"`
+	NumberOfSpecies int `json:"number_of_species,omitempty"`
 	Galaxy struct {
 		Path      string `json:"path"`
 		Name      string `json:"name"`
@@ -101,6 +103,12 @@ func GetSetup(dir, file string, isVerbose bool) (*SetupData, error) {
 		setup.Galaxy.Radius.Maximum = MAX_RADIUS
 	} else if MAX_RADIUS < setup.Galaxy.Radius.Minimum {
 		setup.Galaxy.Radius.Maximum = MAX_RADIUS
+	}
+
+	if setup.NumberOfSpecies < MIN_SPECIES {
+		setup.NumberOfSpecies = MIN_SPECIES
+	} else if setup.NumberOfSpecies > MAX_SPECIES {
+		return nil, fmt.Errorf("maximum number of species is %d", MAX_SPECIES)
 	}
 
 	return &setup, nil

@@ -1,0 +1,74 @@
+= FH
+Michael D Henderson <mdhender@mdhender.com>
+v0.1, 2021-05-28
+:doctype: book
+:sectnums:
+:sectnumlevels: 5
+:partnums:
+:toc: right
+
+:sectnums!:
+== Foreword
+
+----
+Copyright (c) 2021 by Michael D Henderson.
+All rights reserved.
+----
+
+:sectnums:
+== Introduction
+
+FH is my re-imagination of Far Horizons.
+
+== Create a new game
+
+The galaxy folder must contain the `setup.json` file.
+
+All data files will be created in the galaxy folder.
+
+[source,shell]
+----
+$ fh create galaxy -g /path/to/galaxy/folder
+----
+
+You must run the `finish` command after creating a new galaxy.
+
+You should run the `report` command only after `finish` completes.
+
+=== Configuration
+
+The `fh create galaxy` uses data from the `setup.json` file to configure the galaxy.
+
+[source,json]
+----
+{
+  "galaxy": {
+    "name": "alpha",
+    "low_density": false,
+    "forbid_nearby_wormholes": false,
+    "minimum_distance": 10
+  },
+  "players": [
+    {
+      "email": "alderaan@example.com",
+      "species_name": "Alderaan",
+      "home_planet_name": "Optimus",
+      "government_name": "His Majesty",
+      "government_type": "Degenerated Monarchy",
+      "military_level": 10,
+      "gravitics_level": 1,
+      "life_support_level": 1,
+      "biology_level": 3
+    }
+  ]
+}
+----
+
+The file can be deleted after the galaxy has been created.
+
+== Finish
+
+== Reports
+
+[index]
+== Index

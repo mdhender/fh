@@ -102,79 +102,9 @@ files, then creates a new galaxy file.`,
 			return err
 		}
 
-		galaxyPath = setupData.Galaxy.Path
-		outputPath := galaxyPath
-		if isVerbose {
-			fmt.Printf("[create] %-30s == %q\n", "GALAXY_PATH", galaxyPath)
-			fmt.Printf("[create] %-30s == %q\n", "OUTPUT_PATH", outputPath)
-		}
-
-		logFileName := filepath.Join(outputPath, "create.log")
-		if isVerbose {
-			fmt.Printf("[create] %-30s == %q\n", "LOG_FILE", logFileName)
-		}
-		logFile, err := os.Create(logFileName)
-		if err != nil {
-			return err
-		}
-		w := &fh.Writer{File: logFile}
-		defer w.Close()
-
-		playersFileName := filepath.Join(galaxyPath, "players.json")
-		if isVerbose {
-			fmt.Printf("[create] %-30s == %q\n", "PLAYERS_FILE", playersFileName)
-		}
-		players, err := fh.GetPlayers(playersFileName, isVerbose)
-		if err != nil {
-			return err
-		}
-
-		game := &fh.GameData{}
-		if err = fh.ValidateNumberOfPlayers(len(players)); err != nil {
-			return err
-		}
-
-		ga, err := fh.NewGalaxy(w, setupData)
-		if err != nil {
-			fmt.Printf("%+v\n", err)
-			os.Exit(2)
-		}
-		fmt.Printf("[create] galaxy skeleton created in %v\n", time.Now().Sub(started))
-
-		for _, p := range players {
-			if err := ga.AddPlayer(w, p); err != nil {
-				fmt.Printf("%+v\n", err)
-				os.Exit(2)
-			}
-		}
-		fmt.Printf("[create] species skeleton created in %v\n", time.Now().Sub(started))
-
-
-
-
-		l := &fh.Logger{Stdout: logFile}
-		defer l.Close()
-
-		// NewGalaxy step in setup_game.py
-		g, err := fh.GenerateGalaxy(l, setupData, galaxyPath, players)
-		if err != nil {
-			return err
-		}
-
-		err = game.Write(galaxyPath, isVerbose)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("Created game file, turn number %d\n", game.CurrentTurn)
-
-		err = g.Write(galaxyPath, isVerbose)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("Created galaxy file\n")
-
-		fmt.Printf("Created galaxy in %v\n", time.Now().Sub(started))
+		fmt.Printf("Created galaxy %q in %v\n", setupData.Galaxy.Name, time.Now().Sub(started))
 
 		return nil
 	},
 }
+

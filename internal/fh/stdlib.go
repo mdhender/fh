@@ -83,6 +83,32 @@ type Loggy interface {
 	Log(format string, a ...interface{})
 }
 
+func Max(ints ...int) int {
+	_, max := MinMax(ints...)
+	return max
+}
+
+func Min(ints ...int) int {
+	min, _ := MinMax(ints...)
+	return min
+}
+
+func MinMax(ints ...int) (int, int) {
+	if len(ints) == 0 {
+		return 0,0
+	}
+	min, max := ints[0], ints[0]
+	for _, i := range ints {
+		if i < min {
+			min = i
+		}
+		if max < i {
+			max = i
+		}
+	}
+	return min, max
+}
+
 func ValidateNumberOfPlayers(n int) error {
 	if !(MIN_SPECIES <= n && n <= MAX_SPECIES) {
 		return fmt.Errorf("number of players must be between %d and %d, inclusive", MIN_SPECIES, MAX_SPECIES)

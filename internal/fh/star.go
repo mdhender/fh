@@ -59,13 +59,7 @@ func NewStar(w *Writer, at Coords, isHomeSystem bool) (*StarData, error) {
 	// of dice that we roll later when generating the planets.
 	star.Color = StarColor(rnd(RED))
 
-	nPlanets := star.rollForPlanets()
-	if isHomeSystem {
-		// adjust if too few planets for a home system
-		for nPlanets < 5 {
-			nPlanets += rnd(2)
-		}
-	}
+	nPlanets := star.rollForPlanets(1, 9)
 	planets, err := GeneratePlanets(star.Coords, nPlanets)
 	if err != nil {
 		return nil, err
@@ -77,7 +71,7 @@ func NewStar(w *Writer, at Coords, isHomeSystem bool) (*StarData, error) {
 	return star, nil
 }
 
-func (s *StarData) rollForPlanets() int {
+func (s *StarData) rollForPlanets(minPlanets, maxPlanets int) int {
 	// the type of the star will influence the number of dice we roll
 	// when generating the planets.
 	var numberOfDice int
@@ -118,10 +112,10 @@ func (s *StarData) rollForPlanets() int {
 		numPlanets += rnd(sizeOfDie)
 	}
 	// then adjust if too few or too many planets
-	for numPlanets < 1 {
+	for numPlanets < minPlanets {
 		numPlanets += rnd(2)
 	}
-	for numPlanets > 9 {
+	for numPlanets > maxPlanets {
 		numPlanets -= rnd(3)
 	}
 	return numPlanets
@@ -186,6 +180,26 @@ func (s *StarData) ConvertToHomeSystem(l *Logger, species *SpeciesData, src []*P
 
 	l.Printf("Converted system %s to home system (planets %d/%d)\n", s.Coords.XYZ(), len(s.Planets), len(src))
 	s.HomeSpecies = species
+}
+
+func (s *StarData) GenerateAlienSystem() error {
+	nPlanets := s.rollForPlanets(5, 9)
+	planets, err := GeneratePlanets(s.Coords, nPlanets)
+	if err != nil {
+		return err
+	}
+	s.Planets = planets
+	return nil
+}
+
+func (s *StarData) GenerateEarthLikeSystem() error {
+	nPlanets := s.rollForPlanets(5, 9)
+	planets, err := GeneratePlanets(s.Coords, nPlanets)
+	if err != nil {
+		return err
+	}
+	s.Planets = planets
+	return nil
 }
 
 // returns index, not number
