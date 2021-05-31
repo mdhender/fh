@@ -95,7 +95,7 @@ func Min(ints ...int) int {
 
 func MinMax(ints ...int) (int, int) {
 	if len(ints) == 0 {
-		return 0,0
+		return 0, 0
 	}
 	min, max := ints[0], ints[0]
 	for _, i := range ints {

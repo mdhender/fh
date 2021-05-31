@@ -6,5 +6,6 @@
 *.pdf
 *.so
 *.test
+*.xlsx
 /.idea
 /testdata/*

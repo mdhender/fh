@@ -149,9 +149,6 @@ files, then creates a new galaxy file.`,
 		}
 		fmt.Printf("[create] species skeleton created in %v\n", time.Now().Sub(started))
 
-
-
-
 		l := &fh.Logger{Stdout: logFile}
 		defer l.Close()
 

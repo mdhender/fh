@@ -53,8 +53,7 @@ func getSystems(name string) ([]*System, error) {
 		if err != nil {
 			return nil, fmt.Errorf("line %d: z: %w", l+1, err)
 		}
-		s = append(s, &System{X:x, Y:y, Z:z})
+		s = append(s, &System{X: x, Y: y, Z: z})
 	}
 	return s, nil
 }
-

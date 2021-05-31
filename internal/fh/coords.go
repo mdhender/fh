@@ -149,26 +149,26 @@ func BestCoord(radius int) Coords {
 // Point will be at least dPoint units away from the given point.
 // Point will be at least dHome units away from a home system.
 func RandomXYZ(r int, p Coords, dP int, holes []*StarData, dHoles int, homes []*StarData, dHomes int, systems []*StarData, dSystems int) Coords {
-	a, b, rSquared := -1 * (r + 1), 2 * r + 1, r * r
-	for i:=0; i < 10_000; i++ {
-		x,y,z := a+rnd(b),a+rnd(b),a+rnd(b)
+	a, b, rSquared := -1*(r+1), 2*r+1, r*r
+	for i := 0; i < 10_000; i++ {
+		x, y, z := a+rnd(b), a+rnd(b), a+rnd(b)
 		// point must be within the sphere
-		if rSquared < x*x + y*y + z*z {
+		if rSquared < x*x+y*y+z*z {
 			continue
 		}
 		// point must not be close to first point
 		if dP > 0 {
 			dX, dY, dZ := p.X-x, p.Y-y, p.Z-z
-			if dP*dP < dX * dX + dY*dY + dZ * dZ {
+			if dP*dP < dX*dX+dY*dY+dZ*dZ {
 				continue
 			}
 		}
 		// point must not be close to wormhole
 		if holes != nil && dHoles > 0 {
-			d, tooClose := dHoles * dHoles, false
+			d, tooClose := dHoles*dHoles, false
 			for _, s := range holes {
 				dX, dY, dZ := s.Coords.X-x, s.Coords.Y-y, s.Coords.Z-z
-				if d < dX * dX + dY*dY + dZ * dZ {
+				if d < dX*dX+dY*dY+dZ*dZ {
 					tooClose = true
 					break
 				}
@@ -179,10 +179,10 @@ func RandomXYZ(r int, p Coords, dP int, holes []*StarData, dHoles int, homes []*
 		}
 		// point must not be close to home system
 		if homes != nil && dHomes > 0 {
-			d, tooClose := dHomes * dHomes, false
+			d, tooClose := dHomes*dHomes, false
 			for _, s := range homes {
 				dX, dY, dZ := s.Coords.X-x, s.Coords.Y-y, s.Coords.Z-z
-				if d < dX * dX + dY*dY + dZ * dZ {
+				if d < dX*dX+dY*dY+dZ*dZ {
 					tooClose = true
 					break
 				}
@@ -193,10 +193,10 @@ func RandomXYZ(r int, p Coords, dP int, holes []*StarData, dHoles int, homes []*
 		}
 		// point must not be close to system
 		if systems != nil && dSystems > 0 {
-			d, tooClose := dSystems * dSystems, false
+			d, tooClose := dSystems*dSystems, false
 			for _, s := range systems {
 				dX, dY, dZ := s.Coords.X-x, s.Coords.Y-y, s.Coords.Z-z
-				if d < dX * dX + dY*dY + dZ * dZ {
+				if d < dX*dX+dY*dY+dZ*dZ {
 					tooClose = true
 					break
 				}
@@ -205,7 +205,7 @@ func RandomXYZ(r int, p Coords, dP int, holes []*StarData, dHoles int, homes []*
 				continue
 			}
 		}
-		return Coords{X:x,Y:y,Z:z}
+		return Coords{X: x, Y: y, Z: z}
 	}
 	panic(fmt.Sprintf("exceeded 10,000 attempts to place a new system"))
 }

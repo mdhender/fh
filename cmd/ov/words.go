@@ -18,7 +18,6 @@
 
 package main
 
-
 func words(b []byte) [][]byte {
 	if len(b) == 0 {
 		return nil

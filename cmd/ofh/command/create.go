@@ -107,4 +107,3 @@ files, then creates a new galaxy file.`,
 		return nil
 	},
 }
-

@@ -1,0 +1,221 @@
+= Far Horizons Specifications
+Michael D Henderson <author@mdhender.com>
+1.0, May 29, 2021: AsciiDoc article template
+:toc:
+:icons: font
+:url-quickref: https://docs.asciidoctor.org/asciidoc/latest/syntax-quick-reference/
+
+Specifications for my Far Horizons implementation.
+
+== Cluster
+The cluster is a sphere containing all of the systems.
+For game purposes, the radius is always a whole number.
+
+=== Resources
+The richness of resources in the cluster combined with the number of species determines the number of systems in the cluster.
+
+The gamemaster may specify the availability of resources when generating a cluster.
+A lower level means fewer resources and more competition for those resources.
+
+The value must be between 0 and 9, with the default being 0.
+
+.Resource Levels
+|===
+|Level|Systems per Species
+
+|0|6 systems per species
+|1|7 systems per species
+|2|8 systems per species
+|3|9 systems per species
+|4|13 systems per species
+|5|15 systems per species
+|6|20 systems per species
+|7|30 systems per species
+|8|40 systems per species
+|9|50 systems per species
+|===
+
+=== Density
+Density is measured in number of systems per cubic parsec.
+It is a game mechanic that represents the number of systems that contain planets that can be colonized.
+
+The location of the cluster (relative to the core and rim) determines the density.
+Moving away from the core decrease the density; moving towards it increases the density.
+
+The default location for clusters is the galactic rim.
+
+.Cluster Location
+|===
+|Location|Density
+
+|Outer Rim|0.001658 systems per cubic parsec
+|Rim|0.002488 systems per cubic parsec
+|Inner Rim|0.003732 systems per cubic parsec
+|Outer Core|0.005898 systems per cubic parsec
+
+|===
+
+Density influences the pace of the game.
+The higher the density, the sooner species will run in to each other.
+
+=== Radius
+The number of systems divided by the density determines the total volume of the cluster.
+Because the radius must be a whole number, its value will be rounded up.
+
+.Cluster Example
+|===
+|Number Of Species|Resource Level|Number of Systems|Location|Volume|Radius
+
+|18|0|108|Rim|43,408 pc^3^|22 parsecs
+|10|6|200|Outer Core|33,910 pc^3^|21 parsecs
+|6|9|300|Outer Rim|180,941 pc^3^|36 parsecs
+|===
+
+== Systems
+Systems are identified by their co-ordinates.
+
+=== Wormholes
+A wormhole allows any ship to move between two systems.
+It is bi-directional.
+The end-points of the wormhole are fixed when the cluster is created.
+
+Ships do not require FTL engines to pass through a wormhole.
+
+=== Planets
+Planets are identified by their system's co-ordinates plus an orbit number.
+For example, the planet in the 3^rd^ orbit of system "6 5 4" would be  "6 5 4 #3".
+
+== Species
+The number of species determines the size and composition of the cluster.
+
+== Specifications
+
+*GIVEN* an uninitialized galaxy +
+*WHEN* the gamemaster requests a cluster with 6 systems in the Outer Rim +
+*THEN* the result should contain 6 systems within 10 parsecs of the origin.
+
+*GIVEN* an uninitialized galaxy +
+*WHEN* the gamemaster requests a cluster with 6 systems in the Rim +
+*THEN* the result should contain 6 systems within 9 parsecs of the origin.
+
+*GIVEN* an uninitialized galaxy +
+*WHEN* the gamemaster requests a cluster with 6 systems in the Inner Rim +
+*THEN* the result should contain 6 systems within 8 parsecs of the origin.
+
+*GIVEN* an uninitialized galaxy +
+*WHEN* the gamemaster requests a cluster with 6 systems in the Outer Core +
+*THEN* the result should contain 6 systems within 7 parsecs of the origin.
+
+*GIVEN* an uninitialized galaxy +
+*WHEN* the gamemaster requests a cluster with 60 systems in the Outer Rim +
+*THEN* the result should contain 60 systems within 21 parsecs of the origin.
+
+*GIVEN* an uninitialized galaxy +
+*WHEN* the gamemaster requests a cluster with 60 systems in the Rim +
+*THEN* the result should contain 60 systems within 18 parsecs of the origin.
+
+*GIVEN* an uninitialized galaxy +
+*WHEN* the gamemaster requests a cluster with 60 systems in the Inner Rim +
+*THEN* the result should contain 60 systems within 16 parsecs of the origin.
+
+*GIVEN* an uninitialized galaxy +
+*WHEN* the gamemaster requests a cluster with 60 systems in the Outer Core +
+*THEN* the result should contain 60 systems within 14 parsecs of the origin.
+
+*GIVEN* an uninitialized galaxy +
+*WHEN* the gamemaster requests a cluster with 900 systems in the Outer Rim +
+*THEN* the result should contain 900 systems within 51 parsecs of the origin.
+
+*GIVEN* an uninitialized galaxy +
+*WHEN* the gamemaster requests a cluster with 900 systems in the Rim +
+*THEN* the result should contain 900 systems within 45 parsecs of the origin.
+
+*GIVEN* an uninitialized galaxy +
+*WHEN* the gamemaster requests a cluster with 900 systems in the Inner Rim +
+*THEN* the result should contain 900 systems within 39 parsecs of the origin.
+
+*GIVEN* an uninitialized galaxy +
+*WHEN* the gamemaster requests a cluster with 900 systems in the Outer Core +
+*THEN* the result should contain 900 systems within 35 parsecs of the origin.
+
+== Other Stuff
+This is a paragraph with a *bold* word and an _italicized_ word.
+
+=== Second level heading
+
+.Unordered list title
+* list item 1
+** nested list item
+*** nested nested list item 1
+*** nested nested list item 2
+* list item 2
+
+This is a paragraph.
+
+.Image caption
+image::image-file-name.png[I am the image alt text.]
+
+This is another paragraph.footnote:[I am footnote text and will be displayed at the bottom of the article.]
+
+.Example block title
+====
+Content in an example block is subject to normal substitutions.
+====
+
+.Sidebar title
+****
+Sidebars contain aside text and are subject to normal substitutions.
+****
+
+==== Third level heading
+
+[#id-for-listing-block]
+.Listing block title
+----
+Content in a listing block is subject to verbatim substitutions.
+Listing block content is commonly used to preserve code input.
+----
+
+===== Fourth level heading
+
+.Table title
+|===
+|Column heading 1 |Column heading 2
+
+|Column 1, row 1
+|Column 2, row 1
+
+|Column 1, row 2
+|Column 2, row 2
+|===
+
+====== Fifth level heading
+
+[quote,firstname lastname,movie title]
+____
+I am a block quote or a prose excerpt.
+I am subject to normal substitutions.
+____
+
+[verse,firstname lastname,poem title and more]
+____
+I am a verse block.
+  Indents and endlines are preserved in verse blocks.
+____
+
+== First level heading
+
+TIP: There are five admonition labels: Tip, Note, Important, Caution and Warning.
+
+// I am a comment and won't be rendered.
+
+. ordered list item
+.. nested ordered list item
+. ordered list item
+
+The text at the end of this sentence is cross referenced to <<_third_level_heading,the third level heading>>
+
+== First level heading
+
+This is a link to the https://docs.asciidoctor.org/home/[Asciidoctor documentation].
+This is an attribute reference {url-quickref}[that links this text to the AsciiDoc Syntax Quick Reference].

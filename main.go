@@ -16,38 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package scanner
+// Package main implements the command line client for Far Horizons.
+package main
 
-import "bytes"
+import "github.com/mdhender/fh/command"
 
-type Scanner struct {
-	line, col int
-	buffer    []byte
-}
-
-type Kind int
-
-const (
-	EOF Kind = iota
-	NL
-	Spaces
-)
-
-type Token struct {
-	Line, Col int
-	K         Kind
-	V         []byte
-}
-
-func (s Scanner) IsEOF() bool {
-	return len(s.buffer) == 0
-}
-
-func (s Scanner) NL() (*Token, Scanner, error) {
-	if bytes.HasPrefix(s.buffer, []byte{'\n'}) {
-		return &Token{Line: s.line, Col: s.col, K: NL, V: []byte{'\n'}}, Scanner{line: s.line + 1, col: 0, buffer: s.buffer[1:]}, nil
-	} else if bytes.HasPrefix(s.buffer, []byte{'\r', '\n'}) {
-		return &Token{Line: s.line, Col: s.col, K: NL, V: []byte{'\n'}}, Scanner{line: s.line + 1, col: 0, buffer: s.buffer[2:]}, nil
-	}
-	return nil, s, nil
+func main() {
+	command.Execute()
 }

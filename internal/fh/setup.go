@@ -27,9 +27,9 @@ import (
 )
 
 type SetupData struct {
-	IsVerbose bool `json:"is_verbose,omitempty"`
-	NumberOfSpecies int `json:"number_of_species,omitempty"`
-	Galaxy struct {
+	IsVerbose       bool `json:"is_verbose,omitempty"`
+	NumberOfSpecies int  `json:"number_of_species,omitempty"`
+	Galaxy          struct {
 		Path      string `json:"path"`
 		Name      string `json:"name"`
 		Overrides struct {

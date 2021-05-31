@@ -16,38 +16,38 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package scanner
+package logger
 
-import "bytes"
-
-type Scanner struct {
-	line, col int
-	buffer    []byte
-}
-
-type Kind int
-
-const (
-	EOF Kind = iota
-	NL
-	Spaces
+import (
+	"fmt"
+	"io"
 )
 
-type Token struct {
-	Line, Col int
-	K         Kind
-	V         []byte
+type Logger struct {
+	Disabled bool
+	File     io.WriteCloser
 }
 
-func (s Scanner) IsEOF() bool {
-	return len(s.buffer) == 0
-}
-
-func (s Scanner) NL() (*Token, Scanner, error) {
-	if bytes.HasPrefix(s.buffer, []byte{'\n'}) {
-		return &Token{Line: s.line, Col: s.col, K: NL, V: []byte{'\n'}}, Scanner{line: s.line + 1, col: 0, buffer: s.buffer[1:]}, nil
-	} else if bytes.HasPrefix(s.buffer, []byte{'\r', '\n'}) {
-		return &Token{Line: s.line, Col: s.col, K: NL, V: []byte{'\n'}}, Scanner{line: s.line + 1, col: 0, buffer: s.buffer[2:]}, nil
+func (w *Logger) Close() {
+	if w.File == nil {
+		return
 	}
-	return nil, s, nil
+	if err := w.File.Close(); err != nil {
+		panic(err)
+	}
+	w.Disabled, w.File = true, nil
+}
+
+func (w *Logger) Printf(f string, a ...interface{}) {
+	if w == nil || w.Disabled || w.File == nil {
+		return
+	}
+	_, _ = fmt.Fprintf(w.File, f, a...)
+}
+
+func (w *Logger) Write(b []byte) {
+	if w.Disabled || w.File == nil {
+		return
+	}
+	_, _ = w.File.Write(b)
 }

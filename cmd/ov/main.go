@@ -38,4 +38,3 @@ func run(glist string) error {
 	fmt.Println(*systems[0])
 	return nil
 }
-

@@ -16,38 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package scanner
+package stdlib
 
-import "bytes"
-
-type Scanner struct {
-	line, col int
-	buffer    []byte
-}
-
-type Kind int
-
-const (
-	EOF Kind = iota
-	NL
-	Spaces
+import (
+	"fmt"
+	"strings"
+	"unicode"
 )
 
-type Token struct {
-	Line, Col int
-	K         Kind
-	V         []byte
-}
-
-func (s Scanner) IsEOF() bool {
-	return len(s.buffer) == 0
-}
-
-func (s Scanner) NL() (*Token, Scanner, error) {
-	if bytes.HasPrefix(s.buffer, []byte{'\n'}) {
-		return &Token{Line: s.line, Col: s.col, K: NL, V: []byte{'\n'}}, Scanner{line: s.line + 1, col: 0, buffer: s.buffer[1:]}, nil
-	} else if bytes.HasPrefix(s.buffer, []byte{'\r', '\n'}) {
-		return &Token{Line: s.line, Col: s.col, K: NL, V: []byte{'\n'}}, Scanner{line: s.line + 1, col: 0, buffer: s.buffer[2:]}, nil
+func IsValidName(name string) error {
+	if name != strings.TrimSpace(name) {
+		return fmt.Errorf("name can't have leading or trailing spaces")
+	} else if name == "" {
+		return fmt.Errorf("name can't be blank")
 	}
-	return nil, s, nil
+	for _, ch := range name {
+		if !(unicode.IsLetter(ch) || unicode.IsDigit(ch) || unicode.IsSpace(ch) || ch == '.' || ch == '\'' || ch == '-') {
+			return fmt.Errorf("invalid character %q in name", string(ch))
+		}
+	}
+	return nil
 }

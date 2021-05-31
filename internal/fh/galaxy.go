@@ -22,7 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mdhender/fh/internal/prng"
-"github.com/montanaflynn/stats"
+	"github.com/montanaflynn/stats"
 	"io/ioutil"
 	"math"
 	"os"
@@ -58,7 +58,7 @@ type GalaxyData struct {
 	}
 	allPlanets []*PlanetData
 	l          *Logger
-	verbose bool
+	verbose    bool
 }
 
 type Player struct {
@@ -71,8 +71,8 @@ func NewGalaxy(w *Writer, setupData *SetupData) (*GalaxyData, error) {
 	started := time.Now()
 
 	g := &GalaxyData{
-		ID:     setupData.Galaxy.Name,
-		Name:   setupData.Galaxy.Name,
+		ID:      setupData.Galaxy.Name,
+		Name:    setupData.Galaxy.Name,
 		verbose: setupData.IsVerbose,
 	}
 
@@ -112,16 +112,16 @@ func NewGalaxy(w *Writer, setupData *SetupData) (*GalaxyData, error) {
 	}
 
 	numberOfSystems := int(math.Round(float64(pointsIn) * density))
-	w.Printf("Cluster density %7.4f%% will generate %s systems\n", 100*density, Commas(numberOfSystems))
+	w.Printf("Cluster %q density %7.4f%% will generate %s systems\n", setupData.Galaxy.Density, 100*density, Commas(numberOfSystems))
 
-	fmt.Printf("[create] generating earth-like systems no closer together than %d parsecs\n", g.Radius / 3 + 1)
+	fmt.Printf("[create] generating earth-like systems no closer together than %d parsecs\n", g.Radius/3+1)
 	fmt.Printf("[create] generating remaining  systems no closer together than %d parsecs\n", setupData.Galaxy.MinimumDistance)
 	for i := 0; i < numberOfSystems; i++ {
 		nctOrigin, nctHoles, nctHomes, nctSystems := 0, 0, 0, setupData.Galaxy.MinimumDistance
 		isHomeSystem := i < setupData.NumberOfSpecies
 		if isHomeSystem {
-			nctOrigin = g.Radius / 2 + 1
-			nctHomes = g.Radius / 3 + 1
+			nctOrigin = g.Radius/2 + 1
+			nctHomes = g.Radius/3 + 1
 		}
 		at := RandomXYZ(g.Radius, Coords{}, nctOrigin, nil, nctHoles, g.allSystems, nctHomes, g.allSystems, nctSystems)
 		s, err := NewStar(w, at, isHomeSystem)
@@ -131,8 +131,7 @@ func NewGalaxy(w *Writer, setupData *SetupData) (*GalaxyData, error) {
 		g.allSystems = append(g.allSystems, s)
 		if isHomeSystem {
 			// create an earth-like system with a certain minimum number of planets
-			minPlanets := 7
-			s.GenerateEarthLikeSystem(minPlanets)
+			s.GenerateEarthLikeSystem(7, 9)
 		} else {
 			// create a totally alien system
 			s.GenerateAlienSystem()
@@ -150,7 +149,6 @@ func NewGalaxy(w *Writer, setupData *SetupData) (*GalaxyData, error) {
 
 	}
 	// generate worm-holes
-
 
 	return g, nil
 }
@@ -201,12 +199,16 @@ func (g *GalaxyData) AddPlayer(w *Writer, p *PlayerData) error {
 // desired number of species.
 func (g *GalaxyData) CalculateRadius(w *Writer, n int, largeCluster bool) (int, error) {
 	// v is the volume needed to support all of the species
+	w.Printf("Normal cluster volume is %7.2f cubic parsecs per species.\n", float64(STANDARD_GALACTIC_RADIUS*STANDARD_GALACTIC_RADIUS*STANDARD_GALACTIC_RADIUS)/float64(STANDARD_NUMBER_OF_SPECIES))
+	w.Printf("Large  cluster volume is %7.2f cubic parsecs per species.\n", float64(3*STANDARD_GALACTIC_RADIUS*STANDARD_GALACTIC_RADIUS*STANDARD_GALACTIC_RADIUS)/float64(2*STANDARD_NUMBER_OF_SPECIES))
+
 	v := n * STANDARD_GALACTIC_RADIUS * STANDARD_GALACTIC_RADIUS * STANDARD_GALACTIC_RADIUS / STANDARD_NUMBER_OF_SPECIES
-	w.Printf("Cluster volume defaults to %d cubic parsecs for %d species.\n", v)
+	w.Printf("Cluster volume defaults to %d cubic parsecs for %d species.\n", v, n)
 	// if the game master wants a large cluster, increase the volume by 50%
 	if largeCluster {
-		v= 3 * v / 2
-		w.Printf("Configured for large cluster; volume increased from to %d cubic parsecs\n", v)
+		t := v
+		v = 3 * v / 2
+		w.Printf("Configured for large cluster; volume increased from %d to %d cubic parsecs\n", t, v)
 	}
 	// find the smallest sphere with at least that much volume
 	r := MIN_RADIUS
@@ -217,6 +219,7 @@ func (g *GalaxyData) CalculateRadius(w *Writer, n int, largeCluster bool) (int, 
 	if r > MAX_RADIUS {
 		return r, fmt.Errorf("radius %d outside the allowed range of %d to %d parsecs", r, MIN_RADIUS, MAX_RADIUS)
 	}
+	w.Printf("Cluster volume enclosed by sphere with radius %d.\n", r)
 
 	return r, nil
 }
@@ -274,7 +277,7 @@ func (g *GalaxyData) NumberOfSpecies() int {
 }
 
 func (g *GalaxyData) RandomXYZ(w *Writer, minDistance int, avoidOrigin, avoidHomeSystems, avoidWormholes bool) Coords {
-	origin	 := Coords{X:0,Y:0,Z:0}
+	origin := Coords{X: 0, Y: 0, Z: 0}
 	var homes []Coords
 	if avoidHomeSystems {
 		for _, alien := range g.allSpecies {

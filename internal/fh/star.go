@@ -192,8 +192,8 @@ func (s *StarData) GenerateAlienSystem() error {
 	return nil
 }
 
-func (s *StarData) GenerateEarthLikeSystem() error {
-	nPlanets := s.rollForPlanets(5, 9)
+func (s *StarData) GenerateEarthLikeSystem(min, max int) error {
+	nPlanets := s.rollForPlanets(min, max)
 	planets, err := GeneratePlanets(s.Coords, nPlanets)
 	if err != nil {
 		return err

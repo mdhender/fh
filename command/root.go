@@ -16,14 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// Package command implements the command line dispatcher for Far Horizons
 package command
 
 import (
 	"fmt"
-	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"os"
+
+	homedir "github.com/mitchellh/go-homedir"
+	"github.com/spf13/viper"
 )
 
 var cfgFile string
@@ -36,7 +38,9 @@ var randomSeed string
 var rootCmd = &cobra.Command{
 	Use:   "fh",
 	Short: "Command line manager for Far Horizons",
-	Long:  `ofh is the original command line tool for managing game data.`,
+	Long:  `fh is a command line tool for managing game data.`,
+	// Uncomment the following line if your bare application has an action associated with it:
+	// Run: func(cmd *cobra.Command, args []string) { },
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -49,11 +53,14 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	// These persistent flags are global to commands in this package.
-	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "~/.ofh.yaml", "config file")
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "~/.fh.yaml", "config file")
 	rootCmd.PersistentFlags().StringVarP(&galaxyPath, "galaxy-path", "g", ".", "path containing game.json file")
 	rootCmd.PersistentFlags().StringVar(&randomSeed, "seed", "0x00C0FFEE", "seed for random number generator")
 	rootCmd.PersistentFlags().BoolVarP(&isTest, "test", "t", false, "test command")
 	rootCmd.PersistentFlags().BoolVarP(&isVerbose, "verbose", "v", false, "verbose output")
+
+	//// Cobra also supports local flags, which will only run when this action is called directly.
+	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.
