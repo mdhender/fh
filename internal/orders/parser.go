@@ -19,15 +19,17 @@
 package orders
 
 import (
-	"fmt"
 	"io/ioutil"
 )
 
-func Parse(name string) (root []*Section, errors []error) {
+func Parse(name string) *Orders {
+	orders := &Orders{}
 	b, err := ioutil.ReadFile(name)
 	if err != nil {
-		return nil, []error{nil}
+		orders.Errors = append(orders.Errors, err)
+		return orders
 	}
+
 	var commands []*Command
 	var command *Command
 	scanner := NewScanner(b)
@@ -52,7 +54,7 @@ func Parse(name string) (root []*Section, errors []error) {
 	//for _, command := range commands {
 	//	fmt.Println(*command)
 	//}
-	var sections []*Section
+	var section *Section
 	for _, command := range commands {
 		switch command.Name {
 		case "START":
@@ -60,23 +62,45 @@ func Parse(name string) (root []*Section, errors []error) {
 			if len(command.Args) != 0 {
 				name = command.Args[0]
 			}
-			sections = append(sections, &Section{Line: command.Line, Name: name})
+			switch name {
+			case "COMBAT":
+				if orders.Combat == nil {
+					orders.Combat = &Section{Line: command.Line, Name: name}
+				}
+				section = orders.Combat
+			case "JUMPS":
+				if orders.Jumps == nil {
+					orders.Jumps = &Section{Line: command.Line, Name: name}
+				}
+				section = orders.Jumps
+			case "POST-ARRIVAL":
+				if orders.PostArrival == nil {
+					orders.PostArrival = &Section{Line: command.Line, Name: name}
+				}
+				section = orders.PostArrival
+			case "PRE-DEPARTURE":
+				if orders.PreDeparture == nil {
+					orders.PreDeparture = &Section{Line: command.Line, Name: name}
+				}
+				section = orders.PreDeparture
+			case "PRODUCTION":
+				if orders.Production == nil {
+					orders.Production = &Section{Line: command.Line, Name: name}
+				}
+				section = orders.Production
+			case "STRIKES":
+				if orders.Strikes == nil {
+					orders.Strikes = &Section{Line: command.Line, Name: name}
+				}
+				section = orders.Strikes
+			}
 		case "END":
 		default:
-			if len(sections) != 0 {
-				sections[len(sections)-1].Commands = append(sections[len(sections)-1].Commands, command)
+			if section != nil {
+				section.Commands = append(section.Commands, command)
 			}
 		}
 	}
-	for _, section := range sections {
-		fmt.Printf("START %q\n", section.Name)
-		for _, command := range section.Commands {
-			fmt.Printf("  %-12s", command.Name)
-			for _, arg := range command.Args {
-				fmt.Printf(" %q", arg)
-			}
-			fmt.Printf("\n")
-		}
-	}
-	return sections, errors
+
+	return orders
 }

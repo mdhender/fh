@@ -27,13 +27,13 @@ import (
 
 type Scanner struct {
 	line, col int // one-based values
-	b []byte
-	pb []*Token
+	b         []byte
+	pb        []*Token
 }
 
 type Token struct {
 	Line, Col int // one-based values
-	Text string
+	Text      string
 }
 
 func NewScanner(b []byte) *Scanner {
@@ -90,7 +90,7 @@ func (s *Scanner) Next() *Token {
 
 	r, w := utf8.DecodeRune(s.b)
 	if r == '\n' {
-		s.b, s.line, s.col = s.b[w:], s.line + 1, 1
+		s.b, s.line, s.col = s.b[w:], s.line+1, 1
 		return &Token{Line: pos.Line, Col: pos.Col, Text: "\n"}
 	}
 
@@ -207,5 +207,3 @@ func (s *Scanner) Peek() *Token {
 func (s *Scanner) Push(tok *Token) {
 	s.pb = append(s.pb, tok)
 }
-
-

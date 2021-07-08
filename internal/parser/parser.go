@@ -25,8 +25,8 @@ import (
 )
 
 type Section struct {
-	Line int
-	Name string
+	Line     int
+	Name     string
 	Commands []*Command
 }
 type Command struct {
@@ -34,6 +34,7 @@ type Command struct {
 	Name string
 	Args []string
 }
+
 func Parse(name string) (root []*Section, errors []error) {
 	b, err := ioutil.ReadFile(name)
 	if err != nil {
@@ -92,62 +93,62 @@ func Parse(name string) (root []*Section, errors []error) {
 	return sections, errors
 }
 
-	//section := p.scanner.Next()
-	//switch section.Kind {
-	//case lexer.Combat:
-	//case lexer.Jumps:
-	//case lexer.PostArrival:
-	//case lexer.PreDeparture:
-	//case lexer.Production:
-	//case lexer.Strikes:
-	//
-	//switch command.Kind {
-	//case lexer.Ally:
-	//case lexer.Ambush:
-	//case lexer.Attack:
-	//case lexer.Auto:
-	//case lexer.Base:
-	//case lexer.Battle:
-	//case lexer.Build:
-	//case lexer.Continue:
-	//case lexer.Destroy:
-	//case lexer.Develop:
-	//case lexer.Disband:
-	//case lexer.Enemy:
-	//case lexer.Engage:
-	//case lexer.Estimate:
-	//case lexer.Haven:
-	//case lexer.Hide:
-	//case lexer.Hijack:
-	//case lexer.IBuild:
-	//case lexer.IContinue:
-	//case lexer.Install:
-	//case lexer.Intercept:
-	//case lexer.Jump:
-	//case lexer.Land:
-	//case lexer.Message:
-	//case lexer.Move:
-	//case lexer.Name:
-	//case lexer.Neutral:
-	//case lexer.Orbit:
-	//case lexer.PJump:
-	//case lexer.Production:
-	//case lexer.Recycle:
-	//case lexer.Repair:
-	//case lexer.Research:
-	//case lexer.Scan:
-	//case lexer.Send:
-	//case lexer.Shipyard:
-	//case lexer.Summary:
-	//case lexer.Target:
-	//case lexer.Teach:
-	//case lexer.Telescope:
-	//case lexer.Terraform:
-	//case lexer.Transfer:
-	//case lexer.Unload:
-	//	fmt.Println(command)
-	//case lexer.Upgrade:
-	//case lexer.Visited:
-	//case lexer.Withdraw:
-	//case lexer.Wormhole:
-	//case lexer.ZZZ:
+//section := p.scanner.Next()
+//switch section.Kind {
+//case lexer.Combat:
+//case lexer.Jumps:
+//case lexer.PostArrival:
+//case lexer.PreDeparture:
+//case lexer.Production:
+//case lexer.Strikes:
+//
+//switch command.Kind {
+//case lexer.Ally:
+//case lexer.Ambush:
+//case lexer.Attack:
+//case lexer.Auto:
+//case lexer.Base:
+//case lexer.Battle:
+//case lexer.Build:
+//case lexer.Continue:
+//case lexer.Destroy:
+//case lexer.Develop:
+//case lexer.Disband:
+//case lexer.Enemy:
+//case lexer.Engage:
+//case lexer.Estimate:
+//case lexer.Haven:
+//case lexer.Hide:
+//case lexer.Hijack:
+//case lexer.IBuild:
+//case lexer.IContinue:
+//case lexer.Install:
+//case lexer.Intercept:
+//case lexer.Jump:
+//case lexer.Land:
+//case lexer.Message:
+//case lexer.Move:
+//case lexer.Name:
+//case lexer.Neutral:
+//case lexer.Orbit:
+//case lexer.PJump:
+//case lexer.Production:
+//case lexer.Recycle:
+//case lexer.Repair:
+//case lexer.Research:
+//case lexer.Scan:
+//case lexer.Send:
+//case lexer.Shipyard:
+//case lexer.Summary:
+//case lexer.Target:
+//case lexer.Teach:
+//case lexer.Telescope:
+//case lexer.Terraform:
+//case lexer.Transfer:
+//case lexer.Unload:
+//	fmt.Println(command)
+//case lexer.Upgrade:
+//case lexer.Visited:
+//case lexer.Withdraw:
+//case lexer.Wormhole:
+//case lexer.ZZZ:

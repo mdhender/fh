@@ -18,19 +18,20 @@
 
 package orders
 
-type Section struct {
-	Line int
-	Name string
-	Commands []*Command
+type Orders struct {
+	Combat       *Section
+	PreDeparture *Section
+	Jumps        *Section
+	Production   *Section
+	PostArrival  *Section
+	Strikes      *Section
+	Errors       []error
 }
 
-type Orders struct {
-	Combat *Section
-	PreDeparture *Section
-	Jumps *Section
-	Production *Section
-	PostArrival *Section
-	Strikes *Section
+type Section struct {
+	Line     int
+	Name     string
+	Commands []*Command
 }
 
 type Command struct {

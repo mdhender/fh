@@ -27,12 +27,12 @@ import (
 
 type Tokenizer struct {
 	line, col int // one-based values
-	b []byte
-	pb []*Token
+	b         []byte
+	pb        []*Token
 }
 type Token struct {
 	Line, Col int // one-based values
-	Text string
+	Text      string
 }
 
 func NewTokenizer(b []byte) *Tokenizer {
@@ -89,7 +89,7 @@ func (t *Tokenizer) Next() *Token {
 
 	r, w := utf8.DecodeRune(t.b)
 	if r == '\n' {
-		t.b, t.line, t.col = t.b[w:], t.line + 1, 1
+		t.b, t.line, t.col = t.b[w:], t.line+1, 1
 		return &Token{Line: pos.Line, Col: pos.Col, Text: "\n"}
 	}
 
@@ -206,4 +206,3 @@ func (t *Tokenizer) Peek() *Token {
 func (t *Tokenizer) Push(tok *Token) {
 	t.pb = append(t.pb, tok)
 }
-

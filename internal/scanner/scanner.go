@@ -38,9 +38,9 @@ type ORDERS struct {
 	err      error
 }
 type SECTION struct {
-	line int // one based values from start of file
-	col  int // one based values from start of line
-	Name string
+	line     int // one based values from start of file
+	col      int // one based values from start of line
+	Name     string
 	commands []*COMMAND
 	err      error
 }
@@ -162,7 +162,7 @@ func (s *scanner) getWord() *token {
 		}
 		s.offset, s.col = s.offset+w, s.col+1
 	}
-	word, lenWord := strings.ToUpper(string(s.buffer[offset:s.offset])), s.offset - offset
+	word, lenWord := strings.ToUpper(string(s.buffer[offset:s.offset])), s.offset-offset
 	if r == ',' {
 		// must consume comma as a word terminator
 		s.offset, s.col = s.offset+w, s.col+1
@@ -202,7 +202,7 @@ func (s *scanner) getWord() *token {
 	// space is not a delimiter for ship, colony, or species names.
 	// any other delimiter forces end of word.
 	if r != ' ' {
-		return &token{line: line, col: col, text: s.buffer[offset : offset + lenWord]}
+		return &token{line: line, col: col, text: s.buffer[offset : offset+lenWord]}
 	}
 
 	// check for colony or species names
@@ -280,7 +280,7 @@ func acceptSection(s *scanner) (*SECTION, error) {
 		return nil, nil
 	}
 	word := s.getWord()
-	if word == nil || !bytes.Equal(word.text, []byte{'S','T','A','R','T'}) {
+	if word == nil || !bytes.Equal(word.text, []byte{'S', 'T', 'A', 'R', 'T'}) {
 		// ignore words outside of section
 		return nil, nil
 	}
@@ -331,7 +331,7 @@ func acceptSection(s *scanner) (*SECTION, error) {
 			continue
 		}
 		command = s.getWord()
-		if bytes.Equal(command.text, []byte{'E','N','D'}) {
+		if bytes.Equal(command.text, []byte{'E', 'N', 'D'}) {
 			// ignore everything following the END command up to the end of the line
 			for !s.eof() && s.getEOL() == nil {
 				s.getSpaces()
