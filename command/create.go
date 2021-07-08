@@ -21,6 +21,7 @@ package command
 import (
 	"fmt"
 	"github.com/mdhender/fh/config"
+	"github.com/mdhender/fh/galaxy"
 	"github.com/mdhender/fh/internal/prng"
 	"github.com/mdhender/fh/logger"
 	"github.com/spf13/cobra"
@@ -145,6 +146,16 @@ to the game directory specified in the setup file.`,
 		w.Printf("%-30s == %d\n", "numberOfSpecies", cfg.Species.Number)
 		numberOfSystems := systemsPerSpecies * cfg.Species.Number
 		w.Printf("%-30s == %d\n", "numberOfSystems", numberOfSystems)
+
+		g, err := galaxy.New(cfg.Galaxy.Name, cfg.Species.Number, systemsPerSpecies, density, w)
+		if err != nil {
+			panic(err)
+		}
+
+		err = g.Set(galaxyPath)
+		if err != nil {
+			panic(err)
+		}
 
 		w.Printf("Created galaxy in %v\n", time.Now().Sub(started))
 

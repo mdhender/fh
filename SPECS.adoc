@@ -217,5 +217,7 @@ The text at the end of this sentence is cross referenced to <<_third_level_headi
 
 == First level heading
 
+This is a link to the https://en.wikipedia.org/wiki/Stellar_density[Stellar Density].
+
 This is a link to the https://docs.asciidoctor.org/home/[Asciidoctor documentation].
 This is an attribute reference {url-quickref}[that links this text to the AsciiDoc Syntax Quick Reference].

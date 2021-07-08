@@ -30,21 +30,21 @@ import (
 )
 
 const (
-	RESOURCE_MIN = 0
-	RESOURCE_MAX = 9
+	RESOURCE_MIN   = 0
+	RESOURCE_MAX   = 9
 	SEPARATION_MAX = 20
-	SPECIES_MIN  = 1
-	SPECIES_MAX  = 18
+	SPECIES_MIN    = 1
+	SPECIES_MAX    = 18
 )
 
 type Config struct {
 	IsVerbose bool `json:"is_verbose,omitempty"`
 	Galaxy    struct {
-		Path            string `json:"path"`
-		Name            string `json:"name"`
-		Location        string `json:"location,omitempty"`       // not case sensitive
-		ResourceLevel   int    `json:"resource_level,omitempty"` // range 0..9
-		Separation struct {
+		Path          string `json:"path"`
+		Name          string `json:"name"`
+		Location      string `json:"location,omitempty"`       // not case sensitive
+		ResourceLevel int    `json:"resource_level,omitempty"` // range 0..9
+		Separation    struct {
 			HomeSystems int `json:"home_systems,omitempty"`
 			Wormholes   int `json:"wormholes,omitempty"`
 		} `json:"separation,omitempty"`
