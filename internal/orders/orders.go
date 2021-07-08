@@ -16,10 +16,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package order
+package orders
 
-type Order interface {
-	Process(args ...string)
+type Section struct {
+	Line int
+	Name string
+	Commands []*Command
+}
+
+type Orders struct {
+	Combat *Section
+	PreDeparture *Section
+	Jumps *Section
+	Production *Section
+	PostArrival *Section
+	Strikes *Section
+}
+
+type Command struct {
+	Line int
+	Name string
+	Args []string
 }
 
 // ALLY declare species "sp" to be an ally
