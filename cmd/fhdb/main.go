@@ -69,6 +69,11 @@ func run(cfg *Config) []error {
 		fmt.Println("jdb is nil?")
 	}
 
+	test, verbose := false, cfg.Debug
+	if jdb.Galaxy.TurnNumber == 0 {
+		test, verbose = !test, !verbose
+	}
+
 	numSpecies := jdb.Galaxy.NumSpecies
 	if len(jdb.Species) > numSpecies {
 		numSpecies = len(jdb.Species)
@@ -78,6 +83,7 @@ func run(cfg *Config) []error {
 		Species: make([]*SpeciesTurnData, numSpecies, numSpecies),
 	}
 
+	verbose = false
 	for i := 1; i <= numSpecies; i++ {
 		turnData.Species[i-i] = &SpeciesTurnData{Id: fmt.Sprintf("SP%02d", i)}
 		td := turnData.Species[i-i]
@@ -87,16 +93,18 @@ func run(cfg *Config) []error {
 		log.Printf("orders: loading %q\n", td.OrderFile)
 		o := orders.Parse(td.OrderFile)
 		if o.Errors == nil {
-			fmt.Printf(";; SP%02d TURN %3d\n", i, jdb.Galaxy.TurnNumber)
-			for _, section := range []*orders.Section{o.Combat, o.PreDeparture, o.Jumps, o.Production, o.PostArrival, o.Strikes} {
-				if section != nil {
-					fmt.Printf("START %q\n", section.Name)
-					for _, command := range section.Commands {
-						fmt.Printf("    %-18s", command.Name)
-						for _, arg := range command.Args {
-							fmt.Printf(" %q", arg)
+			if verbose {
+				fmt.Printf(";; SP%02d TURN %3d\n", i, jdb.Galaxy.TurnNumber)
+				for _, section := range []*orders.Section{o.Combat, o.PreDeparture, o.Jumps, o.Production, o.PostArrival, o.Strikes} {
+					if section != nil {
+						fmt.Printf("START %q\n", section.Name)
+						for _, command := range section.Commands {
+							fmt.Printf("    %-18s", command.Name)
+							for _, arg := range command.Args {
+								fmt.Printf(" %q", arg)
+							}
+							fmt.Printf("\n")
 						}
-						fmt.Printf("\n")
 					}
 				}
 			}
@@ -107,25 +115,35 @@ func run(cfg *Config) []error {
 		}
 	}
 
-	test, verbose := false, true
-	if jdb.Galaxy.TurnNumber == 0 {
-		test, verbose = !test, !verbose
-	}
-
+	verbose = true
 	// locations
 	Locations(jdb, turnData, test, verbose)
 
 	// no-orders if not the first turn
+	log.Printf("[orders] skipping NoOrders\n")
+
 	// combat
+	log.Printf("[orders] skipping Combat\n")
 	// pre-departure
+	log.Printf("[orders] skipping PreDeparture\n")
 	// jump
+	log.Printf("[orders] skipping Jump\n")
 	// production
+	log.Printf("[orders] skipping Production\n")
 	// post-arrival
+	log.Printf("[orders] skipping PostArrival\n")
+
 	// locations
+	Locations(jdb, turnData, test, verbose)
+
 	// strike
+	log.Printf("[orders] skipping Strike\n")
 	// finish
+	log.Printf("[orders] skipping Finish\n")
 	// reports
+	log.Printf("[orders] skipping Reports\n")
 	// stats
+	log.Printf("[orders] skipping Stats\n")
 
 	return nil
 }

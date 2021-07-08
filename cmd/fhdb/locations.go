@@ -40,8 +40,10 @@ func Locations(jdb *jsondb.Store, turnData *TurnData, test, verbose bool) {
 			}
 			if !nampla.Status.HomePlanet {
 				jdb.Planets[nampla.PlanetIndex].TotalEconomicBase += nampla.MiBase + nampla.MaBase
-				if nampla.MiBase+nampla.MaBase != 0 {
-					fmt.Printf("planet %4d mi %4d ma %4d SP%02d %q\n", nampla.PlanetIndex, nampla.MiBase, nampla.MaBase, sp.Id, nid)
+				if verbose {
+					if nampla.MiBase+nampla.MaBase != 0 {
+						fmt.Printf("planet %4d mi %4d ma %4d SP%02d %q\n", nampla.PlanetIndex, nampla.MiBase, nampla.MaBase, sp.Id, nid)
+					}
 				}
 			}
 		}
@@ -58,9 +60,11 @@ func Locations(jdb *jsondb.Store, turnData *TurnData, test, verbose bool) {
 		}
 	}
 
-	for _, p := range jdb.Planets {
-		if p.TotalEconomicBase != 0 {
-			fmt.Printf("planet %4d eb %6d ee %3d\n", p.Id, p.TotalEconomicBase, p.EconEfficiency)
+	if verbose {
+		for _, p := range jdb.Planets {
+			if p.TotalEconomicBase != 0 {
+				fmt.Printf("planet %4d eb %6d ee %3d\n", p.Id, p.TotalEconomicBase, p.EconEfficiency)
+			}
 		}
 	}
 
