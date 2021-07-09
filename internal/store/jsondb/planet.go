@@ -20,6 +20,8 @@ package jsondb
 
 type Planet struct {
 	Id                int            `json:"id"`
+	Coords            Coords         `json:"coords"`
+	Orbit             int            `json:"orbit"`
 	TemperatureClass  int            `json:"temperature_class"`
 	PressureClass     int            `json:"pressure_class"`
 	Gases             map[string]int `json:"gases"`

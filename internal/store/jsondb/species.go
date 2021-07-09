@@ -77,6 +77,7 @@ type Species struct {
 		Type string `json:"type"`
 	} `json:"government"`
 	Homeworld struct {
+		Id     int    `json:"id"` // this is the planet index
 		Key    string `json:"key"`
 		Coords Coords `json:"coords"`
 		Orbit  int    `json:"orbit"`

@@ -41,6 +41,15 @@ func Read(filename string) (*Store, error) {
 	// TODO: get better about the zero vs one based indexing
 	ds.Planets = convertZeroBasedPlanetId(ds.Planets)
 
+	// add coordinates to the planet structure
+	// (they're not present in the dat2json export)
+	for _, system := range ds.Systems {
+		for orbit, planet := range system.Planets {
+			ds.Planets[planet].Coords = system.Coords
+			ds.Planets[planet].Orbit = orbit + 1
+		}
+	}
+
 	// validate planet data
 	for _, planet := range ds.Planets {
 		if planet.Id < 1 { // ignore the zero-th planet
@@ -86,6 +95,14 @@ func Read(filename string) (*Store, error) {
 		sp.Key = key
 		sp.Aliens = make(map[int]string)
 
+		if sp.Homeworld.Id == 0 {
+			for _, p := range ds.Planets {
+				if p.Coords == sp.Homeworld.Coords && p.Orbit == sp.Homeworld.Orbit {
+					sp.Homeworld.Id = p.Id
+					break
+				}
+			}
+		}
 		// parse Contact, then Ally, then Neutral, then Enemy on the off-chance
 		// that someone edits the JSON and assigns the species to multiple categories.
 		for _, a := range sp.Contacts {

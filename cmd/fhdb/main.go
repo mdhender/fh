@@ -142,8 +142,9 @@ func run(cfg *Config) []error {
 	log.Printf("[orders] skipping Finish\n")
 	// reports
 	log.Printf("[orders] skipping Reports\n")
+
 	// stats
-	log.Printf("[orders] skipping Stats\n")
+	Stats(jdb)
 
 	return nil
 }
