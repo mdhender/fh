@@ -6,8 +6,8 @@ package fh
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/mdhender/fh/pkg/mw"
 	"github.com/mdhender/fh/pkg/semver"
 	"log"

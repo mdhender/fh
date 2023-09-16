@@ -4,7 +4,7 @@ package fh
 
 import (
 	"fmt"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 )
 
