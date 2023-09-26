@@ -3,9 +3,14 @@
 package main
 
 import (
-	"github.com/mdhender/fh/pkg/homedir"
-	"github.com/spf13/cobra"
+	"context"
+	"github.com/mdhender/fh/internal/config"
+	"github.com/mdhender/fh/internal/dot"
+	"github.com/mdhender/fh/internal/homedir"
+	"github.com/mdhender/fh/internal/server"
 	"log"
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -13,55 +18,73 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.LUTC)
 
 	defer func(started time.Time) {
-		if args.time {
-			log.Printf("elapsed time %v\n", time.Now().Sub(started))
-		}
+		log.Printf("[main] elapsed time %v\n", time.Now().Sub(started))
 	}(time.Now())
+	log.Println("[main] entered")
 
-	if err := run(); err != nil {
+	home, err := homedir.Dir()
+	if err != nil {
+		log.Fatalf("home: %v\n", err)
+	}
+
+	if err := dot.Load("FH", false, false); err != nil {
+		log.Fatalf("main: %+v\n", err)
+	}
+
+	cfg, err := config.Default(home)
+	if err != nil {
+		log.Fatal(err)
+	} else if err = cfg.Load(); err != nil {
+		log.Fatal(err)
+	} else if cfg.WorkingDir, err = filepath.Abs(cfg.WorkingDir); err != nil {
+		log.Fatalf("[fh] working-dir: %v\n", err)
+	} else if sb, err := os.Stat(cfg.WorkingDir); err != nil {
+		log.Fatalf("[fh] working-dir: %v\n", err)
+	} else if !sb.IsDir() {
+		log.Fatalf("[fh] working-dir: invalid path %q\n", cfg.WorkingDir)
+	} else if err = os.Chdir(cfg.WorkingDir); err != nil {
+		log.Fatalf("[fh] working-dir: %v\n", err)
+	} else if wd, err := os.Getwd(); err != nil {
+		log.Fatalf("[fh] working-dir: %v\n", err)
+	} else {
+		log.Printf("[main] working dir %q\n", wd)
+	}
+
+	if err := run(cfg); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run() (err error) {
-	args.home, err = homedir.Dir()
+func run(cfg *config.Config) error {
+	var options []server.Option
+	var err error
+
+	if cfg.Public, err = filepath.Abs(cfg.Public); err != nil {
+		log.Fatalf("[fh] public: %v\n", err)
+	} else if sb, err := os.Stat(cfg.Public); err != nil {
+		log.Fatalf("[fh] public: %v\n", err)
+	} else if !sb.IsDir() {
+		log.Fatalf("[fh] public: invalid path %q\n", cfg.Public)
+	}
+	options = append(options, server.WithAssets("public", cfg.Public))
+
+	if cfg.Templates, err = filepath.Abs(cfg.Templates); err != nil {
+		log.Fatalf("[fh] templates: %v\n", err)
+	} else if sb, err := os.Stat(cfg.Templates); err != nil {
+		log.Fatalf("[fh] templates: %v\n", err)
+	} else if !sb.IsDir() {
+		log.Fatalf("[fh] templates: invalid path %q\n", cfg.Templates)
+	}
+	options = append(options, server.WithAssets("templates", cfg.Templates))
+
+	options = append(options, server.WithAddr(cfg.Host, cfg.Port))
+
+	s, err := server.New(options...)
 	if err != nil {
-		return err
+		log.Fatalf("[fh] server: %v\n", err)
+	} else if err := s.Serve(context.TODO()); err != nil {
+		log.Fatal(err)
 	}
 
-	cmdRoot.PersistentFlags().BoolVar(&args.time, "time", args.time, "display run time statistics on completion")
-
-	cmdRoot.AddCommand(cmdServe)
-	cmdServe.Flags().BoolVar(&args.middleware.badRunes, "bad-runes-middleware", args.middleware.badRunes, "enable bad runes middleware")
-	cmdServe.Flags().BoolVar(&args.middleware.cors, "cors-middleware", args.middleware.cors, "enable CORS options middleware")
-	cmdServe.Flags().BoolVar(&args.middleware.logging, "logging-middleware", args.middleware.logging, "enable logging middleware")
-	cmdServe.Flags().StringVar(&args.host, "host", args.templates, "host to bind to")
-	cmdServe.Flags().StringVar(&args.port, "port", args.templates, "port to listen on")
-	cmdServe.Flags().StringVar(&args.templates, "templates", args.templates, "path to templates")
-	cmdServe.Flags().StringVar(&args.workingDir, "working-dir", args.workingDir, "path to execute in")
-
-	return cmdRoot.Execute()
-}
-
-// args is the global arguments
-var args struct {
-	home       string
-	host       string
-	middleware struct {
-		badRunes bool
-		cors     bool
-		logging  bool
-	}
-	port       string
-	templates  string
-	time       bool
-	workingDir string
-}
-
-// cmdRoot represents the base command when called without any subcommands
-var cmdRoot = &cobra.Command{
-	Use:   "fh",
-	Short: "Far Horizons server",
-	Long: `This application implements a game engine for Far Horizons
-and a web server for players.`,
+	return nil
 }

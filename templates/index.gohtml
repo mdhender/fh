@@ -1,0 +1,17 @@
+{{define "content"}}
+    <h1>Welcome!</h1>
+    <p>This server provides an implementation of Far Horizons.</p>
+
+    <p>
+        If you have an account, please sign in.
+    </p>
+
+    <p>
+        If you would like to learn about the game without creating an account,
+        please read the <a href="/manual.html">manual</a>.
+    </p>
+
+    <form action="/auth/login" method="post" style="border: 2px solid black; padding: 2ch;">
+        <input type="submit" name="provider" value="Google">
+    </form>
+{{end}}
