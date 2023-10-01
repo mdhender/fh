@@ -8,6 +8,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"github.com/mdhender/fh/internal/semver"
+	"github.com/mdhender/fh/internal/sessions"
 	"github.com/mdhender/fh/internal/way"
 	"log"
 	"net"
@@ -28,8 +29,9 @@ type Server struct {
 	do      struct {
 		log bool
 	}
-	router *way.Router
-	tls    struct {
+	router   *way.Router
+	sessions *sessions.Store
+	tls      struct {
 		enabled  bool
 		certFile string
 		keyFile  string

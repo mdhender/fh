@@ -4,6 +4,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/mdhender/fh/internal/sessions"
 	"net"
 	"net/http"
 	"os"
@@ -63,6 +64,13 @@ func WithMaxBodyLength(l int) Option {
 func WithMiddleware(mw func(http.Handler) http.Handler) Option {
 	return func(s *Server) error {
 		return fmt.Errorf("not implemented")
+	}
+}
+
+func WithSessionStore(store *sessions.Store) Option {
+	return func(s *Server) error {
+		s.sessions = store
+		return nil
 	}
 }
 

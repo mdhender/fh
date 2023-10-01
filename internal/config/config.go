@@ -16,6 +16,7 @@ type Config struct {
 	Host       string
 	Port       string
 	Public     string
+	Sessions   string // path to session store
 	Templates  string
 	WorkingDir string
 }
@@ -46,6 +47,7 @@ func (cfg *Config) Load() error {
 	fs.StringVar(&cfg.Host, "host", cfg.Host, "host name (or IP) to bind to")
 	fs.StringVar(&cfg.Port, "port", cfg.Port, "port to listen to")
 	fs.StringVar(&cfg.Public, "public", cfg.Public, "path to public assets")
+	fs.StringVar(&cfg.Sessions, "sessions", cfg.Public, "path to sessions store")
 	fs.StringVar(&cfg.Templates, "templates", cfg.Templates, "path to template files")
 	fs.StringVar(&cfg.WorkingDir, "working-dir", cfg.WorkingDir, "path to run from")
 
